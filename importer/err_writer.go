@@ -14,7 +14,7 @@ type ErrorWriter interface {
 
 type CSVErrWriter struct {
 	ErrConf   ErrorConfig
-	ErrDataCh <-chan []string
+	ErrDataCh <-chan []interface{}
 	ErrLogCh  <-chan error
 }
 
@@ -29,7 +29,12 @@ func (w *CSVErrWriter) SetupErrorDataHandler() {
 		writer := csv.NewWriter(file)
 
 		for {
-			writer.Write(<-w.ErrDataCh)
+			rawErrData := <-w.ErrDataCh
+			errData := make([]string, len(rawErrData))
+			for i := range rawErrData {
+				errData[i] = rawErrData[i].(string)
+			}
+			writer.Write(errData)
 		}
 	}()
 }

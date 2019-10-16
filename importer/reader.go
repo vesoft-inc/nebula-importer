@@ -11,15 +11,15 @@ import (
 )
 
 type DataFileReader interface {
-	NewFileReader(path string, stmtCh chan<- string)
-	MakeStmt([]string) string
+	NewFileReader(path string, stmtCh chan<- Query)
+	MakeQuery([]string) Query
 }
 
 type CSVReader struct {
 	Schema Schema
 }
 
-func (r *CSVReader) NewFileReader(path string, stmtCh chan<- string) {
+func (r *CSVReader) NewFileReader(path string, stmtCh chan<- Query) {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
@@ -37,11 +37,11 @@ func (r *CSVReader) NewFileReader(path string, stmtCh chan<- string) {
 			log.Fatal(err)
 		}
 
-		stmtCh <- r.MakeStmt(line)
+		stmtCh <- r.MakeQuery(line)
 	}
 }
 
-func (r *CSVReader) MakeStmt(record []string) string {
+func (r *CSVReader) MakeQuery(record []string) Query {
 	schemaType := strings.ToUpper(r.Schema.Type)
 
 	var builder strings.Builder
@@ -65,7 +65,16 @@ func (r *CSVReader) MakeStmt(record []string) string {
 		}
 	}
 	builder.WriteString(");")
-	return builder.String()
+
+	data := make([]interface{}, len(record))
+	for i := range record {
+		data[i] = record[i]
+	}
+
+	return Query{
+		Stmt: builder.String(),
+		Data: data,
+	}
 }
 
 func writeVID(schemaType string, record []string, builder *strings.Builder) int {

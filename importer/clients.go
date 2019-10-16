@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	nebula "github.com/vesoft-inc/nebula-go"
 	graph "github.com/vesoft-inc/nebula-go/graph"
@@ -17,11 +18,11 @@ type NebulaClientConfig struct {
 	Password    string
 }
 
-func InitNebulaClientPool(conf NebulaClientConfig, stmtCh <-chan string, errCh chan<- error) {
+func InitNebulaClientPool(conf NebulaClientConfig, stmtCh <-chan Query, errLogCh chan<- error, errDataCh chan<- []interface{}) {
 	for i := 0; i < conf.Concurrency; i++ {
 		go func() {
 			// TODO: Add retry option for graph client
-			client, err := nebula.NewClient(conf.Address, nebula.GraphOptions{})
+			client, err := nebula.NewClient(conf.Address)
 			if err != nil {
 				log.Println(err)
 				return
@@ -36,15 +37,21 @@ func InitNebulaClientPool(conf NebulaClientConfig, stmtCh <-chan string, errCh c
 			for {
 				stmt := <-stmtCh
 
+				for _, val := range stmt.Data {
+					stmt.Stmt = strings.Replace(stmt.Stmt, "?", fmt.Sprintf("%v", val), 1)
+				}
+
 				// TODO: Add some metrics for response latency, succeededCount, failedCount
-				resp, err := client.Execute(stmt)
+				resp, err := client.Execute(stmt.Stmt)
 				if err != nil {
-					errCh <- err
+					errLogCh <- err
+					errDataCh <- stmt.Data
 					continue
 				}
 
 				if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-					errCh <- errors.New(fmt.Sprintf("Fail to execute: %s, error: %s", stmt, resp.GetErrorMsg()))
+					errLogCh <- errors.New(fmt.Sprintf("Fail to execute: %s, error: %s", stmt, resp.GetErrorMsg()))
+					errDataCh <- stmt.Data
 					continue
 				}
 			}

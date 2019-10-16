@@ -11,6 +11,11 @@ type Schema struct {
 	Props []Prop
 }
 
+type Query struct {
+	Stmt string
+	Data []interface{}
+}
+
 type ErrorConfig struct {
 	ErrorLogPath  string
 	ErrorDataPath string

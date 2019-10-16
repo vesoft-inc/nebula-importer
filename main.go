@@ -19,9 +19,9 @@ func main() {
 
 	log.Printf("%v", yaml)
 
-	stmtCh := make(chan string)
+	stmtCh := make(chan importer.Query)
 	errLogCh := make(chan error)
-	errDataCh := make(chan []string)
+	errDataCh := make(chan []interface{})
 	clientConf := importer.NebulaClientConfig{
 		Address:     yaml.Settings.Connection.Address,
 		User:        yaml.Settings.Connection.User,
@@ -29,12 +29,12 @@ func main() {
 		Retry:       yaml.Settings.Retry,
 		Concurrency: yaml.Settings.Concurrency,
 	}
-	importer.InitNebulaClientPool(clientConf, stmtCh, errLogCh)
+	importer.InitNebulaClientPool(clientConf, stmtCh, errLogCh, errDataCh)
 
 	for _, file := range yaml.Files {
 		// Setup error handler
 		var errorWriter importer.ErrorWriter
-		errorWriter = importer.CSVErrWriter{
+		csvErrWriter := importer.CSVErrWriter{
 			ErrConf: importer.ErrorConfig{
 				ErrorDataPath: file.Error.FailDataPath,
 				ErrorLogPath:  file.Error.LogPath,
@@ -43,6 +43,7 @@ func main() {
 			ErrLogCh:  errLogCh,
 		}
 
+		errorWriter = csvErrWriter
 		errorWriter.SetupErrorDataHandler()
 		errorWriter.SetupErrorLogHandler()
 
