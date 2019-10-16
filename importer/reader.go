@@ -11,7 +11,7 @@ import (
 )
 
 type DataFileReader interface {
-	NewFileReader(path string, stmtCh *chan<- string)
+	NewFileReader(path string, stmtCh chan<- string)
 	MakeStmt([]string) string
 }
 
@@ -19,7 +19,7 @@ type CSVReader struct {
 	Schema Schema
 }
 
-func (r *CSVReader) NewFileReader(path string, stmtCh *chan<- string) {
+func (r *CSVReader) NewFileReader(path string, stmtCh chan<- string) {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
@@ -37,7 +37,7 @@ func (r *CSVReader) NewFileReader(path string, stmtCh *chan<- string) {
 			log.Fatal(err)
 		}
 
-		*stmtCh <- r.MakeStmt(line)
+		stmtCh <- r.MakeStmt(line)
 	}
 }
 
@@ -55,12 +55,7 @@ func (r *CSVReader) MakeStmt(record []string) string {
 	}
 	builder.WriteString(") VALUES ")
 
-	isEdge := schemaType == "EDGE"
-	fromIndex := 1
-	if isEdge {
-		fromIndex = 2
-	}
-	writeVID(isEdge, record, &builder)
+	fromIndex := writeVID(schemaType, record, &builder)
 
 	builder.WriteString(":(")
 	for idx, val := range record[fromIndex:] {
@@ -73,9 +68,11 @@ func (r *CSVReader) MakeStmt(record []string) string {
 	return builder.String()
 }
 
-func writeVID(isEdge bool, record []string, builder *strings.Builder) {
+func writeVID(schemaType string, record []string, builder *strings.Builder) int {
 	builder.WriteString(fmt.Sprintf("%d", record[0]))
-	if isEdge {
+	if schemaType == "EDGE" {
 		builder.WriteString(fmt.Sprintf(" -> %d", record[1]))
+		return 2
 	}
+	return 1
 }

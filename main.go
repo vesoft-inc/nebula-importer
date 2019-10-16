@@ -28,7 +28,7 @@ func main() {
 		Retry:       yaml.Settings.Retry,
 		Concurrency: yaml.Settings.Concurrency,
 	}
-	importer.InitNebulaClientPool(clientConf, &stmtCh, &errCh)
+	importer.InitNebulaClientPool(clientConf, stmtCh, errCh)
 
 	for _, file := range yaml.Files {
 		if strings.ToLower(file.Type) == "csv" {
@@ -44,7 +44,7 @@ func main() {
 					Type: prop.Type,
 				})
 			}
-			reader.NewFileReader(file.Path, &stmtCh)
+			reader.NewFileReader(file.Path, stmtCh)
 		}
 	}
 }
