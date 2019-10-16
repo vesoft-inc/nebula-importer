@@ -36,6 +36,7 @@ func (w *CSVErrWriter) SetupErrorDataHandler() {
 			}
 			writer.Write(errData)
 		}
+		writer.Flush()
 	}()
 }
 
@@ -52,6 +53,7 @@ func (w *CSVErrWriter) SetupErrorLogHandler() {
 		for {
 			err := <-w.ErrLogCh
 			writer.WriteString(err.Error())
+			writer.WriteString("\n")
 		}
 	}()
 }

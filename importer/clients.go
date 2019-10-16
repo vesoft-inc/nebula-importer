@@ -18,7 +18,7 @@ type NebulaClientConfig struct {
 	Password    string
 }
 
-func InitNebulaClientPool(conf NebulaClientConfig, stmtCh <-chan Query, errLogCh chan<- error, errDataCh chan<- []interface{}) {
+func InitNebulaClientPool(conf NebulaClientConfig, stmtCh <-chan Stmt, errLogCh chan<- error, errDataCh chan<- []interface{}) {
 	for i := 0; i < conf.Concurrency; i++ {
 		go func() {
 			// TODO: Add retry option for graph client

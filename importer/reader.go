@@ -11,15 +11,15 @@ import (
 )
 
 type DataFileReader interface {
-	NewFileReader(path string, stmtCh chan<- Query)
-	MakeQuery([]string) Query
+	NewFileReader(path string, stmtCh chan<- Stmt)
+	MakeStmt([]string) Stmt
 }
 
 type CSVReader struct {
 	Schema Schema
 }
 
-func (r *CSVReader) NewFileReader(path string, stmtCh chan<- Query) {
+func (r *CSVReader) NewFileReader(path string, stmtCh chan<- Stmt) {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
@@ -37,11 +37,11 @@ func (r *CSVReader) NewFileReader(path string, stmtCh chan<- Query) {
 			log.Fatal(err)
 		}
 
-		stmtCh <- r.MakeQuery(line)
+		stmtCh <- r.MakeStmt(line)
 	}
 }
 
-func (r *CSVReader) MakeQuery(record []string) Query {
+func (r *CSVReader) MakeStmt(record []string) Stmt {
 	schemaType := strings.ToUpper(r.Schema.Type)
 
 	var builder strings.Builder
@@ -59,7 +59,7 @@ func (r *CSVReader) MakeQuery(record []string) Query {
 
 	builder.WriteString(":(")
 	for idx, val := range record[fromIndex:] {
-		builder.WriteString(val)
+		builder.WriteString("?")
 		if idx < len(record)-1 {
 			builder.WriteString(",")
 		}
@@ -71,16 +71,16 @@ func (r *CSVReader) MakeQuery(record []string) Query {
 		data[i] = record[i]
 	}
 
-	return Query{
+	return Stmt{
 		Stmt: builder.String(),
 		Data: data,
 	}
 }
 
 func writeVID(schemaType string, record []string, builder *strings.Builder) int {
-	builder.WriteString(fmt.Sprintf("%d", record[0]))
+	builder.WriteString("?")
 	if schemaType == "EDGE" {
-		builder.WriteString(fmt.Sprintf(" -> %d", record[1]))
+		builder.WriteString(" -> ?")
 		return 2
 	}
 	return 1

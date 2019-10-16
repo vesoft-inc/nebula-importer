@@ -17,9 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("%v", yaml)
-
-	stmtCh := make(chan importer.Query)
+	stmtCh := make(chan importer.Stmt)
 	errLogCh := make(chan error)
 	errDataCh := make(chan []interface{})
 	clientConf := importer.NebulaClientConfig{
@@ -43,7 +41,7 @@ func main() {
 			ErrLogCh:  errLogCh,
 		}
 
-		errorWriter = csvErrWriter
+		errorWriter = &csvErrWriter
 		errorWriter.SetupErrorDataHandler()
 		errorWriter.SetupErrorLogHandler()
 
@@ -62,7 +60,7 @@ func main() {
 					Type: prop.Type,
 				})
 			}
-			reader = csvReader
+			reader = &csvReader
 		}
 		reader.NewFileReader(file.Path, stmtCh)
 	}

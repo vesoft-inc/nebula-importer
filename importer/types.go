@@ -11,7 +11,7 @@ type Schema struct {
 	Props []Prop
 }
 
-type Query struct {
+type Stmt struct {
 	Stmt string
 	Data []interface{}
 }
