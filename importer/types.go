@@ -10,3 +10,8 @@ type Schema struct {
 	Name  string
 	Props []Prop
 }
+
+type ErrorConfig struct {
+	ErrorLogPath  string
+	ErrorDataPath string
+}

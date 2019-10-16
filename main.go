@@ -20,7 +20,8 @@ func main() {
 	log.Printf("%v", yaml)
 
 	stmtCh := make(chan string)
-	errCh := make(chan error)
+	errLogCh := make(chan error)
+	errDataCh := make(chan []string)
 	clientConf := importer.NebulaClientConfig{
 		Address:     yaml.Settings.Connection.Address,
 		User:        yaml.Settings.Connection.User,
@@ -28,23 +29,40 @@ func main() {
 		Retry:       yaml.Settings.Retry,
 		Concurrency: yaml.Settings.Concurrency,
 	}
-	importer.InitNebulaClientPool(clientConf, stmtCh, errCh)
+	importer.InitNebulaClientPool(clientConf, stmtCh, errLogCh)
 
 	for _, file := range yaml.Files {
+		// Setup error handler
+		var errorWriter importer.ErrorWriter
+		errorWriter = importer.CSVErrWriter{
+			ErrConf: importer.ErrorConfig{
+				ErrorDataPath: file.Error.FailDataPath,
+				ErrorLogPath:  file.Error.LogPath,
+			},
+			ErrDataCh: errDataCh,
+			ErrLogCh:  errLogCh,
+		}
+
+		errorWriter.SetupErrorDataHandler()
+		errorWriter.SetupErrorLogHandler()
+
+		// Setup reader
+		var reader importer.DataFileReader
 		if strings.ToLower(file.Type) == "csv" {
-			reader := importer.CSVReader{
+			csvReader := importer.CSVReader{
 				Schema: importer.Schema{
 					Type: file.Schema.Type,
 					Name: file.Schema.Name,
 				},
 			}
 			for _, prop := range file.Schema.Props {
-				reader.Schema.Props = append(reader.Schema.Props, importer.Prop{
+				csvReader.Schema.Props = append(csvReader.Schema.Props, importer.Prop{
 					Name: prop.Name,
 					Type: prop.Type,
 				})
 			}
-			reader.NewFileReader(file.Path, stmtCh)
+			reader = csvReader
 		}
+		reader.NewFileReader(file.Path, stmtCh)
 	}
 }
