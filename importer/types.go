@@ -6,6 +6,7 @@ type Prop struct {
 }
 
 type Schema struct {
+	Space string
 	Type  string
 	Name  string
 	Props []Prop

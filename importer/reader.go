@@ -8,10 +8,11 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 )
 
 type DataFileReader interface {
-	NewFileReader(path string, stmtCh chan<- Stmt)
+	NewFileReader(path string, stmtChs []chan Stmt)
 	MakeStmt([]string) Stmt
 }
 
@@ -19,7 +20,16 @@ type CSVReader struct {
 	Schema Schema
 }
 
-func (r *CSVReader) NewFileReader(path string, stmtCh chan<- Stmt) {
+func (r *CSVReader) NewFileReader(path string, stmtChs []chan Stmt) {
+	for _, ch := range stmtChs {
+		ch <- Stmt{
+			Stmt: "USE ?",
+			Data: []interface{}{r.Schema.Space},
+		}
+	}
+
+	log.Printf("Start read CSV data file: %s", path)
+
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
@@ -28,17 +38,25 @@ func (r *CSVReader) NewFileReader(path string, stmtCh chan<- Stmt) {
 
 	reader := csv.NewReader(bufio.NewReader(file))
 
-	for {
-		line, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
+	idx, len := 0, len(stmtChs)
 
-		stmtCh <- r.MakeStmt(line)
-	}
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		for {
+			line, err := reader.Read()
+			if err == io.EOF {
+				wg.Done()
+				break
+			}
+			if err != nil {
+				log.Fatal(err)
+			}
+			stmtChs[idx%len] <- r.MakeStmt(line)
+			idx++
+		}
+	}(&wg)
+	wg.Wait()
 }
 
 func (r *CSVReader) MakeStmt(record []string) Stmt {
@@ -58,9 +76,9 @@ func (r *CSVReader) MakeStmt(record []string) Stmt {
 	fromIndex := writeVID(schemaType, record, &builder)
 
 	builder.WriteString(":(")
-	for idx, val := range record[fromIndex:] {
+	for idx := range record[fromIndex:] {
 		builder.WriteString("?")
-		if idx < len(record)-1 {
+		if idx < len(record[fromIndex:])-1 {
 			builder.WriteString(",")
 		}
 	}

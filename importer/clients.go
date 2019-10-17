@@ -18,9 +18,14 @@ type NebulaClientConfig struct {
 	Password    string
 }
 
-func InitNebulaClientPool(conf NebulaClientConfig, stmtCh <-chan Stmt, errLogCh chan<- error, errDataCh chan<- []interface{}) {
+func InitNebulaClientPool(conf NebulaClientConfig, errLogCh chan<- error, errDataCh chan<- []interface{}) []chan Stmt {
+	stmtChs := make([]chan Stmt, conf.Concurrency)
 	for i := 0; i < conf.Concurrency; i++ {
-		go func() {
+		stmtChs[i] = make(chan Stmt)
+	}
+
+	for i := 0; i < conf.Concurrency; i++ {
+		go func(stmtCh <-chan Stmt) {
 			// TODO: Add retry option for graph client
 			client, err := nebula.NewClient(conf.Address)
 			if err != nil {
@@ -50,12 +55,14 @@ func InitNebulaClientPool(conf NebulaClientConfig, stmtCh <-chan Stmt, errLogCh 
 				}
 
 				if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-					errLogCh <- errors.New(fmt.Sprintf("Fail to execute: %s, error: %s", stmt, resp.GetErrorMsg()))
+					errLogCh <- errors.New(fmt.Sprintf("Fail to execute: %s, error: %s", stmt.Stmt, resp.GetErrorMsg()))
 					errDataCh <- stmt.Data
 					continue
 				}
 			}
 
-		}()
+		}(stmtChs[i])
 	}
+	log.Printf("Create %d Nebula Graph clients", conf.Concurrency)
+	return stmtChs
 }

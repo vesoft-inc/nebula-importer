@@ -36,8 +36,9 @@ func (w *CSVErrWriter) SetupErrorDataHandler() {
 			}
 			writer.Write(errData)
 		}
-		writer.Flush()
 	}()
+
+	log.Println("Setup CSV error data handler")
 }
 
 func (w *CSVErrWriter) SetupErrorLogHandler() {
@@ -56,4 +57,6 @@ func (w *CSVErrWriter) SetupErrorLogHandler() {
 			writer.WriteString("\n")
 		}
 	}()
+
+	log.Println("Setup CSV error log handler")
 }

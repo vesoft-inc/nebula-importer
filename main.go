@@ -17,7 +17,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	stmtCh := make(chan importer.Stmt)
 	errLogCh := make(chan error)
 	errDataCh := make(chan []interface{})
 	clientConf := importer.NebulaClientConfig{
@@ -27,31 +26,29 @@ func main() {
 		Retry:       yaml.Settings.Retry,
 		Concurrency: yaml.Settings.Concurrency,
 	}
-	importer.InitNebulaClientPool(clientConf, stmtCh, errLogCh, errDataCh)
+	stmtChs := importer.InitNebulaClientPool(clientConf, errLogCh, errDataCh)
 
 	for _, file := range yaml.Files {
-		// Setup error handler
-		var errorWriter importer.ErrorWriter
-		csvErrWriter := importer.CSVErrWriter{
-			ErrConf: importer.ErrorConfig{
-				ErrorDataPath: file.Error.FailDataPath,
-				ErrorLogPath:  file.Error.LogPath,
-			},
-			ErrDataCh: errDataCh,
-			ErrLogCh:  errLogCh,
-		}
-
-		errorWriter = &csvErrWriter
-		errorWriter.SetupErrorDataHandler()
-		errorWriter.SetupErrorLogHandler()
-
-		// Setup reader
+		var errWriter importer.ErrorWriter
 		var reader importer.DataFileReader
-		if strings.ToLower(file.Type) == "csv" {
+		switch strings.ToLower(file.Type) {
+		case "csv":
+			// Setup error handler
+			errWriter = &importer.CSVErrWriter{
+				ErrConf: importer.ErrorConfig{
+					ErrorDataPath: file.Error.FailDataPath,
+					ErrorLogPath:  file.Error.LogPath,
+				},
+				ErrDataCh: errDataCh,
+				ErrLogCh:  errLogCh,
+			}
+
+			// Setup reader
 			csvReader := importer.CSVReader{
 				Schema: importer.Schema{
-					Type: file.Schema.Type,
-					Name: file.Schema.Name,
+					Space: file.Schema.Space,
+					Type:  file.Schema.Type,
+					Name:  file.Schema.Name,
 				},
 			}
 			for _, prop := range file.Schema.Props {
@@ -61,7 +58,16 @@ func main() {
 				})
 			}
 			reader = &csvReader
+		default:
+			log.Fatal("Unsupported file type: %s", file.Type)
 		}
-		reader.NewFileReader(file.Path, stmtCh)
+		// log.Printf("file struct:\n %#v", file)
+		setUpErrorWriter(errWriter)
+		reader.NewFileReader(file.Path, stmtChs)
 	}
+}
+
+func setUpErrorWriter(w importer.ErrorWriter) {
+	w.SetupErrorDataHandler()
+	w.SetupErrorLogHandler()
 }
