@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"log"
 	"os"
+	"path"
 	"time"
 )
 
@@ -19,6 +20,9 @@ type CSVErrWriter struct {
 
 func (w *CSVErrWriter) SetErrorHandler() {
 	go func() {
+		if err := os.MkdirAll(path.Dir(w.ErrConf.ErrorDataPath), 0775); err != nil && !os.IsExist(err) {
+			log.Fatal(err)
+		}
 		dataFile, err := os.Create(w.ErrConf.ErrorDataPath)
 		if err != nil {
 			log.Fatal(err)
@@ -27,6 +31,9 @@ func (w *CSVErrWriter) SetErrorHandler() {
 
 		dataWriter := csv.NewWriter(dataFile)
 
+		if err := os.MkdirAll(path.Dir(w.ErrConf.ErrorLogPath), 0775); err != nil && !os.IsExist(err) {
+			log.Fatal(err)
+		}
 		logFile, err := os.Create(w.ErrConf.ErrorLogPath)
 		if err != nil {
 			log.Fatal(err)
