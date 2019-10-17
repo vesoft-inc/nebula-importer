@@ -21,3 +21,15 @@ type ErrorConfig struct {
 	ErrorLogPath  string
 	ErrorDataPath string
 }
+
+type ErrData struct {
+	Error error
+	Data  []interface{}
+}
+
+type Stats struct {
+	Latency     uint64
+	ReqTime     float64
+	NumFinished uint64
+	NumFailed   uint64
+}

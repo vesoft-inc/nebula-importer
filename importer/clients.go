@@ -19,7 +19,12 @@ type NebulaClientConfig struct {
 	Password    string
 }
 
-func InitNebulaClientPool(conf NebulaClientConfig, errLogCh chan<- error, errDataCh chan<- []interface{}) []chan Stmt {
+type NebulaClientMgr struct {
+	ErrCh   chan<- ErrData
+	StatsCh chan<- Stats
+}
+
+func (m *NebulaClientMgr) InitNebulaClientPool(conf NebulaClientConfig) []chan Stmt {
 	stmtChs := make([]chan Stmt, conf.Concurrency)
 	for i := 0; i < conf.Concurrency; i++ {
 		stmtChs[i] = make(chan Stmt)
@@ -40,34 +45,38 @@ func InitNebulaClientPool(conf NebulaClientConfig, errLogCh chan<- error, errDat
 			}
 			defer client.Disconnect()
 
-			tick := time.NewTicker(10 * time.Second)
-			sCount, fCount := 0, 0
-
 			for {
 				select {
-				case <-tick.C:
-					log.Printf("Client(%d) Request: success(%d), fail(%d)\n", i, sCount, fCount)
 				case stmt := <-stmtChs[i]:
 					for _, val := range stmt.Data {
 						stmt.Stmt = strings.Replace(stmt.Stmt, "?", fmt.Sprintf("%v", val), 1)
 					}
 
 					// TODO: Add some metrics for response latency, succeededCount, failedCount
+					now := time.Now()
 					resp, err := client.Execute(stmt.Stmt)
+					reqTime := time.Since(now).Seconds()
+
 					if err != nil {
-						errLogCh <- err
-						errDataCh <- stmt.Data
-						fCount++
+						m.ErrCh <- ErrData{
+							Error: err,
+							Data:  stmt.Data,
+						}
 						continue
 					}
 
 					if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-						errLogCh <- errors.New(fmt.Sprintf("Fail to execute: %s, error: %s", stmt.Stmt, resp.GetErrorMsg()))
-						errDataCh <- stmt.Data
-						fCount++
+						m.ErrCh <- ErrData{
+							Error: errors.New(fmt.Sprintf("Fail to execute: %s, ErrMsg: %s, ErrCode: %v", stmt.Stmt, resp.GetErrorMsg(), resp.GetErrorCode())),
+							Data:  stmt.Data,
+						}
 						continue
 					}
-					sCount++
+
+					m.StatsCh <- Stats{
+						Latency: uint64(resp.GetLatencyInUs()),
+						ReqTime: reqTime,
+					}
 				}
 			}
 

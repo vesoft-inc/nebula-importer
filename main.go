@@ -17,8 +17,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	errLogCh := make(chan error)
-	errDataCh := make(chan []interface{})
+	statsCh := make(chan importer.Stats)
+	importer.InitStatsWorker(statsCh)
+
+	errCh := make(chan importer.ErrData)
 	clientConf := importer.NebulaClientConfig{
 		Address:     yaml.Settings.Connection.Address,
 		User:        yaml.Settings.Connection.User,
@@ -26,7 +28,11 @@ func main() {
 		Retry:       yaml.Settings.Retry,
 		Concurrency: yaml.Settings.Concurrency,
 	}
-	stmtChs := importer.InitNebulaClientPool(clientConf, errLogCh, errDataCh)
+	mgr := importer.NebulaClientMgr{
+		ErrCh:   errCh,
+		StatsCh: statsCh,
+	}
+	stmtChs := mgr.InitNebulaClientPool(clientConf)
 
 	for _, file := range yaml.Files {
 		var errWriter importer.ErrorWriter
@@ -39,8 +45,7 @@ func main() {
 					ErrorDataPath: file.Error.FailDataPath,
 					ErrorLogPath:  file.Error.LogPath,
 				},
-				ErrDataCh: errDataCh,
-				ErrLogCh:  errLogCh,
+				ErrCh: errCh,
 			}
 
 			// Setup reader
@@ -62,12 +67,7 @@ func main() {
 			log.Fatal("Unsupported file type: %s", file.Type)
 		}
 		// log.Printf("file struct:\n %#v", file)
-		setUpErrorWriter(errWriter)
+		errWriter.SetErrorHandler()
 		reader.NewFileReader(file.Path, stmtChs)
 	}
-}
-
-func setUpErrorWriter(w importer.ErrorWriter) {
-	w.SetupErrorDataHandler()
-	w.SetupErrorLogHandler()
 }

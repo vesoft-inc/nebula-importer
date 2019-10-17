@@ -5,58 +5,60 @@ import (
 	"encoding/csv"
 	"log"
 	"os"
+	"time"
 )
 
 type ErrorWriter interface {
-	SetupErrorDataHandler()
-	SetupErrorLogHandler()
+	SetErrorHandler()
 }
 
 type CSVErrWriter struct {
-	ErrConf   ErrorConfig
-	ErrDataCh <-chan []interface{}
-	ErrLogCh  <-chan error
+	ErrConf ErrorConfig
+	ErrCh   <-chan ErrData
 }
 
-func (w *CSVErrWriter) SetupErrorDataHandler() {
+func (w *CSVErrWriter) SetErrorHandler() {
 	go func() {
-		file, err := os.Create(w.ErrConf.ErrorDataPath)
+		dataFile, err := os.Create(w.ErrConf.ErrorDataPath)
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer file.Close()
+		defer dataFile.Close()
 
-		writer := csv.NewWriter(file)
+		dataWriter := csv.NewWriter(dataFile)
 
+		logFile, err := os.Create(w.ErrConf.ErrorLogPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer logFile.Close()
+
+		logWriter := bufio.NewWriter(logFile)
+
+		ticker := time.NewTicker(30 * time.Second)
+
+		var numFailed uint64 = 0
 		for {
-			rawErrData := <-w.ErrDataCh
-			errData := make([]string, len(rawErrData))
-			for i := range rawErrData {
-				errData[i] = rawErrData[i].(string)
+			select {
+			case <-ticker.C:
+				log.Printf("Failed queries: %d", numFailed)
+			case rawErr := <-w.ErrCh:
+				// Write failed data
+				errData := make([]string, len(rawErr.Data))
+				for i := range rawErr.Data {
+					errData[i] = rawErr.Data[i].(string)
+				}
+
+				dataWriter.Write(errData)
+
+				// Write error message
+				logWriter.WriteString(err.Error())
+				logWriter.WriteString("\n")
+
+				numFailed++
 			}
-			writer.Write(errData)
 		}
 	}()
 
-	log.Println("Setup CSV error data handler")
-}
-
-func (w *CSVErrWriter) SetupErrorLogHandler() {
-	go func() {
-		file, err := os.Create(w.ErrConf.ErrorLogPath)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer file.Close()
-
-		writer := bufio.NewWriter(file)
-
-		for {
-			err := <-w.ErrLogCh
-			writer.WriteString(err.Error())
-			writer.WriteString("\n")
-		}
-	}()
-
-	log.Println("Setup CSV error log handler")
+	log.Println("Setup CSV error handler")
 }

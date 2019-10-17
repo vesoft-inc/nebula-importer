@@ -28,7 +28,7 @@ func (r *CSVReader) NewFileReader(path string, stmtChs []chan Stmt) {
 		}
 	}
 
-	log.Printf("Start read CSV data file: %s", path)
+	log.Printf("Start to read CSV data file: %s", path)
 
 	file, err := os.Open(path)
 	if err != nil {
@@ -42,7 +42,7 @@ func (r *CSVReader) NewFileReader(path string, stmtChs []chan Stmt) {
 
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
+	go func() {
 		for {
 			line, err := reader.Read()
 			if err == io.EOF {
@@ -55,7 +55,7 @@ func (r *CSVReader) NewFileReader(path string, stmtChs []chan Stmt) {
 			stmtChs[idx%len] <- r.MakeStmt(line)
 			idx++
 		}
-	}(&wg)
+	}()
 	wg.Wait()
 }
 
