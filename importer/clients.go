@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	nebula "github.com/vesoft-inc/nebula-go"
 	graph "github.com/vesoft-inc/nebula-go/graph"
@@ -25,7 +26,7 @@ func InitNebulaClientPool(conf NebulaClientConfig, errLogCh chan<- error, errDat
 	}
 
 	for i := 0; i < conf.Concurrency; i++ {
-		go func(stmtCh <-chan Stmt) {
+		go func(i int) {
 			// TODO: Add retry option for graph client
 			client, err := nebula.NewClient(conf.Address)
 			if err != nil {
@@ -39,29 +40,38 @@ func InitNebulaClientPool(conf NebulaClientConfig, errLogCh chan<- error, errDat
 			}
 			defer client.Disconnect()
 
+			tick := time.NewTicker(10 * time.Second)
+			sCount, fCount := 0, 0
+
 			for {
-				stmt := <-stmtCh
+				select {
+				case <-tick.C:
+					log.Printf("Client(%d) Request: success(%d), fail(%d)\n", i, sCount, fCount)
+				case stmt := <-stmtChs[i]:
+					for _, val := range stmt.Data {
+						stmt.Stmt = strings.Replace(stmt.Stmt, "?", fmt.Sprintf("%v", val), 1)
+					}
 
-				for _, val := range stmt.Data {
-					stmt.Stmt = strings.Replace(stmt.Stmt, "?", fmt.Sprintf("%v", val), 1)
-				}
+					// TODO: Add some metrics for response latency, succeededCount, failedCount
+					resp, err := client.Execute(stmt.Stmt)
+					if err != nil {
+						errLogCh <- err
+						errDataCh <- stmt.Data
+						fCount++
+						continue
+					}
 
-				// TODO: Add some metrics for response latency, succeededCount, failedCount
-				resp, err := client.Execute(stmt.Stmt)
-				if err != nil {
-					errLogCh <- err
-					errDataCh <- stmt.Data
-					continue
-				}
-
-				if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-					errLogCh <- errors.New(fmt.Sprintf("Fail to execute: %s, error: %s", stmt.Stmt, resp.GetErrorMsg()))
-					errDataCh <- stmt.Data
-					continue
+					if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
+						errLogCh <- errors.New(fmt.Sprintf("Fail to execute: %s, error: %s", stmt.Stmt, resp.GetErrorMsg()))
+						errDataCh <- stmt.Data
+						fCount++
+						continue
+					}
+					sCount++
 				}
 			}
 
-		}(stmtChs[i])
+		}(i)
 	}
 	log.Printf("Create %d Nebula Graph clients", conf.Concurrency)
 	return stmtChs
