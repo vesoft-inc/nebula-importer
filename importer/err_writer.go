@@ -10,7 +10,7 @@ import (
 )
 
 type ErrorWriter interface {
-	SetErrorHandler()
+	SetupErrorHandler()
 }
 
 type CSVErrWriter struct {
@@ -18,7 +18,7 @@ type CSVErrWriter struct {
 	ErrCh   <-chan ErrData
 }
 
-func (w *CSVErrWriter) SetErrorHandler() {
+func (w *CSVErrWriter) SetupErrorHandler() {
 	go func() {
 		if err := os.MkdirAll(path.Dir(w.ErrConf.ErrorDataPath), 0775); err != nil && !os.IsExist(err) {
 			log.Fatal(err)

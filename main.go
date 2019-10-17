@@ -70,7 +70,7 @@ func main() {
 			log.Fatal("Unsupported file type: %s", file.Type)
 		}
 		// log.Printf("file struct:\n %#v", file)
-		errWriter.SetErrorHandler()
+		errWriter.SetupErrorHandler()
 		reader.InitFileReader(file.Path, stmtChs, doneCh)
 	}
 
