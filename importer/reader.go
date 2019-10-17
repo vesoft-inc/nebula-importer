@@ -46,8 +46,8 @@ func (r *CSVReader) InitFileReader(path string, stmtChs []chan Stmt, doneCh chan
 		for {
 			line, err := reader.Read()
 			if err == io.EOF {
-				wg.Done()
 				doneCh <- true
+				wg.Done()
 				break
 			}
 			if err != nil {
