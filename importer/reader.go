@@ -12,7 +12,7 @@ import (
 )
 
 type DataFileReader interface {
-	NewFileReader(path string, stmtChs []chan Stmt)
+	InitFileReader(path string, stmtChs []chan Stmt, doneCh chan<- bool)
 	MakeStmt([]string) Stmt
 }
 
@@ -20,7 +20,7 @@ type CSVReader struct {
 	Schema Schema
 }
 
-func (r *CSVReader) NewFileReader(path string, stmtChs []chan Stmt) {
+func (r *CSVReader) InitFileReader(path string, stmtChs []chan Stmt, doneCh chan<- bool) {
 	for _, ch := range stmtChs {
 		ch <- Stmt{
 			Stmt: "USE ?",
@@ -47,6 +47,7 @@ func (r *CSVReader) NewFileReader(path string, stmtChs []chan Stmt) {
 			line, err := reader.Read()
 			if err == io.EOF {
 				wg.Done()
+				doneCh <- true
 				break
 			}
 			if err != nil {

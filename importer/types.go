@@ -25,9 +25,11 @@ type ErrorConfig struct {
 type ErrData struct {
 	Error error
 	Data  []interface{}
+	Done  bool
 }
 
 type Stats struct {
 	Latency uint64
 	ReqTime float64
+	Done    bool
 }

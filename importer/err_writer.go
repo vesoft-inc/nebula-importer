@@ -50,6 +50,9 @@ func (w *CSVErrWriter) SetErrorHandler() {
 			case <-ticker.C:
 				log.Printf("Failed queries: %d", numFailed)
 			case rawErr := <-w.ErrCh:
+				if rawErr.Done {
+					return
+				}
 				// Write failed data
 				errData := make([]string, len(rawErr.Data))
 				for i := range rawErr.Data {

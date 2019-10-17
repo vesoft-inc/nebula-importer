@@ -17,6 +17,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	doneCh := make(chan bool)
+
 	statsCh := make(chan importer.Stats)
 	importer.InitStatsWorker(statsCh)
 
@@ -31,6 +33,7 @@ func main() {
 	mgr := importer.NebulaClientMgr{
 		ErrCh:   errCh,
 		StatsCh: statsCh,
+		DoneCh:  doneCh,
 	}
 	stmtChs := mgr.InitNebulaClientPool(clientConf)
 
@@ -68,6 +71,8 @@ func main() {
 		}
 		// log.Printf("file struct:\n %#v", file)
 		errWriter.SetErrorHandler()
-		reader.NewFileReader(file.Path, stmtChs)
+		reader.InitFileReader(file.Path, stmtChs, doneCh)
 	}
+
+	statsCh <- importer.Stats{Done: true}
 }

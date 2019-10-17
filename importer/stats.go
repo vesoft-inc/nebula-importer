@@ -16,6 +16,9 @@ func InitStatsWorker(ch <-chan Stats) {
 				log.Printf("nebula requests: finished(%d), latency AVG(%dus), req AVG(%.2fus), QPS(%.2f/s)",
 					totalCount, totalLatency/totalCount, totalReqTime*1000*1000/float64(totalCount), float64(totalCount)/totalReqTime)
 			case stat := <-ch:
+				if stat.Done {
+					return
+				}
 				totalCount++
 				totalReqTime += stat.ReqTime
 				totalLatency += stat.Latency

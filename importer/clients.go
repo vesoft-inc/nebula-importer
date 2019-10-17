@@ -22,6 +22,7 @@ type NebulaClientConfig struct {
 type NebulaClientMgr struct {
 	ErrCh   chan<- ErrData
 	StatsCh chan<- Stats
+	DoneCh  <-chan bool
 }
 
 func (m *NebulaClientMgr) InitNebulaClientPool(conf NebulaClientConfig) []chan Stmt {
@@ -47,6 +48,8 @@ func (m *NebulaClientMgr) InitNebulaClientPool(conf NebulaClientConfig) []chan S
 
 			for {
 				select {
+				case <-m.DoneCh:
+					m.ErrCh <- ErrData{Done: true}
 				case stmt := <-stmtChs[i]:
 					for _, val := range stmt.Data {
 						stmt.Stmt = strings.Replace(stmt.Stmt, "?", fmt.Sprintf("%v", val), 1)
@@ -61,6 +64,7 @@ func (m *NebulaClientMgr) InitNebulaClientPool(conf NebulaClientConfig) []chan S
 						m.ErrCh <- ErrData{
 							Error: err,
 							Data:  stmt.Data,
+							Done:  false,
 						}
 						continue
 					}
@@ -69,6 +73,7 @@ func (m *NebulaClientMgr) InitNebulaClientPool(conf NebulaClientConfig) []chan S
 						m.ErrCh <- ErrData{
 							Error: errors.New(fmt.Sprintf("Fail to execute: %s, ErrMsg: %s, ErrCode: %v", stmt.Stmt, resp.GetErrorMsg(), resp.GetErrorCode())),
 							Data:  stmt.Data,
+							Done:  false,
 						}
 						continue
 					}
@@ -76,6 +81,7 @@ func (m *NebulaClientMgr) InitNebulaClientPool(conf NebulaClientConfig) []chan S
 					m.StatsCh <- Stats{
 						Latency: uint64(resp.GetLatencyInUs()),
 						ReqTime: reqTime,
+						Done:    false,
 					}
 				}
 			}
