@@ -28,8 +28,6 @@ type ErrData struct {
 }
 
 type Stats struct {
-	Latency     uint64
-	ReqTime     float64
-	NumFinished uint64
-	NumFailed   uint64
+	Latency uint64
+	ReqTime float64
 }
