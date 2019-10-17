@@ -59,7 +59,7 @@ func (w *CSVErrWriter) SetErrorHandler() {
 				dataWriter.Write(errData)
 
 				// Write error message
-				logWriter.WriteString(err.Error())
+				logWriter.WriteString(rawErr.Error.Error())
 				logWriter.WriteString("\n")
 
 				numFailed++
