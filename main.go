@@ -23,19 +23,19 @@ func main() {
 	importer.InitStatsWorker(statsCh)
 
 	errCh := make(chan importer.ErrData)
-	clientConf := importer.NebulaClientConfig{
-		Address:     yaml.Settings.Connection.Address,
-		User:        yaml.Settings.Connection.User,
-		Password:    yaml.Settings.Connection.Password,
-		Retry:       yaml.Settings.Retry,
-		Concurrency: yaml.Settings.Concurrency,
-	}
 	mgr := importer.NebulaClientMgr{
+		Config: importer.NebulaClientConfig{
+			Address:     yaml.Settings.Connection.Address,
+			User:        yaml.Settings.Connection.User,
+			Password:    yaml.Settings.Connection.Password,
+			Retry:       yaml.Settings.Retry,
+			Concurrency: yaml.Settings.Concurrency,
+		},
 		ErrCh:   errCh,
 		StatsCh: statsCh,
 		DoneCh:  doneCh,
 	}
-	stmtChs := mgr.InitNebulaClientPool(clientConf)
+	stmtChs := mgr.InitNebulaClientPool()
 
 	for _, file := range yaml.Files {
 		var errWriter importer.ErrorWriter
