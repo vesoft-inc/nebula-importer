@@ -16,6 +16,9 @@ func InitStatsWorker(ch <-chan Stats) {
 		for {
 			select {
 			case <-ticker.C:
+				if totalCount == 0 {
+					continue
+				}
 				secs := time.Since(now).Seconds()
 				avgLatency := totalLatency / totalCount
 				avgReq := 1000000 * totalReqTime / float64(totalCount)
