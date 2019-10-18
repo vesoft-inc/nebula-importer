@@ -8,13 +8,19 @@ import (
 func InitStatsWorker(ch <-chan Stats) {
 	go func() {
 		ticker := time.NewTicker(10 * time.Second)
-		var totalCount, totalLatency uint64 = 0, 0
-		var totalReqTime float64 = 0.0
+		now := time.Now()
+		var (
+			totalCount, totalLatency uint64  = 0, 0
+			totalReqTime             float64 = 0.0
+		)
 		for {
 			select {
 			case <-ticker.C:
-				log.Printf("nebula requests: finished(%d), latency AVG(%dus), req AVG(%.2fus), QPS(%.2f/s)",
-					totalCount, totalLatency/totalCount, totalReqTime*1000*1000/float64(totalCount), float64(totalCount)/totalReqTime)
+				secs := time.Since(now).Seconds()
+				avgLatency := totalLatency / totalCount
+				avgReq := 1000000 * totalReqTime / float64(totalCount)
+				qps := float64(totalCount) / secs
+				log.Printf("Requests: finished(%d), latency AVG(%dus), req AVG(%.2fus), QPS(%.2f/s)", totalCount, avgLatency, avgReq, qps)
 			case stat := <-ch:
 				if stat.Done {
 					return

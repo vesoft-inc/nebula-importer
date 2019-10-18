@@ -23,7 +23,7 @@ type CSVReader struct {
 func (r *CSVReader) InitFileReader(path string, stmtChs []chan Stmt, doneCh chan<- bool) {
 	for _, ch := range stmtChs {
 		ch <- Stmt{
-			Stmt: "USE ?",
+			Stmt: "USE ?;",
 			Data: []interface{}{r.Schema.Space},
 		}
 	}
