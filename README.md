@@ -10,3 +10,4 @@ Nebula Graph Importer with Go
 - [X] Concurrent request to Graph server
 - [ ] Create space and tag/edge automatically
 - [ ] Configure retry option for Nebula client
+- [ ] Support edge rank
