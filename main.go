@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	importer "github.com/yixinglu/nebula-importer/importer"
+	csv_importer "github.com/yixinglu/nebula-importer/importer/csv"
 )
 
 func main() {
@@ -43,7 +44,7 @@ func main() {
 		switch strings.ToLower(file.Type) {
 		case "csv":
 			// Setup error handler
-			errWriter = &importer.CSVErrWriter{
+			errWriter = &csv_importer.CSVErrWriter{
 				ErrConf: importer.ErrorConfig{
 					ErrorDataPath: file.Error.FailDataPath,
 					ErrorLogPath:  file.Error.LogPath,
@@ -52,7 +53,7 @@ func main() {
 			}
 
 			// Setup reader
-			csvReader := importer.CSVReader{
+			csvReader := csv_importer.CSVReader{
 				Schema: importer.Schema{
 					Space: file.Schema.Space,
 					Type:  file.Schema.Type,
