@@ -17,6 +17,17 @@ type CSVReader struct {
 	Schema importer.Schema
 }
 
+func NewCSVReader(space, typ, name string, props []importer.Prop) importer.DataFileReader {
+	return &CSVReader{
+		Schema: importer.Schema{
+			Space: space,
+			Type:  typ,
+			Name:  name,
+			Props: props,
+		},
+	}
+}
+
 func (r *CSVReader) InitFileReader(path string, stmtChs []chan importer.Stmt, doneCh chan<- bool) {
 	for _, ch := range stmtChs {
 		ch <- importer.Stmt{

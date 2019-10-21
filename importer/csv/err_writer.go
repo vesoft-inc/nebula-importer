@@ -16,6 +16,16 @@ type CSVErrWriter struct {
 	ErrCh   <-chan importer.ErrData
 }
 
+func NewCSVErrorWriter(errDataPath, errLogPath string, errCh <-chan importer.ErrData) importer.ErrorWriter {
+	return &CSVErrWriter{
+		ErrConf: importer.ErrorConfig{
+			ErrorDataPath: errDataPath,
+			ErrorLogPath:  errLogPath,
+		},
+		ErrCh: errCh,
+	}
+}
+
 func (w *CSVErrWriter) SetupErrorHandler() {
 	go func() {
 		if err := os.MkdirAll(path.Dir(w.ErrConf.ErrorDataPath), 0775); err != nil && !os.IsExist(err) {

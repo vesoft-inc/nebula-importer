@@ -43,30 +43,16 @@ func main() {
 		var reader importer.DataFileReader
 		switch strings.ToLower(file.Type) {
 		case "csv":
-			// Setup error handler
-			errWriter = &csv_importer.CSVErrWriter{
-				ErrConf: importer.ErrorConfig{
-					ErrorDataPath: file.Error.FailDataPath,
-					ErrorLogPath:  file.Error.LogPath,
-				},
-				ErrCh: errCh,
-			}
+			errWriter = csv_importer.NewCSVErrorWriter(file.Error.FailDataPath, file.Error.LogPath, errCh)
 
-			// Setup reader
-			csvReader := csv_importer.CSVReader{
-				Schema: importer.Schema{
-					Space: file.Schema.Space,
-					Type:  file.Schema.Type,
-					Name:  file.Schema.Name,
-				},
-			}
-			for _, prop := range file.Schema.Props {
-				csvReader.Schema.Props = append(csvReader.Schema.Props, importer.Prop{
+			props := make([]importer.Prop, len(file.Schema.Props))
+			for i, prop := range file.Schema.Props {
+				props[i] = importer.Prop{
 					Name: prop.Name,
 					Type: prop.Type,
-				})
+				}
 			}
-			reader = &csvReader
+			reader = csv_importer.NewCSVReader(file.Schema.Space, file.Schema.Type, file.Schema.Name, props)
 		default:
 			log.Fatal("Unsupported file type: %s", file.Type)
 		}
