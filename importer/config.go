@@ -1,4 +1,4 @@
-package nebula_importer
+package importer
 
 import (
 	"io/ioutil"

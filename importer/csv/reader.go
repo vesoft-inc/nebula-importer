@@ -1,4 +1,4 @@
-package nebula_csv_importer
+package csv
 
 import (
 	"bufio"

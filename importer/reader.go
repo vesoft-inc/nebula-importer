@@ -1,4 +1,4 @@
-package nebula_importer
+package importer
 
 type DataFileReader interface {
 	InitFileReader(path string, stmtChs []chan Stmt, doneCh chan<- bool)
