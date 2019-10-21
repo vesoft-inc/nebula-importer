@@ -85,7 +85,6 @@ func (m *NebulaClientMgr) InitNebulaClientPool() []chan Stmt {
 					}
 				}
 			}
-
 		}(i)
 	}
 	log.Printf("Create %d Nebula Graph clients", m.Config.Concurrency)
