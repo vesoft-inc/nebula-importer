@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"strings"
+	"time"
 
 	importer "github.com/yixinglu/nebula-importer/importer"
 	csv_importer "github.com/yixinglu/nebula-importer/importer/csv"
@@ -11,6 +12,12 @@ import (
 
 func main() {
 	path := flag.String("config", "", "Specify importer configure file path")
+
+	now := time.Now()
+	defer func() {
+		log.Println("Finish import data, consume time: %.2f", time.Since(now).Seconds())
+	}()
+
 	flag.Parse()
 
 	yaml, err := importer.Parse(*path)
@@ -20,8 +27,9 @@ func main() {
 
 	doneCh := make(chan bool)
 
+	failCh := make(chan bool)
 	statsCh := make(chan importer.Stats)
-	importer.InitStatsWorker(statsCh)
+	importer.InitStatsWorker(statsCh, failCh)
 
 	errCh := make(chan importer.ErrData)
 	mgr := importer.NebulaClientMgr{
@@ -43,7 +51,7 @@ func main() {
 		var reader importer.DataFileReader
 		switch strings.ToLower(file.Type) {
 		case "csv":
-			errWriter = csv_importer.NewCSVErrorWriter(file.Error.FailDataPath, file.Error.LogPath, errCh)
+			errWriter = csv_importer.NewCSVErrorWriter(file.Error.FailDataPath, file.Error.LogPath, errCh, failCh)
 
 			props := make([]importer.Prop, len(file.Schema.Props))
 			for i, prop := range file.Schema.Props {

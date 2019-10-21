@@ -6,32 +6,33 @@ import (
 	"log"
 	"os"
 	"path"
-	"time"
 
 	importer "github.com/yixinglu/nebula-importer/importer"
 )
 
 type CSVErrWriter struct {
-	ErrConf importer.ErrorConfig
-	ErrCh   <-chan importer.ErrData
+	errConf importer.ErrorConfig
+	errCh   <-chan importer.ErrData
+	failCh  chan<- bool
 }
 
-func NewCSVErrorWriter(errDataPath, errLogPath string, errCh <-chan importer.ErrData) importer.ErrorWriter {
+func NewCSVErrorWriter(errDataPath, errLogPath string, errCh <-chan importer.ErrData, failCh chan<- bool) importer.ErrorWriter {
 	return &CSVErrWriter{
-		ErrConf: importer.ErrorConfig{
+		errConf: importer.ErrorConfig{
 			ErrorDataPath: errDataPath,
 			ErrorLogPath:  errLogPath,
 		},
-		ErrCh: errCh,
+		errCh:  errCh,
+		failCh: failCh,
 	}
 }
 
 func (w *CSVErrWriter) SetupErrorHandler() {
 	go func() {
-		if err := os.MkdirAll(path.Dir(w.ErrConf.ErrorDataPath), 0775); err != nil && !os.IsExist(err) {
+		if err := os.MkdirAll(path.Dir(w.errConf.ErrorDataPath), 0775); err != nil && !os.IsExist(err) {
 			log.Fatal(err)
 		}
-		dataFile, err := os.Create(w.ErrConf.ErrorDataPath)
+		dataFile, err := os.Create(w.errConf.ErrorDataPath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -39,10 +40,10 @@ func (w *CSVErrWriter) SetupErrorHandler() {
 
 		dataWriter := csv.NewWriter(dataFile)
 
-		if err := os.MkdirAll(path.Dir(w.ErrConf.ErrorLogPath), 0775); err != nil && !os.IsExist(err) {
+		if err := os.MkdirAll(path.Dir(w.errConf.ErrorLogPath), 0775); err != nil && !os.IsExist(err) {
 			log.Fatal(err)
 		}
-		logFile, err := os.Create(w.ErrConf.ErrorLogPath)
+		logFile, err := os.Create(w.errConf.ErrorLogPath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -50,14 +51,9 @@ func (w *CSVErrWriter) SetupErrorHandler() {
 
 		logWriter := bufio.NewWriter(logFile)
 
-		ticker := time.NewTicker(30 * time.Second)
-
-		var numFailed uint64 = 0
 		for {
 			select {
-			case <-ticker.C:
-				log.Printf("Failed queries: %d", numFailed)
-			case rawErr := <-w.ErrCh:
+			case rawErr := <-w.errCh:
 				if rawErr.Done {
 					return
 				}
@@ -73,7 +69,7 @@ func (w *CSVErrWriter) SetupErrorHandler() {
 				logWriter.WriteString(rawErr.Error.Error())
 				logWriter.WriteString("\n")
 
-				numFailed++
+				w.failCh <- true
 			}
 		}
 	}()
