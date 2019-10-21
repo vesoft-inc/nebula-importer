@@ -82,7 +82,6 @@ func (m *NebulaClientMgr) InitNebulaClientPool() []chan Stmt {
 					m.StatsCh <- Stats{
 						Latency: uint64(resp.GetLatencyInUs()),
 						ReqTime: reqTime,
-						Done:    false,
 					}
 				}
 			}

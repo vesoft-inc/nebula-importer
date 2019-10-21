@@ -31,5 +31,4 @@ type ErrData struct {
 type Stats struct {
 	Latency uint64
 	ReqTime float64
-	Done    bool
 }

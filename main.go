@@ -74,5 +74,5 @@ func main() {
 		reader.InitFileReader(file.Path, stmtChs, doneCh)
 	}
 
-	statsCh <- importer.Stats{Done: true}
+	close(statsCh)
 }

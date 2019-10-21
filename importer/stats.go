@@ -24,8 +24,8 @@ func InitStatsWorker(ch <-chan Stats) {
 				avgReq := 1000000 * totalReqTime / float64(totalCount)
 				qps := float64(totalCount) / secs
 				log.Printf("Requests: finished(%d), latency AVG(%dus), req AVG(%.2fus), QPS(%.2f/s)", totalCount, avgLatency, avgReq, qps)
-			case stat := <-ch:
-				if stat.Done {
+			case stat, ok := <-ch:
+				if !ok {
 					return
 				}
 				totalCount++
