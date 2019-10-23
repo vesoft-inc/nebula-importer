@@ -52,7 +52,8 @@ files:
 
 | options                       | description                          | default        |
 | :--                           | :--                                  | :--            |
-| version                       | configure file version               | 1beta          |
+| version                       | Configure file version               | 1beta          |
+| description                   | Description of this configure file   | ""             |
 | settings                      | Graph client settings                |                |
 | settings.concurrency          | Number clients                       | 4              |
 | settings.retry                | Retry times when insert fails        | 3              |
