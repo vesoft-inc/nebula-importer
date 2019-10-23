@@ -4,6 +4,10 @@ Nebula Graph Importer with Go
 
 ## Usage
 
+### Install go 1.13
+
+Nebula importer depends on golang 1.13, so you should install `go` in your system at first.
+
 ### Configure file format
 
 [example configure file](example/example.yaml)
