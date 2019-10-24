@@ -1,42 +1,46 @@
-# nebula-importer
+# Nebula-importer
 
-Nebula Graph Importer with Go
+## Introduction
 
-## Usage
+`Nebula Graph Importer` with Go. This tool reads local csv files and writes into Nebula.
 
-First of all, you should deploy a nebula server or [start a nebula cluster with `docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose").
+You can use this tool by source code, or by docker.
 
-### Configure file format
+> You should start a Nebula server or [by `docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose").  And also make sure the corrsponding tag/vertex or edge type have been created in Nebula.
+
+### Prepare configure file
 
 [example configure file](example/example.yaml)
+
+See description below
 
 ```yaml
 version: 1beta
 description: example
 settings:
   retry: 5
-  concurrency: 4 # Graph client pool size
+  concurrency: 4             # Graph client pool size
   connection:
     user: user
     password: password
-    address: 127.0.0.1:3699
+    address: 127.0.0.1:3699  # Nebula ip:port
 files:
-  - path: ~/example/inherit.csv
+  - path: ~/example/inherit.csv   # .csv file1 path
     type: csv
     schema:
-      space: sp
-      name: inherit
-      type: edge
-      props:
-        - name: job_id
+      space: sp              # Nebula space
+      name: inherit          # Nebula Tag/Edge name
+      type: edge             # Tag/Edge
+      props:                 # property list. Make sure the order is same to Tag/Edge
+        - name: job_id      
           type: string
         - name: start_time
           type: timestamp
     error:
-      failDataPath: ~/example/inherit/err/inherit.csv
+      failDataPath: ~/example/inherit/err/inherit.csv  # check failed lines 
       logPath: ~/example/inherit/err/inherit.log
 
-  - path: ~/example/job.csv
+  - path: ~/example/job.csv  # file2 
     type: csv
     schema:
       space: sp
@@ -78,7 +82,7 @@ files:
 
 #### From Sources
 
-Nebula importer depends on golang 1.13, so you should install `go` in your system at first.
+This tool depends on golang 1.13, so make sure you have install `go` first.
 
 Use `git` to clone this project to your local directory and execute the `main.go` with `config` parameter.
 
@@ -90,7 +94,7 @@ $ go run main.go --config /path/to/yaml/config/file
 
 #### Docker
 
-With docker, we can easily to import our local data to nebula.
+If you start Nebula with docker, run the following command:
 
 ```shell
 $ docker run --rm -ti \
