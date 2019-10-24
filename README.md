@@ -1,14 +1,16 @@
 # nebula-importer
 
-Nebula Graph Importer with Go
+`nebula-importer` is a  tool used to load data set from a CSV file into Nebula Graph.
 
-## Usage
+## Preparation
 
-First of all, you should deploy a nebula server or [start a nebula cluster with `docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose").
+First of all, you should deploy a nebula server or [start a nebula cluster with `docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose"). Secondly, you should create space that you want import to and schemas tag/vertex.
 
-### Configure file format
+## Edit Configuration file
 
-[example configure file](example/example.yaml)
+Nebula-importer will read the configuration file to get information about connection to graph server, schemas tag/vertex, etc.
+
+Here's an [example](example/example.yaml) of configuration file.
 
 ```yaml
 version: 1beta
@@ -52,12 +54,16 @@ files:
       logPath: ~/example/job/err/job.log
 ```
 
+As for this example, nebula-importer will import two data source files inherit.csv(edges) and job.csv(vertexs) in turn.
+
+### Configuration Properties
+
 | options                       | description                          | default        |
 | :--                           | :--                                  | :--            |
-| version                       | Configure file version               | 1beta          |
+| version                       | Configuration file version           | 1beta          |
 | description                   | Description of this configure file   | ""             |
 | settings                      | Graph client settings                |                |
-| settings.concurrency          | Number clients                       | 4              |
+| settings.concurrency          | Number of clients                    | 4              |
 | settings.retry                | Retry times when insert fails        | 3              |
 | settings.connection           | Connection options of graph client   |                |
 | settings.connection.user      | Username                             | user           |
@@ -74,11 +80,11 @@ files:
 | files[0].schema.props[0].name | Property name                        | ""             |
 | files[0].schema.props[0].type | Property type                        | ""             |
 
-### Usage
+## Import data
 
-#### From Sources
+### From Sources
 
-Nebula importer depends on golang 1.13, so you should install `go` in your system at first.
+Nebula importer depends on golang 1.13, so you should install[`go`](https://golang.org/doc/install)in your system at first.
 
 Use `git` to clone this project to your local directory and execute the `main.go` with `config` parameter.
 
@@ -88,7 +94,7 @@ $ cd nebula-importer
 $ go run main.go --config /path/to/yaml/config/file
 ```
 
-#### Docker
+### Docker
 
 With docker, we can easily to import our local data to nebula.
 
