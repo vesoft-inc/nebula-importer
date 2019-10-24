@@ -34,15 +34,15 @@ files:
       name: inherit          # Nebula Tag/Edge name
       type: edge             # Tag/Edge
       props:                 # property list. Make sure the order is same to Tag/Edge
-        - name: job_id      
+        - name: job_id
           type: string
         - name: start_time
           type: timestamp
     error:
-      failDataPath: ~/example/inherit/err/inherit.csv  # check failed lines 
+      failDataPath: ~/example/inherit/err/inherit.csv  # check failed lines
       logPath: ~/example/inherit/err/inherit.log
 
-  - path: ~/example/job.csv  # file2 
+  - path: ~/example/job.csv  # file2
     type: csv
     schema:
       space: sp
@@ -100,7 +100,7 @@ $ go run main.go --config /path/to/yaml/config/file
 
 ### Docker
 
-If you start Nebula with docker, run the following command:
+With docker, we can easily to import our local data to nebula without `golang` runtime environment.
 
 ```shell
 $ docker run --rm -ti \
