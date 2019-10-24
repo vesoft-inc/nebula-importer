@@ -4,9 +4,7 @@ Nebula Graph Importer with Go
 
 ## Usage
 
-### Install go 1.13
-
-Nebula importer depends on golang 1.13, so you should install `go` in your system at first.
+First of all, you should deploy a nebula server or [start a nebula cluster with `docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose").
 
 ### Configure file format
 
@@ -70,7 +68,7 @@ files:
 | files[0].type                 | File type                            | csv            |
 | files[0].schema               | Schema definition for this file data |                |
 | files[0].schema.space         | Space name created in nebula         | ""             |
-| files[0].schema.name          | Vertex/Edge name in above space      | ""             |
+| files[0].schema.name          | Tag/Edge name in above space         | ""             |
 | files[0].schema.type          | Schema type: vertex or edge          | vertex         |
 | files[0].schema.props         | Properties of the schema             |                |
 | files[0].schema.props[0].name | Property name                        | ""             |
@@ -78,8 +76,29 @@ files:
 
 ### Usage
 
+#### From Sources
+
+Nebula importer depends on golang 1.13, so you should install `go` in your system at first.
+
+Use `git` to clone this project to your local directory and execute the `main.go` with `config` parameter.
+
 ``` shell
-go run main.go --config /path/to/yaml/config/file
+$ git clone https://github.com/yixinglu/nebula-importer.git
+$ cd nebula-importer
+$ go run main.go --config /path/to/yaml/config/file
+```
+
+#### Docker
+
+With docker, we can easily to import our local data to nebula.
+
+```shell
+$ docker run --rm -ti \
+    --network=host \
+    -v {your-config-file}:/home/nebula/{your-config-file} \
+    -v {your-csv-data-dir}:/home/nebula/{your-csv-data-dir} \
+    xl4times/nebula-importer
+    --config /home/nebula/{your-config-file}
 ```
 
 ## TODO
@@ -94,3 +113,4 @@ go run main.go --config /path/to/yaml/config/file
 - [ ] Support label for add/delete(+/-) in first column
 - [ ] Support column header in first line
 - [ ] Support vid partition
+- [X] Provide docker image and usage
