@@ -8,9 +8,11 @@ You can use this tool by source code, or by docker.
 
 > You should start a Nebula server or [by `docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose").  And also make sure the corrsponding tag/vertex or edge type have been created in Nebula.
 
-### Prepare configure file
+## Prepare configure file
 
-[example configure file](example/example.yaml)
+Nebula-importer will read the configuration file to get information about connection to graph server, schemas tag/vertex, etc.
+
+Here's an [example](example/example.yaml) of configuration file.
 
 See description below
 
@@ -56,12 +58,16 @@ files:
       logPath: ~/example/job/err/job.log
 ```
 
+As for this example, nebula-importer will import two data source files inherit.csv(edges) and job.csv(vertexs) in turn.
+
+### Configuration Properties
+
 | options                       | description                          | default        |
 | :--                           | :--                                  | :--            |
-| version                       | Configure file version               | 1beta          |
+| version                       | Configuration file version           | 1beta          |
 | description                   | Description of this configure file   | ""             |
 | settings                      | Graph client settings                |                |
-| settings.concurrency          | Number clients                       | 4              |
+| settings.concurrency          | Number of clients                    | 4              |
 | settings.retry                | Retry times when insert fails        | 3              |
 | settings.connection           | Connection options of graph client   |                |
 | settings.connection.user      | Username                             | user           |
@@ -78,9 +84,9 @@ files:
 | files[0].schema.props[0].name | Property name                        | ""             |
 | files[0].schema.props[0].type | Property type                        | ""             |
 
-### Usage
+## Usage
 
-#### From Sources
+### From Sources
 
 This tool depends on golang 1.13, so make sure you have install `go` first.
 
@@ -92,7 +98,7 @@ $ cd nebula-importer
 $ go run main.go --config /path/to/yaml/config/file
 ```
 
-#### Docker
+### Docker
 
 If you start Nebula with docker, run the following command:
 
