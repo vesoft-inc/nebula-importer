@@ -8,7 +8,7 @@ You can use this tool by source code, or by docker.
 
 > You should start a Nebula server or [by `docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose").  And also make sure the corrsponding tag/vertex or edge type have been created in Nebula.
 
-### Prepare configure file
+## Prepare configure file
 
 Nebula-importer will read the configuration file to get information about connection to graph server, schemas tag/vertex, etc.
 
@@ -84,7 +84,7 @@ As for this example, nebula-importer will import two data source files inherit.c
 | files[0].schema.props[0].name | Property name                        | ""             |
 | files[0].schema.props[0].type | Property type                        | ""             |
 
-## Import data
+## Usage
 
 ### From Sources
 
