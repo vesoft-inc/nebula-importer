@@ -11,16 +11,8 @@ import (
 	graph "github.com/vesoft-inc/nebula-go/graph"
 )
 
-type NebulaClientConfig struct {
-	Address     string
-	Retry       int
-	Concurrency int
-	User        string
-	Password    string
-}
-
 type NebulaClientMgr struct {
-	Config  NebulaClientConfig
+	Config  Settings
 	ErrCh   chan<- ErrData
 	StatsCh chan<- Stats
 	DoneCh  <-chan bool
@@ -35,13 +27,13 @@ func (m *NebulaClientMgr) InitNebulaClientPool() []chan Stmt {
 	for i := 0; i < m.Config.Concurrency; i++ {
 		go func(i int) {
 			// TODO: Add retry option for graph client
-			client, err := nebula.NewClient(m.Config.Address)
+			client, err := nebula.NewClient(m.Config.Connection.Address)
 			if err != nil {
 				log.Println(err)
 				return
 			}
 
-			if err = client.Connect(m.Config.User, m.Config.Password); err != nil {
+			if err = client.Connect(m.Config.Connection.User, m.Config.Connection.Password); err != nil {
 				log.Println(err)
 				return
 			}

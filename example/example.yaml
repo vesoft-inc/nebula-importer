@@ -1,50 +1,51 @@
 version: v1beta
 description: example
 settings:
-  retry: 5
+  retry: 3
   concurrency: 4 # Graph client pool size
   connection:
     user: user
     password: password
     address: 127.0.0.1:3699
 files:
-  - path: ~/example/inherit.csv
+  - path: ~/example/edge.csv
+    batchSize: 5
     type: csv
+    csv:
+      withHeader: false
     schema:
-      space: sp
-      name: inherit
+      space: example
       type: edge
-      props:
-        - name: job_id
-          type: string
-        - name: start_time
-          type: timestamp
+      edge:
+        name: edge
+        props:
+          - name: prop
+            type: string
     error:
-      failDataPath: ~/example/inherit/err/inherit.csv
-      logPath: ~/example/inherit/err/inherit.log
-
-  - path: ~/example/job.csv
+      failDataPath: ~/example/err/edge.csv
+      logPath: ~/example/err/edge.log
+  - path: ~/example/vertex.csv
+    batchSize: 5
     type: csv
+    csv:
+      withHeader: true
     schema:
-      space: sp
-      name: job
+      space: example
       type: vertex
-      props:
-        - name: job_id
-          type: string
-        - name: start_time
-          type: timestamp
+      vertex:
+        tags:
+          - name: tag1
+            props:
+              - name: prop1
+                type: int
+              - name: prop2
+                type: timestamp
+          - name: tag2
+            props:
+              - name: prop3
+                type: double
+              - name: prop4
+                type: string
     error:
-      failDataPath: ~/example/job/err/job.csv
-      logPath: ~/example/job/err/job.log
-
-  - path: ~/example/contain.csv
-    type: csv
-    schema:
-      space: sp
-      name: contain
-      type: edge
-      props: []
-    error:
-      failDataPath: ~/example/contain/err/contain.csv
-      logPath: ~/example/contain/err/contain.log
+      failDataPath: ~/example/err/vertex.csv
+      logPath: ~/example/err/vertex.log

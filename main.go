@@ -10,20 +10,20 @@ import (
 	csv_importer "github.com/yixinglu/nebula-importer/importer/csv"
 )
 
+var path = flag.String("config", "", "Specify importer configure file path")
+
 func main() {
-	path := flag.String("config", "", "Specify importer configure file path")
-
-	now := time.Now()
-	defer func() {
-		log.Println("Finish import data, consume time: %.2f", time.Since(now).Seconds())
-	}()
-
 	flag.Parse()
 
 	yaml, err := importer.Parse(*path)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	now := time.Now()
+	defer func() {
+		log.Printf("Finish import data, consume time: %.2f", time.Since(now).Seconds())
+	}()
 
 	doneCh := make(chan bool)
 
@@ -53,14 +53,18 @@ func main() {
 		case "csv":
 			errWriter = csv_importer.NewCSVErrorWriter(file.Error.FailDataPath, file.Error.LogPath, errCh, failCh)
 
-			props := make([]importer.Prop, len(file.Schema.Props))
-			for i, prop := range file.Schema.Props {
-				props[i] = importer.Prop{
-					Name: prop.Name,
-					Type: prop.Type,
+			descs := make([]importer.Desc, len(file.Schema.Descs))
+			for i, desc := range file.Schema.Descs {
+				descs[i] = importer.Desc{Name: desc.Name}
+				props := make([]importer.Prop, len(desc.Props))
+				for j, prop := range desc.Props {
+					props[j] = importer.Prop{
+						Name: prop.Name,
+						Type: prop.Type,
+					}
 				}
 			}
-			reader = csv_importer.NewCSVReader(file.Schema.Space, file.Schema.Type, file.Schema.Name, props)
+			reader = csv_importer.NewCSVReader(file.Schema.Space, file.Schema.Type, descs)
 		default:
 			log.Fatal("Unsupported file type: %s", file.Type)
 		}

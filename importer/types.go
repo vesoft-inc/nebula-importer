@@ -1,20 +1,8 @@
 package importer
 
-type Prop struct {
-	Name string
-	Type string
-}
-
-type Schema struct {
-	Space string
-	Type  string
-	Name  string
-	Props []Prop
-}
-
 type Stmt struct {
 	Stmt string
-	Data []interface{}
+	Data [][]interface{}
 }
 
 type ErrorConfig struct {

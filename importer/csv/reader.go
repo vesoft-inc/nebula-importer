@@ -14,25 +14,18 @@ import (
 )
 
 type CSVReader struct {
-	Schema importer.Schema
+	file importer.File
 }
 
-func NewCSVReader(space, typ, name string, props []importer.Prop) importer.DataFileReader {
-	return &CSVReader{
-		Schema: importer.Schema{
-			Space: space,
-			Type:  typ,
-			Name:  name,
-			Props: props,
-		},
-	}
+func NewCSVReader(file importer.File) importer.DataFileReader {
+	return &CSVReader{file: file}
 }
 
 func (r *CSVReader) InitFileReader(path string, stmtChs []chan importer.Stmt, doneCh chan<- bool) {
 	for _, ch := range stmtChs {
 		ch <- importer.Stmt{
 			Stmt: "USE ?;",
-			Data: []interface{}{r.Schema.Space},
+			Data: []interface{}{r.file.Schema.Space},
 		}
 	}
 
@@ -68,47 +61,95 @@ func (r *CSVReader) InitFileReader(path string, stmtChs []chan importer.Stmt, do
 	wg.Wait()
 }
 
-func (r *CSVReader) MakeStmt(record []string) importer.Stmt {
-	schemaType := strings.ToUpper(r.Schema.Type)
-
-	var builder strings.Builder
-	builder.WriteString(fmt.Sprintf("INSERT %s %s(", schemaType, r.Schema.Name))
-
-	for idx, prop := range r.Schema.Props {
-		builder.WriteString(prop.Name)
-		if idx < len(r.Schema.Props)-1 {
-			builder.WriteString(",")
+func (r *CSVReader) convertRecords(records [][]string) [][]interface{} {
+	if r.file.BatchSize != len(records) {
+		log.Fatalf("records length is not equal to batch size: %d != %d", len(records), r.file.BatchSize)
+	}
+	data := make([][]interface{}, len(records))
+	for i := range records {
+		data[i] = make([]interface{}, len(records[i]))
+		for j := range records[i] {
+			data[i][j] = records[i][j]
 		}
 	}
-	builder.WriteString(") VALUES ")
-
-	fromIndex := writeVID(schemaType, record, &builder)
-
-	builder.WriteString(":(")
-	for idx := range record[fromIndex:] {
-		builder.WriteString("?")
-		if idx < len(record[fromIndex:])-1 {
-			builder.WriteString(",")
-		}
-	}
-	builder.WriteString(");")
-
-	data := make([]interface{}, len(record))
-	for i := range record {
-		data[i] = record[i]
-	}
-
-	return importer.Stmt{
-		Stmt: builder.String(),
-		Data: data,
-	}
+	return data
 }
 
-func writeVID(schemaType string, record []string, builder *strings.Builder) int {
-	builder.WriteString("?")
-	if schemaType == "EDGE" {
-		builder.WriteString(" -> ?")
-		return 2
+func (r *CSVReader) makeVertexInsertStmtWithoutHeaderLine() string {
+	var builder strings.Builder
+	builder.WriteString("INSERT VERTEX ")
+	count := 0
+	for i, tag := range r.file.Schema.Vertex.Tags {
+		builder.WriteString(fmt.Sprintf("%s(", tag.Name))
+		for j, prop := range tag.Props {
+			builder.WriteString(prop.Name)
+			if j < len(tag.Props)-1 {
+				builder.WriteString(",")
+			} else {
+				builder.WriteString(")")
+			}
+			count++
+		}
+		if i < len(r.file.Schema.Vertex.Tags)-1 {
+			builder.WriteString(",")
+		}
 	}
-	return 1
+	builder.WriteString(" VALUES ")
+	for i := 0; i < r.file.BatchSize; i++ {
+		builder.WriteString(" ?: (")
+		builder.WriteString(strings.TrimSuffix(strings.Repeat("?,", count), ","))
+		builder.WriteString(")")
+		if i == r.file.BatchSize-1 {
+			builder.WriteString(";")
+		} else {
+			builder.WriteString(",")
+		}
+	}
+
+	return builder.String()
+}
+
+func (r *CSVReader) makeInsertEdgeWithoutHeaderLine() string {
+	var builder strings.Builder
+	builder.WriteString(fmt.Sprintf("INSERT EDGE %s(", r.file.Schema.Edge.Name))
+	count := 0
+	for i, prop := range r.file.Schema.Edge.Props {
+		builder.WriteString(prop.Name)
+		if i < len(r.file.Schema.Edge.Props)-1 {
+			builder.WriteString(",")
+		} else {
+			builder.WriteString(")")
+		}
+		count++
+	}
+	builder.WriteString(" VALUES ")
+	for i := 0; i < r.file.BatchSize; i++ {
+		builder.WriteString("?->?: (")
+		builder.WriteString(strings.TrimSuffix(strings.Repeat("?,", count), ","))
+		builder.WriteString(")")
+		if i == r.file.BatchSize-1 {
+			builder.WriteString(";")
+		} else {
+			builder.WriteString(",")
+		}
+	}
+	return builder.String()
+}
+
+func (r *CSVReader) MakeStmt(records [][]string) importer.Stmt {
+	switch strings.ToUpper(r.file.Schema.Type) {
+	case "Edge":
+		return importer.Stmt{
+			Stmt: r.makeInsertEdgeWithoutHeaderLine(),
+			Data: r.convertRecords(records),
+		}
+	case "VERTEX":
+		return importer.Stmt{
+			Stmt: r.makeVertexInsertStmtWithoutHeaderLine(),
+			Data: r.convertRecords(records),
+		}
+	default:
+		log.Fatalf("Wrong schema type: %s", r.file.Schema.Type)
+		return importer.Stmt{}
+	}
 }

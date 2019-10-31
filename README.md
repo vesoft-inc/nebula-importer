@@ -125,3 +125,5 @@ $ docker run --rm -ti \
 - [ ] Support vid partition
 - [ ] Support multi-tags insertion in vertex
 - [X] Provide docker image and usage
+- [ ] Make header adapt to props order defined in schema of configure file
+- [ ] Handle string column in nice way
