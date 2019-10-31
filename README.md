@@ -17,45 +17,57 @@ Here's an [example](example/example.yaml) of configuration file.
 See description below
 
 ```yaml
-version: v1beta
+version: v1rc1
 description: example
 settings:
-  retry: 5
-  concurrency: 4             # Graph client pool size
+  retry: 3
+  concurrency: 4 # Graph client pool size
   connection:
     user: user
     password: password
-    address: 127.0.0.1:3699  # Nebula ip:port
+    address: 127.0.0.1:3699
 files:
-  - path: ~/example/inherit.csv   # .csv file1 path
+  - path: ~/example/edge.csv
+    batchSize: 5
     type: csv
+    csv:
+      withHeader: false
     schema:
-      space: sp              # Nebula space
-      name: inherit          # Nebula Tag/Edge name
-      type: edge             # Tag/Edge
-      props:                 # property list. Make sure the order is same to Tag/Edge
-        - name: job_id
-          type: string
-        - name: start_time
-          type: timestamp
+      space: example
+      type: edge
+      edge:
+        name: edge
+        props:
+          - name: prop
+            type: string
     error:
-      failDataPath: ~/example/inherit/err/inherit.csv  # check failed lines
-      logPath: ~/example/inherit/err/inherit.log
-
-  - path: ~/example/job.csv  # file2
+      failDataPath: ~/example/err/edge.csv
+      logPath: ~/example/err/edge.log
+  - path: ~/example/vertex.csv
+    batchSize: 5
     type: csv
+    csv:
+      withHeader: true
     schema:
-      space: sp
-      name: job
+      space: example
       type: vertex
-      props:
-        - name: job_id
-          type: string
-        - name: start_time
-          type: timestamp
+      vertex:
+        tags:
+          - name: tag1
+            props:
+              - name: prop1
+                type: int
+              - name: prop2
+                type: timestamp
+          - name: tag2
+            props:
+              - name: prop3
+                type: double
+              - name: prop4
+                type: string
     error:
-      failDataPath: ~/example/job/err/job.csv
-      logPath: ~/example/job/err/job.log
+      failDataPath: ~/example/err/vertex.csv
+      logPath: ~/example/err/vertex.log
 ```
 
 As for this example, nebula-importer will import two data source files inherit.csv(edges) and job.csv(vertexs) in turn.
@@ -64,7 +76,7 @@ As for this example, nebula-importer will import two data source files inherit.c
 
 | options                       | description                          | default        |
 | :--                           | :--                                  | :--            |
-| version                       | Configure file version               | v1beta         |
+| version                       | Configure file version               | v1rc1          |
 | description                   | Description of this configure file   | ""             |
 | settings                      | Graph client settings                |                |
 | settings.concurrency          | Number of clients                    | 4              |
