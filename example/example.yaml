@@ -1,4 +1,4 @@
-version: 1beta
+version: v1beta
 description: example
 settings:
   retry: 5

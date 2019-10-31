@@ -17,7 +17,7 @@ Here's an [example](example/example.yaml) of configuration file.
 See description below
 
 ```yaml
-version: 1beta
+version: v1beta
 description: example
 settings:
   retry: 5
@@ -64,7 +64,7 @@ As for this example, nebula-importer will import two data source files inherit.c
 
 | options                       | description                          | default        |
 | :--                           | :--                                  | :--            |
-| version                       | Configuration file version           | 1beta          |
+| version                       | Configure file version               | v1beta         |
 | description                   | Description of this configure file   | ""             |
 | settings                      | Graph client settings                |                |
 | settings.concurrency          | Number of clients                    | 4              |
@@ -123,4 +123,5 @@ $ docker run --rm -ti \
 - [ ] Support label for add/delete(+/-) in first column
 - [ ] Support column header in first line
 - [ ] Support vid partition
+- [ ] Support multi-tags insertion in vertex
 - [X] Provide docker image and usage
