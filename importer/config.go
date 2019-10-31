@@ -22,13 +22,16 @@ type Prop struct {
 	Type string `yaml:"type"`
 }
 
-type Desc struct {
+type Edge struct {
+	Name        string `yaml:"name"`
+	WithRanking bool   `yaml:"withRanking"`
+	Props       []Prop `yaml:"props"`
+}
+
+type Tag struct {
 	Name  string `yaml:"name"`
 	Props []Prop `yaml:"props"`
 }
-
-type Edge Desc
-type Tag Desc
 
 type Vertex struct {
 	Tags []Tag `yaml:"tags"`

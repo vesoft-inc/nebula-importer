@@ -96,6 +96,28 @@ As for this example, nebula-importer will import two data source files inherit.c
 | files[0].schema.props[0].name | Property name                        | ""             |
 | files[0].schema.props[0].type | Property type                        | ""             |
 
+## CSV Data Example
+
+### With Header Line
+
+#### Edge
+
+```csv
+1 _src,_dst,_ranking,prop1,prop2
+2 ...
+```
+
+`_src` and `_dst` represent edge source and destination vertex id. `_ranking` column is value of edge ranking.
+
+#### Vertex
+
+```csv
+1 _vid,tag1.prop1,tag2.prop2,tag1.prop3,tag2.prop4
+2 ...
+```
+
+`_vid` column represent the global unique vertex id.
+
 ## Usage
 
 ### From Sources

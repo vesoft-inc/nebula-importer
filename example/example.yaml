@@ -12,12 +12,13 @@ files:
     batchSize: 5
     type: csv
     csv:
-      withHeader: false
+      withHeader: true
     schema:
       space: example
       type: edge
       edge:
         name: edge
+        withRanking: true
         props:
           - name: prop
             type: string

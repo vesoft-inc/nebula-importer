@@ -78,7 +78,7 @@ func (r *CSVReader) convertRecords(records [][]string) [][]interface{} {
 func (r *CSVReader) makeVertexInsertStmtWithoutHeaderLine() string {
 	var builder strings.Builder
 	builder.WriteString("INSERT VERTEX ")
-	count := 0
+	numProps := 0
 	for i, tag := range r.file.Schema.Vertex.Tags {
 		builder.WriteString(fmt.Sprintf("%s(", tag.Name))
 		for j, prop := range tag.Props {
@@ -88,31 +88,26 @@ func (r *CSVReader) makeVertexInsertStmtWithoutHeaderLine() string {
 			} else {
 				builder.WriteString(")")
 			}
-			count++
+			numProps++
 		}
 		if i < len(r.file.Schema.Vertex.Tags)-1 {
 			builder.WriteString(",")
+		} else {
+			builder.WriteString(" VALUES ")
 		}
 	}
-	builder.WriteString(" VALUES ")
 	for i := 0; i < r.file.BatchSize; i++ {
-		builder.WriteString(" ?: (")
-		builder.WriteString(strings.TrimSuffix(strings.Repeat("?,", count), ","))
-		builder.WriteString(")")
-		if i == r.file.BatchSize-1 {
-			builder.WriteString(";")
-		} else {
-			builder.WriteString(",")
-		}
+		builder.WriteString(" ?: ")
+		fillPropsPlaceholder(&builder, numProps, i == r.file.BatchSize-1)
 	}
 
 	return builder.String()
 }
 
-func (r *CSVReader) makeInsertEdgeWithoutHeaderLine() string {
+func (r *CSVReader) makeEdgeInsertStmtWithoutHeaderLine() string {
 	var builder strings.Builder
 	builder.WriteString(fmt.Sprintf("INSERT EDGE %s(", r.file.Schema.Edge.Name))
-	count := 0
+	numProps := 0
 	for i, prop := range r.file.Schema.Edge.Props {
 		builder.WriteString(prop.Name)
 		if i < len(r.file.Schema.Edge.Props)-1 {
@@ -120,27 +115,35 @@ func (r *CSVReader) makeInsertEdgeWithoutHeaderLine() string {
 		} else {
 			builder.WriteString(")")
 		}
-		count++
+		numProps++
 	}
 	builder.WriteString(" VALUES ")
 	for i := 0; i < r.file.BatchSize; i++ {
-		builder.WriteString("?->?: (")
-		builder.WriteString(strings.TrimSuffix(strings.Repeat("?,", count), ","))
-		builder.WriteString(")")
-		if i == r.file.BatchSize-1 {
-			builder.WriteString(";")
-		} else {
-			builder.WriteString(",")
+		builder.WriteString("?->?: ")
+		if r.file.Schema.Edge.WithRanking {
+			builder.WriteString("(?)")
 		}
+		fillPropsPlaceholder(&builder, numProps, i == r.file.BatchSize-1)
 	}
 	return builder.String()
 }
 
+func fillPropsPlaceholder(builder *strings.Builder, numProps int, isEnd bool) {
+	builder.WriteString("(")
+	builder.WriteString(strings.TrimSuffix(strings.Repeat("?,", numProps), ","))
+	builder.WriteString(")")
+	if isEnd {
+		builder.WriteString(";")
+	} else {
+		builder.WriteString(",")
+	}
+}
+
 func (r *CSVReader) MakeStmt(records [][]string) importer.Stmt {
 	switch strings.ToUpper(r.file.Schema.Type) {
-	case "Edge":
+	case "EDGE":
 		return importer.Stmt{
-			Stmt: r.makeInsertEdgeWithoutHeaderLine(),
+			Stmt: r.makeEdgeInsertStmtWithoutHeaderLine(),
 			Data: r.convertRecords(records),
 		}
 	case "VERTEX":
