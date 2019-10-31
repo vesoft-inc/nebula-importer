@@ -10,12 +10,12 @@ import (
 	csv_importer "github.com/yixinglu/nebula-importer/importer/csv"
 )
 
-var path = flag.String("config", "", "Specify importer configure file path")
+var config = flag.String("config", "", "Specify importer configure file path")
 
 func main() {
 	flag.Parse()
 
-	yaml, err := importer.Parse(*path)
+	yaml, err := importer.Parse(*config)
 	if err != nil {
 		log.Fatal(err)
 	}
