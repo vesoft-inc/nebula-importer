@@ -39,12 +39,12 @@ func requireFile(filePath string) *os.File {
 
 func (w *CSVErrWriter) SetupErrorHandler() {
 	go func() {
-		dataFile := requireFile(w.errConf.ErrorDataPath)
+		dataFile := requireFile(w.errConf.FailDataPath)
 		defer dataFile.Close()
 
 		dataWriter := csv.NewWriter(dataFile)
 
-		logFile := requireFile(w.errConf.ErrorLogPath)
+		logFile := requireFile(w.errConf.LogPath)
 		defer logFile.Close()
 
 		logWriter := bufio.NewWriter(logFile)
