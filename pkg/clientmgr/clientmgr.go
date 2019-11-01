@@ -7,18 +7,40 @@ import (
 	"strings"
 	"time"
 
-	nebula "github.com/vesoft-inc/nebula-go"
-
 	"github.com/vesoft-inc/nebula-go/graph"
 	"github.com/yixinglu/nebula-importer/pkg/base"
 	"github.com/yixinglu/nebula-importer/pkg/config"
+	"github.com/yixinglu/nebula-importer/pkg/stats"
 )
 
 type NebulaClientMgr struct {
-	Config  config.NebulaClientSettings
-	ErrCh   chan<- base.ErrData
-	StatsCh chan<- stats.Stats
-	DoneCh  <-chan bool
+	config  config.NebulaClientSettings
+	file    config.File
+	errCh   chan<- base.ErrData
+	statsCh chan<- stats.Stats
+	doneCh  <-chan bool
+}
+
+func NewNebulaClientMgr(settings config.NebulaClientSettings, file config.File) *NebulaClientMgr {
+	return &NebulaClientMgr{
+		config: settings,
+		file:   file,
+	}
+}
+
+func (m *NebulaClientMgr) withErrChan(errCh chan<- base.ErrData) *NebulaClientMgr {
+	m.errCh = errCh
+	return m
+}
+
+func (m *NebulaClientMgr) withStatsChan(statsCh chan<- stats.Stats) *NebulaClientMgr {
+	m.statsCh = statsCh
+	return m
+}
+
+func (m *NebulaClientMgr) withDoneCh(doneCh chan<- bool) *NebulaClientMgr {
+	m.doneCh = doneCh
+	return m
 }
 
 func (m *NebulaClientMgr) InitNebulaClientPool() []chan base.Stmt {
@@ -30,15 +52,9 @@ func (m *NebulaClientMgr) InitNebulaClientPool() []chan base.Stmt {
 	for i := 0; i < m.Config.Concurrency; i++ {
 		go func(i int) {
 			// TODO: Add retry option for graph client
-			client, err := nebula.NewClient(m.Config.Connection.Address)
+			client, err := NewClientPool(m.config.Connection)
 			if err != nil {
-				log.Println(err)
-				return
-			}
-
-			if err = client.Connect(m.Config.Connection.User, m.Config.Connection.Password); err != nil {
-				log.Println(err)
-				return
+				log.Println("Fail to create client pool, ", err.Error())
 			}
 			defer client.Disconnect()
 

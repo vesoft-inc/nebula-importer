@@ -7,14 +7,16 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+type NebulaClientConnection struct {
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Address  string `yaml:"address"`
+}
+
 type NebulaClientSettings struct {
-	Retry       int `yaml:"retry"`
-	Concurrency int `yaml:"concurrency"`
-	Connection  struct {
-		User     string `yaml:"user"`
-		Password string `yaml:"password"`
-		Address  string `yaml:"address"`
-	} `yaml:"connection"`
+	Retry       int                    `yaml:"retry"`
+	Concurrency int                    `yaml:"concurrency"`
+	Connection  NebulaClientConnection `yaml:"connection"`
 }
 
 type Prop struct {
