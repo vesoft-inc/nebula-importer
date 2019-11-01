@@ -7,18 +7,19 @@ import (
 	"os"
 	"path"
 
-	importer "github.com/yixinglu/nebula-importer/importer"
+	"github.com/yixinglu/nebula-importer/pkg/base"
+	"github.com/yixinglu/nebula-importer/pkg/errhandler"
 )
 
 type CSVErrWriter struct {
-	errConf importer.ErrorConfig
-	errCh   <-chan importer.ErrData
+	errConf base.ErrorConfig
+	errCh   <-chan base.ErrData
 	failCh  chan<- bool
 }
 
-func NewCSVErrorWriter(errDataPath, errLogPath string, errCh <-chan importer.ErrData, failCh chan<- bool) importer.ErrorWriter {
+func NewCSVErrorWriter(errDataPath, errLogPath string, errCh <-chan base.ErrData, failCh chan<- bool) errhandler.ErrorWriter {
 	return &CSVErrWriter{
-		errConf: importer.ErrorConfig{
+		errConf: base.ErrorConfig{
 			ErrorDataPath: errDataPath,
 			ErrorLogPath:  errLogPath,
 		},
@@ -82,6 +83,6 @@ func writeFailedData(writer *csv.Writer, data [][]interface{}) {
 }
 
 func logErrorMessage(writer *bufio.Writer, err error) {
-	writer.WriteString(error.Error())
+	writer.WriteString(err.Error())
 	writer.WriteString("\n")
 }

@@ -1,4 +1,4 @@
-package importer
+package clientmgr
 
 import (
 	"errors"
@@ -9,19 +9,21 @@ import (
 
 	nebula "github.com/vesoft-inc/nebula-go"
 	graph "github.com/vesoft-inc/nebula-go/graph"
+	"github.com/yixinglu/nebula-importer/pkg/base"
+	"github.com/yixinglu/nebula-importer/pkg/config"
 )
 
 type NebulaClientMgr struct {
-	Config  NebulaClientSettings
-	ErrCh   chan<- ErrData
-	StatsCh chan<- Stats
+	Config  config.NebulaClientSettings
+	ErrCh   chan<- base.ErrData
+	StatsCh chan<- base.Stats
 	DoneCh  <-chan bool
 }
 
-func (m *NebulaClientMgr) InitNebulaClientPool() []chan Stmt {
-	stmtChs := make([]chan Stmt, m.Config.Concurrency)
+func (m *NebulaClientMgr) InitNebulaClientPool() []chan base.Stmt {
+	stmtChs := make([]chan base.Stmt, m.Config.Concurrency)
 	for i := 0; i < m.Config.Concurrency; i++ {
-		stmtChs[i] = make(chan Stmt)
+		stmtChs[i] = make(chan base.Stmt)
 	}
 
 	for i := 0; i < m.Config.Concurrency; i++ {
@@ -42,7 +44,7 @@ func (m *NebulaClientMgr) InitNebulaClientPool() []chan Stmt {
 			for {
 				select {
 				case <-m.DoneCh:
-					m.ErrCh <- ErrData{Done: true}
+					m.ErrCh <- base.ErrData{Done: true}
 				case stmt := <-stmtChs[i]:
 					for _, val := range stmt.Data {
 						stmt.Stmt = strings.Replace(stmt.Stmt, "?", fmt.Sprintf("%v", val), 1)
@@ -54,7 +56,7 @@ func (m *NebulaClientMgr) InitNebulaClientPool() []chan Stmt {
 					reqTime := time.Since(now).Seconds()
 
 					if err != nil {
-						m.ErrCh <- ErrData{
+						m.ErrCh <- base.ErrData{
 							Error: err,
 							Data:  stmt.Data,
 							Done:  false,
@@ -63,15 +65,16 @@ func (m *NebulaClientMgr) InitNebulaClientPool() []chan Stmt {
 					}
 
 					if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-						m.ErrCh <- ErrData{
-							Error: errors.New(fmt.Sprintf("Fail to execute: %s, ErrMsg: %s, ErrCode: %v", stmt.Stmt, resp.GetErrorMsg(), resp.GetErrorCode())),
+						errMsg := fmt.Sprintf("Fail to execute: %s, ErrMsg: %s, ErrCode: %v", stmt.Stmt, resp.GetErrorMsg(), resp.GetErrorCode())
+						m.ErrCh <- base.ErrData{
+							Error: errors.New(errMsg),
 							Data:  stmt.Data,
 							Done:  false,
 						}
 						continue
 					}
 
-					m.StatsCh <- Stats{
+					m.StatsCh <- base.Stats{
 						Latency: uint64(resp.GetLatencyInUs()),
 						ReqTime: reqTime,
 					}

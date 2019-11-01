@@ -10,21 +10,23 @@ import (
 	"strings"
 	"sync"
 
-	importer "github.com/yixinglu/nebula-importer/importer"
+	"github.com/yixinglu/nebula-importer/pkg/base"
+	"github.com/yixinglu/nebula-importer/pkg/config"
+	"github.com/yixinglu/nebula-importer/pkg/reader"
 )
 
 type CSVReader struct {
-	file importer.File
+	file config.File
 }
 
-func NewCSVReader(file importer.File) importer.DataFileReader {
+func NewCSVReader(file config.File) reader.DataFileReader {
 	if strings.ToUpper(file.Type) != "CSV" {
 		log.Fatalf("Error file type: %s", file.Type)
 	}
 	return &CSVReader{file: file}
 }
 
-func (r *CSVReader) InitFileReader(stmtChs []chan importer.Stmt, doneCh chan<- bool) {
+func (r *CSVReader) InitFileReader(stmtChs []chan base.Stmt, doneCh chan<- bool) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -32,7 +34,7 @@ func (r *CSVReader) InitFileReader(stmtChs []chan importer.Stmt, doneCh chan<- b
 			data := make([][]interface{}, 1)
 			data[0] = make([]interface{}, 1)
 			data[0][0] = r.file.Schema.Space
-			ch <- importer.Stmt{
+			ch <- base.Stmt{
 				Stmt: "USE ?;",
 				Data: data,
 			}
@@ -52,6 +54,7 @@ func (r *CSVReader) InitFileReader(stmtChs []chan importer.Stmt, doneCh chan<- b
 		lines := make([][]string, r.file.BatchSize)
 
 		for {
+			// TODO: partition and make batch request in client pool
 			line, err := reader.Read()
 			if err == io.EOF {
 				if batchSize > 0 {
@@ -155,20 +158,20 @@ func fillPropsPlaceholder(builder *strings.Builder, numProps int, isEnd bool) {
 	}
 }
 
-func (r *CSVReader) MakeStmt(records [][]string, batchSize int) importer.Stmt {
+func (r *CSVReader) MakeStmt(records [][]string, batchSize int) base.Stmt {
 	switch strings.ToUpper(r.file.Schema.Type) {
 	case "EDGE":
-		return importer.Stmt{
+		return base.Stmt{
 			Stmt: r.makeEdgeInsertStmtWithoutHeaderLine(batchSize),
 			Data: r.convertRecords(records),
 		}
 	case "VERTEX":
-		return importer.Stmt{
+		return base.Stmt{
 			Stmt: r.makeVertexInsertStmtWithoutHeaderLine(batchSize),
 			Data: r.convertRecords(records),
 		}
 	default:
 		log.Fatalf("Wrong schema type: %s", r.file.Schema.Type)
-		return importer.Stmt{}
+		return base.Stmt{}
 	}
 }

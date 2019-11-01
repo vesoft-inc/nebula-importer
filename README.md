@@ -161,3 +161,4 @@ $ docker run --rm -ti \
 - [X] Provide docker image and usage
 - [ ] Make header adapt to props order defined in schema of configure file
 - [ ] Handle string column in nice way
+- [ ] Update concurrency and batch size online
