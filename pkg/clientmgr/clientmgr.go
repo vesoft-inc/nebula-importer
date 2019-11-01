@@ -8,7 +8,8 @@ import (
 	"time"
 
 	nebula "github.com/vesoft-inc/nebula-go"
-	graph "github.com/vesoft-inc/nebula-go/graph"
+
+	"github.com/vesoft-inc/nebula-go/graph"
 	"github.com/yixinglu/nebula-importer/pkg/base"
 	"github.com/yixinglu/nebula-importer/pkg/config"
 )
@@ -16,7 +17,7 @@ import (
 type NebulaClientMgr struct {
 	Config  config.NebulaClientSettings
 	ErrCh   chan<- base.ErrData
-	StatsCh chan<- base.Stats
+	StatsCh chan<- stats.Stats
 	DoneCh  <-chan bool
 }
 
@@ -73,8 +74,7 @@ func (m *NebulaClientMgr) InitNebulaClientPool() []chan base.Stmt {
 						}
 						continue
 					}
-
-					m.StatsCh <- base.Stats{
+					m.StatsCh <- stats.Stats{
 						Latency: uint64(resp.GetLatencyInUs()),
 						ReqTime: reqTime,
 					}

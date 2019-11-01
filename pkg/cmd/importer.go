@@ -33,7 +33,7 @@ func main() {
 	doneCh := make(chan bool)
 
 	failCh := make(chan bool)
-	statsCh := make(chan base.Stats)
+	statsCh := make(chan stats.Stats)
 	stats.InitStatsWorker(statsCh, failCh)
 
 	errCh := make(chan base.ErrData)

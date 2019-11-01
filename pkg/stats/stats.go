@@ -3,9 +3,12 @@ package stats
 import (
 	"fmt"
 	"time"
-
-	"github.com/yixinglu/nebula-importer/pkg/base"
 )
+
+type Stats struct {
+	Latency uint64
+	ReqTime float64
+}
 
 type count struct {
 	totalCount   uint64
@@ -23,7 +26,7 @@ func newCount() count {
 	}
 }
 
-func (s *count) updateStat(stat base.Stats) {
+func (s *count) updateStat(stat stats.Stats) {
 	s.totalCount++
 	s.totalReqTime += stat.ReqTime
 	s.totalLatency += stat.Latency
@@ -46,7 +49,7 @@ func (s *count) print(now time.Time) {
 		s.totalCount, s.numFailed, avgLatency, avgReq, qps)
 }
 
-func InitStatsWorker(ch <-chan base.Stats, failCh <-chan bool) {
+func InitStatsWorker(ch <-chan stats.Stats, failCh <-chan bool) {
 	go func() {
 		ticker := time.NewTicker(10 * time.Second)
 		c := newCount()

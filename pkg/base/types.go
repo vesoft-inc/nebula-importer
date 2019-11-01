@@ -15,8 +15,3 @@ type ErrData struct {
 	Data  [][]interface{}
 	Done  bool
 }
-
-type Stats struct {
-	Latency uint64
-	ReqTime float64
-}
