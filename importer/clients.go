@@ -12,7 +12,7 @@ import (
 )
 
 type NebulaClientMgr struct {
-	Config  Settings
+	Config  NebulaClientSettings
 	ErrCh   chan<- ErrData
 	StatsCh chan<- Stats
 	DoneCh  <-chan bool

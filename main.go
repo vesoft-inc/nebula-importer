@@ -33,13 +33,7 @@ func main() {
 
 	errCh := make(chan importer.ErrData)
 	mgr := importer.NebulaClientMgr{
-		Config: importer.NebulaClientConfig{
-			Address:     yaml.Settings.Connection.Address,
-			User:        yaml.Settings.Connection.User,
-			Password:    yaml.Settings.Connection.Password,
-			Retry:       yaml.Settings.Retry,
-			Concurrency: yaml.Settings.Concurrency,
-		},
+		Config:  yaml.NebulaClientSettings,
 		ErrCh:   errCh,
 		StatsCh: statsCh,
 		DoneCh:  doneCh,
@@ -70,7 +64,7 @@ func main() {
 		}
 		// log.Printf("file struct:\n %#v", file)
 		errWriter.SetupErrorHandler()
-		reader.InitFileReader(file.Path, stmtChs, doneCh)
+		reader.InitFileReader(stmtChs, doneCh)
 	}
 
 	close(statsCh)

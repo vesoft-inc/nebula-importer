@@ -27,26 +27,25 @@ func NewCSVErrorWriter(errDataPath, errLogPath string, errCh <-chan importer.Err
 	}
 }
 
+func requireFile(filePath string) *os.File {
+	if err := os.MkdirAll(path.Dir(filePath), 0775); err != nil && !os.IsExist(err) {
+		log.Fatal(err)
+	}
+	file, err := os.Create(filePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return file
+}
+
 func (w *CSVErrWriter) SetupErrorHandler() {
 	go func() {
-		if err := os.MkdirAll(path.Dir(w.errConf.ErrorDataPath), 0775); err != nil && !os.IsExist(err) {
-			log.Fatal(err)
-		}
-		dataFile, err := os.Create(w.errConf.ErrorDataPath)
-		if err != nil {
-			log.Fatal(err)
-		}
+		dataFile := requireFile(w.errConf.ErrorDataPath)
 		defer dataFile.Close()
 
 		dataWriter := csv.NewWriter(dataFile)
 
-		if err := os.MkdirAll(path.Dir(w.errConf.ErrorLogPath), 0775); err != nil && !os.IsExist(err) {
-			log.Fatal(err)
-		}
-		logFile, err := os.Create(w.errConf.ErrorLogPath)
-		if err != nil {
-			log.Fatal(err)
-		}
+		logFile := requireFile(w.errConf.ErrorLogPath)
 		defer logFile.Close()
 
 		logWriter := bufio.NewWriter(logFile)
@@ -57,17 +56,9 @@ func (w *CSVErrWriter) SetupErrorHandler() {
 				if rawErr.Done {
 					return
 				}
-				// Write failed data
-				errData := make([]string, len(rawErr.Data))
-				for i := range rawErr.Data {
-					errData[i] = rawErr.Data[i].(string)
-				}
 
-				dataWriter.Write(errData)
-
-				// Write error message
-				logWriter.WriteString(rawErr.Error.Error())
-				logWriter.WriteString("\n")
+				writeFailedData(dataWriter, rawErr.Data)
+				logErrorMessage(logWriter, rawErr.Error)
 
 				w.failCh <- true
 			}
@@ -75,4 +66,22 @@ func (w *CSVErrWriter) SetupErrorHandler() {
 	}()
 
 	log.Println("Setup CSV error handler")
+}
+
+func writeFailedData(writer *csv.Writer, data [][]interface{}) {
+	if len(data) == 0 {
+		log.Println("Empty error data")
+	}
+	record := make([]string, len(data[0]))
+	for _, r := range data {
+		for i := range r {
+			record[i] = r[i].(string)
+		}
+		writer.Write(record)
+	}
+}
+
+func logErrorMessage(writer *bufio.Writer, err error) {
+	writer.WriteString(error.Error())
+	writer.WriteString("\n")
 }

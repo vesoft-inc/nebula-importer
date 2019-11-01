@@ -7,7 +7,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-type Settings struct {
+type NebulaClientSettings struct {
 	Retry       int `yaml:"retry"`
 	Concurrency int `yaml:"concurrency"`
 	Connection  struct {
@@ -63,10 +63,10 @@ type File struct {
 }
 
 type YAMLConfig struct {
-	Version     string   `yaml:"version"`
-	Description string   `yaml:"description"`
-	Settings    Settings `yaml:"settings"`
-	Files       []File   `yaml:"files"`
+	Version              string               `yaml:"version"`
+	Description          string               `yaml:"description"`
+	NebulaClientSettings NebulaClientSettings `yaml:"settings"`
+	Files                []File               `yaml:"files"`
 }
 
 func Parse(filename string) (YAMLConfig, error) {

@@ -12,7 +12,7 @@ type ErrorConfig struct {
 
 type ErrData struct {
 	Error error
-	Data  []interface{}
+	Data  [][]interface{}
 	Done  bool
 }
 
