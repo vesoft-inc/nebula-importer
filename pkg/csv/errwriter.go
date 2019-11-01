@@ -8,23 +8,21 @@ import (
 	"path"
 
 	"github.com/yixinglu/nebula-importer/pkg/base"
+	"github.com/yixinglu/nebula-importer/pkg/config"
 	"github.com/yixinglu/nebula-importer/pkg/errhandler"
 )
 
 type CSVErrWriter struct {
-	errConf base.ErrorConfig
+	errConf config.ErrConfig
 	errCh   <-chan base.ErrData
 	failCh  chan<- bool
 }
 
-func NewCSVErrorWriter(errDataPath, errLogPath string, errCh <-chan base.ErrData, failCh chan<- bool) errhandler.ErrorWriter {
+func NewCSVErrorWriter(errConf config.ErrConfig, errCh <-chan base.ErrData, failCh chan<- bool) errhandler.ErrorWriter {
 	return &CSVErrWriter{
-		errConf: base.ErrorConfig{
-			ErrorDataPath: errDataPath,
-			ErrorLogPath:  errLogPath,
-		},
-		errCh:  errCh,
-		failCh: failCh,
+		errConf: errConf,
+		errCh:   errCh,
+		failCh:  failCh,
 	}
 }
 

@@ -5,11 +5,6 @@ type Stmt struct {
 	Data [][]interface{}
 }
 
-type ErrorConfig struct {
-	ErrorLogPath  string
-	ErrorDataPath string
-}
-
 type ErrData struct {
 	Error error
 	Data  [][]interface{}

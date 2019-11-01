@@ -50,7 +50,7 @@ func main() {
 		var reader reader.DataFileReader
 		switch strings.ToLower(file.Type) {
 		case "csv":
-			errWriter = csv.NewCSVErrorWriter(file.Error.FailDataPath, file.Error.LogPath, errCh, failCh)
+			errWriter = csv.NewCSVErrorWriter(file.Error, errCh, failCh)
 			reader = csv.NewCSVReader(file)
 		default:
 			log.Fatal("Unsupported file type: %s", file.Type)
