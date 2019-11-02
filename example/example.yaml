@@ -1,7 +1,6 @@
 version: v1rc1
 description: example
 settings:
-  retry: 3
   concurrency: 4 # Graph client pool size
   connection:
     user: user

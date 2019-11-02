@@ -14,7 +14,6 @@ type NebulaClientConnection struct {
 }
 
 type NebulaClientSettings struct {
-	Retry       int                    `yaml:"retry"`
 	Concurrency int                    `yaml:"concurrency"`
 	Connection  NebulaClientConnection `yaml:"connection"`
 }

@@ -9,21 +9,12 @@ import (
 
 	"github.com/yixinglu/nebula-importer/pkg/base"
 	"github.com/yixinglu/nebula-importer/pkg/config"
-	"github.com/yixinglu/nebula-importer/pkg/errhandler"
 )
 
 type CSVErrWriter struct {
-	errConf config.ErrConfig
-	errCh   <-chan base.ErrData
-	failCh  chan<- bool
-}
-
-func NewCSVErrorWriter(errConf config.ErrConfig, errCh <-chan base.ErrData, failCh chan<- bool) errhandler.ErrorWriter {
-	return &CSVErrWriter{
-		errConf: errConf,
-		errCh:   errCh,
-		failCh:  failCh,
-	}
+	ErrConf config.ErrConfig
+	ErrCh   <-chan base.ErrData
+	FailCh  chan<- bool
 }
 
 func requireFile(filePath string) *os.File {
@@ -39,19 +30,19 @@ func requireFile(filePath string) *os.File {
 
 func (w *CSVErrWriter) SetupErrorHandler() {
 	go func() {
-		dataFile := requireFile(w.errConf.FailDataPath)
+		dataFile := requireFile(w.ErrConf.FailDataPath)
 		defer dataFile.Close()
 
 		dataWriter := csv.NewWriter(dataFile)
 
-		logFile := requireFile(w.errConf.LogPath)
+		logFile := requireFile(w.ErrConf.LogPath)
 		defer logFile.Close()
 
 		logWriter := bufio.NewWriter(logFile)
 
 		for {
 			select {
-			case rawErr := <-w.errCh:
+			case rawErr := <-w.ErrCh:
 				if rawErr.Done {
 					return
 				}
@@ -59,7 +50,7 @@ func (w *CSVErrWriter) SetupErrorHandler() {
 				writeFailedData(dataWriter, rawErr.Data)
 				logErrorMessage(logWriter, rawErr.Error)
 
-				w.failCh <- true
+				w.FailCh <- true
 			}
 		}
 	}()

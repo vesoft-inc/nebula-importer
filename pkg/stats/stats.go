@@ -26,7 +26,7 @@ func newCount() count {
 	}
 }
 
-func (s *count) updateStat(stat stats.Stats) {
+func (s *count) updateStat(stat Stats) {
 	s.totalCount++
 	s.totalReqTime += stat.ReqTime
 	s.totalLatency += stat.Latency
@@ -49,7 +49,7 @@ func (s *count) print(now time.Time) {
 		s.totalCount, s.numFailed, avgLatency, avgReq, qps)
 }
 
-func InitStatsWorker(ch <-chan stats.Stats, failCh <-chan bool) {
+func InitStatsWorker(ch <-chan Stats, failCh <-chan bool) {
 	go func() {
 		ticker := time.NewTicker(10 * time.Second)
 		c := newCount()

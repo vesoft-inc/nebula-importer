@@ -20,7 +20,6 @@ See description below
 version: v1rc1
 description: example
 settings:
-  retry: 3
   concurrency: 4 # Graph client pool size
   connection:
     user: user
@@ -80,7 +79,6 @@ As for this example, nebula-importer will import two data source files inherit.c
 | description                   | Description of this configure file   | ""             |
 | settings                      | Graph client settings                |                |
 | settings.concurrency          | Number of clients                    | 4              |
-| settings.retry                | Retry times when insert fails        | 3              |
 | settings.connection           | Connection options of graph client   |                |
 | settings.connection.user      | Username                             | user           |
 | settings.connection.password  | Password                             | password       |

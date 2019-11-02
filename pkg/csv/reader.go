@@ -3,175 +3,72 @@ package csv
 import (
 	"bufio"
 	"encoding/csv"
-	"fmt"
 	"io"
 	"log"
 	"os"
-	"strings"
-	"sync"
+	"strconv"
 
-	"github.com/yixinglu/nebula-importer/pkg/base"
+	"github.com/yixinglu/nebula-importer/pkg/clientmgr"
 	"github.com/yixinglu/nebula-importer/pkg/config"
-	"github.com/yixinglu/nebula-importer/pkg/reader"
 )
 
 type CSVReader struct {
-	file config.File
+	File    config.File
+	DataChs []chan clientmgr.Record
 }
 
-func NewCSVReader(file config.File) reader.DataFileReader {
-	if strings.ToUpper(file.Type) != "CSV" {
-		log.Fatalf("Error file type: %s", file.Type)
+func (r *CSVReader) Read() {
+	log.Printf("Start to read CSV data file: %s", r.File.Path)
+
+	file, err := os.Open(r.File.Path)
+	if err != nil {
+		log.Fatal(err)
 	}
-	return &CSVReader{file: file}
-}
+	defer file.Close()
 
-func (r *CSVReader) InitFileReader(stmtChs []chan base.Stmt, doneCh chan<- bool) {
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		for _, ch := range stmtChs {
-			data := make([][]interface{}, 1)
-			data[0] = make([]interface{}, 1)
-			data[0][0] = r.file.Schema.Space
-			ch <- base.Stmt{
-				Stmt: "USE ?;",
-				Data: data,
+	reader := csv.NewReader(bufio.NewReader(file))
+
+	lineNum, numFailedLines, len := 0, 0, len(r.DataChs)
+
+	for {
+		line, err := reader.Read()
+		if err == io.EOF {
+			for i := range r.DataChs {
+				r.DataChs[i] <- clientmgr.DoneRecord()
 			}
+			log.Printf("Total lines of file(%s) is: %d, failed: %d", r.File.Path, lineNum, numFailedLines)
+			lineNum, numFailedLines = 0, 0
+			break
 		}
 
-		log.Printf("Start to read CSV data file: %s", r.file.Path)
+		lineNum++
 
-		file, err := os.Open(r.file.Path)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("Fail to read line %d, error: %s", lineNum, err.Error())
+			numFailedLines++
+			continue
 		}
-		defer file.Close()
 
-		reader := csv.NewReader(bufio.NewReader(file))
-
-		numBatches, batchSize, len := 0, 0, len(stmtChs)
-		lines := make([][]string, r.file.BatchSize)
-
-		for {
-			// TODO: partition and make batch request in client pool
-			line, err := reader.Read()
-			if err == io.EOF {
-				if batchSize > 0 {
-					stmtChs[numBatches%len] <- r.MakeStmt(lines, batchSize)
-				}
-				doneCh <- true
-				wg.Done()
-				break
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
-			if batchSize < r.file.BatchSize {
-				lines[batchSize] = line
-				batchSize++
-			} else {
-				batchSize = 0
-				numBatches++
-				stmtChs[numBatches%len] <- r.MakeStmt(lines, r.file.BatchSize)
-			}
+		if len(line) == 0 || len(line[0]) == 0 {
+			log.Printf("Line %d or its vid is empty", lineNum)
+			numFailedLines++
+			continue
 		}
-	}()
-	wg.Wait()
-}
 
-func (r *CSVReader) convertRecords(records [][]string) [][]interface{} {
-	if r.file.BatchSize != len(records) {
-		log.Fatalf("records length is not equal to batch size: %d != %d", len(records), r.file.BatchSize)
-	}
-	data := make([][]interface{}, len(records))
-	for i := range records {
-		data[i] = make([]interface{}, len(records[i]))
-		for j := range records[i] {
-			data[i][j] = records[i][j]
+		chanId, err := getChanId(line[0], len)
+		if err != nil {
+			log.Printf("Error vid: %s", line[0])
+			numFailedLines++
+			continue
 		}
-	}
-	return data
-}
-
-func (r *CSVReader) makeVertexInsertStmtWithoutHeaderLine(batchSize int) string {
-	var builder strings.Builder
-	builder.WriteString("INSERT VERTEX ")
-	numProps := 0
-	for i, tag := range r.file.Schema.Vertex.Tags {
-		builder.WriteString(fmt.Sprintf("%s(", tag.Name))
-		for j, prop := range tag.Props {
-			builder.WriteString(prop.Name)
-			if j < len(tag.Props)-1 {
-				builder.WriteString(",")
-			} else {
-				builder.WriteString(")")
-			}
-			numProps++
-		}
-		if i < len(r.file.Schema.Vertex.Tags)-1 {
-			builder.WriteString(",")
-		} else {
-			builder.WriteString(" VALUES ")
-		}
-	}
-	for i := 0; i < batchSize; i++ {
-		builder.WriteString(" ?: ")
-		fillPropsPlaceholder(&builder, numProps, i == batchSize-1)
-	}
-
-	return builder.String()
-}
-
-func (r *CSVReader) makeEdgeInsertStmtWithoutHeaderLine(batchSize int) string {
-	var builder strings.Builder
-	builder.WriteString(fmt.Sprintf("INSERT EDGE %s(", r.file.Schema.Edge.Name))
-	numProps := 0
-	for i, prop := range r.file.Schema.Edge.Props {
-		builder.WriteString(prop.Name)
-		if i < len(r.file.Schema.Edge.Props)-1 {
-			builder.WriteString(",")
-		} else {
-			builder.WriteString(")")
-		}
-		numProps++
-	}
-	builder.WriteString(" VALUES ")
-	for i := 0; i < batchSize; i++ {
-		builder.WriteString("?->?: ")
-		if r.file.Schema.Edge.WithRanking {
-			builder.WriteString("(?)")
-		}
-		fillPropsPlaceholder(&builder, numProps, i == batchSize-1)
-	}
-	return builder.String()
-}
-
-func fillPropsPlaceholder(builder *strings.Builder, numProps int, isEnd bool) {
-	builder.WriteString("(")
-	builder.WriteString(strings.TrimSuffix(strings.Repeat("?,", numProps), ","))
-	builder.WriteString(")")
-	if isEnd {
-		builder.WriteString(";")
-	} else {
-		builder.WriteString(",")
+		r.DataChs[chanId] <- line
 	}
 }
 
-func (r *CSVReader) MakeStmt(records [][]string, batchSize int) base.Stmt {
-	switch strings.ToUpper(r.file.Schema.Type) {
-	case "EDGE":
-		return base.Stmt{
-			Stmt: r.makeEdgeInsertStmtWithoutHeaderLine(batchSize),
-			Data: r.convertRecords(records),
-		}
-	case "VERTEX":
-		return base.Stmt{
-			Stmt: r.makeVertexInsertStmtWithoutHeaderLine(batchSize),
-			Data: r.convertRecords(records),
-		}
-	default:
-		log.Fatalf("Wrong schema type: %s", r.file.Schema.Type)
-		return base.Stmt{}
+func getChanId(idStr string, numChans int) (int, error) {
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		return 0, err
 	}
+	return id % numChans, nil
 }
