@@ -58,17 +58,11 @@ func (w *CSVErrWriter) SetupErrorHandler() {
 	log.Println("Setup CSV error handler")
 }
 
-func writeFailedData(writer *csv.Writer, data [][]interface{}) {
+func writeFailedData(writer *csv.Writer, data base.Record) {
 	if len(data) == 0 {
 		log.Println("Empty error data")
 	}
-	record := make([]string, len(data[0]))
-	for _, r := range data {
-		for i := range r {
-			record[i] = r[i].(string)
-		}
-		writer.Write(record)
-	}
+	writer.Write(data)
 }
 
 func logErrorMessage(writer *bufio.Writer, err error) {

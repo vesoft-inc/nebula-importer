@@ -1,22 +1,17 @@
-package clientmgr
+package client
 
 import (
 	"log"
 
 	nebula "github.com/vesoft-inc/nebula-go"
+	"github.com/yixinglu/nebula-importer/pkg/base"
 	"github.com/yixinglu/nebula-importer/pkg/config"
 )
-
-type Record []string
 
 type ClientPool struct {
 	concurrency int
 	Conns       []*nebula.GraphClient
-	DataChs     []chan Record
-}
-
-func DoneRecord() {
-	return Record{"DONE"}
+	DataChs     []chan base.Record
 }
 
 func NewClientPool(settings config.NebulaClientSettings) *ClientPool {
@@ -24,14 +19,15 @@ func NewClientPool(settings config.NebulaClientSettings) *ClientPool {
 		concurrency: settings.Concurrency,
 	}
 	pool.Conns = make([]*nebula.GraphClient, settings.Concurrency)
-	pool.DataChs = make([]chan Record, settings.Concurrency)
+	pool.DataChs = make([]chan base.Record, settings.Concurrency)
 	for i := 0; i < settings.Concurrency; i++ {
-		pool.Conns[i], err = NewNebulaClient(settings.Connection)
-		if err != nil {
+		if conn, err := NewNebulaConnection(settings.Connection); err != nil {
 			log.Println("Fail to create client pool, ", err.Error())
 			continue
+		} else {
+			pool.Conns[i] = conn
+			pool.DataChs[i] = make(chan base.Record)
 		}
-		pool.DataChs[i] = make(chan Record)
 	}
 
 	return &pool

@@ -1,4 +1,4 @@
-package clientmgr
+package client
 
 import (
 	nebula "github.com/vesoft-inc/nebula-go"

@@ -7,6 +7,12 @@ type Stmt struct {
 
 type ErrData struct {
 	Error error
-	Data  [][]interface{}
+	Data  Record
 	Done  bool
+}
+
+type Record []string
+
+func DoneRecord() Record {
+	return Record{"DONE"}
 }

@@ -8,13 +8,13 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/yixinglu/nebula-importer/pkg/clientmgr"
+	"github.com/yixinglu/nebula-importer/pkg/base"
 	"github.com/yixinglu/nebula-importer/pkg/config"
 )
 
 type CSVReader struct {
 	File    config.File
-	DataChs []chan clientmgr.Record
+	DataChs []chan base.Record
 }
 
 func (r *CSVReader) Read() {
@@ -28,13 +28,13 @@ func (r *CSVReader) Read() {
 
 	reader := csv.NewReader(bufio.NewReader(file))
 
-	lineNum, numFailedLines, len := 0, 0, len(r.DataChs)
+	lineNum, numFailedLines, length := 0, 0, len(r.DataChs)
 
 	for {
 		line, err := reader.Read()
 		if err == io.EOF {
 			for i := range r.DataChs {
-				r.DataChs[i] <- clientmgr.DoneRecord()
+				r.DataChs[i] <- base.DoneRecord()
 			}
 			log.Printf("Total lines of file(%s) is: %d, failed: %d", r.File.Path, lineNum, numFailedLines)
 			lineNum, numFailedLines = 0, 0
@@ -55,7 +55,7 @@ func (r *CSVReader) Read() {
 			continue
 		}
 
-		chanId, err := getChanId(line[0], len)
+		chanId, err := getChanId(line[0], length)
 		if err != nil {
 			log.Printf("Error vid: %s", line[0])
 			numFailedLines++
@@ -70,5 +70,5 @@ func getChanId(idStr string, numChans int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return id % numChans, nil
+	return int(id % int64(numChans)), nil
 }
