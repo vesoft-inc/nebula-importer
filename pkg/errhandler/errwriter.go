@@ -7,19 +7,26 @@ import (
 	"github.com/yixinglu/nebula-importer/pkg/base"
 	"github.com/yixinglu/nebula-importer/pkg/config"
 	"github.com/yixinglu/nebula-importer/pkg/csv"
+	"github.com/yixinglu/nebula-importer/pkg/stats"
 )
 
-type ErrorWriter interface {
-	SetupErrorHandler()
+type ErrData struct {
+	Error error
+	Data  base.Data
+	Done  bool
 }
 
-func New(file config.File, errCh <-chan base.ErrData, failCh chan<- bool) ErrorWriter {
+type ErrorWriter interface {
+	GetErrorChan() chan ErrData
+	InitFile(config.File)
+}
+
+func New(errCh <-chan ErrData, failCh chan<- stats.Stats) ErrorWriter {
 	switch strings.ToUpper(file.Type) {
 	case "CSV":
 		return &csv.CSVErrWriter{
-			ErrConf: file.Error,
-			ErrCh:   errCh,
-			FailCh:  failCh,
+			ErrCh:  errCh,
+			FailCh: failCh,
 		}
 	default:
 		log.Fatalf("Wrong file type: %s", file.Type)

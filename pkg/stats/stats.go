@@ -5,39 +5,73 @@ import (
 	"time"
 )
 
+type StatType int
+
+const (
+	SUCCESS StatType = 0
+	FAILURE StatType = 1
+)
+
 type Stats struct {
+	Type    StatType
 	Latency uint64
 	ReqTime float64
 }
 
-type count struct {
+func NewSuccessStats(latency uint64, reqTime float64) Stats {
+	return Stats{
+		Type:    SUCCESS,
+		Latency: latency,
+		ReqTime: reqTime,
+	}
+}
+
+var FailureStats = Stats{Type: FAILURE}
+
+func NewFailureStats() Stats {
+	return FailureStats
+}
+
+type StatsMgr struct {
+	statsCh      chan Stats
 	totalCount   uint64
 	totalLatency uint64
 	numFailed    uint64
 	totalReqTime float64
 }
 
-func newCount() count {
-	return count{
+func NewStatsMgr() *StatsMgr {
+	m := &StatsMgr{
+		statsCh:      make(chan Stats),
 		totalCount:   0,
 		totalLatency: 0,
 		numFailed:    0,
 		totalReqTime: 0.0,
 	}
+	m.initStatsWorker()
+	return m
 }
 
-func (s *count) updateStat(stat Stats) {
+func (s *StatsMgr) GetStatsChan() chan<- Stats {
+	return s.statsCh
+}
+
+func (s *StatsMgr) Close() {
+	close(s.statsCh)
+}
+
+func (s *StatsMgr) updateStat(stat Stats) {
 	s.totalCount++
 	s.totalReqTime += stat.ReqTime
 	s.totalLatency += stat.Latency
 }
 
-func (s *count) updateFailed() {
+func (s *StatsMgr) updateFailed() {
 	s.totalCount++
 	s.numFailed++
 }
 
-func (s *count) print(now time.Time) {
+func (s *StatsMgr) print(now time.Time) {
 	if s.totalCount == 0 {
 		return
 	}
@@ -49,23 +83,24 @@ func (s *count) print(now time.Time) {
 		s.totalCount, s.numFailed, avgLatency, avgReq, qps)
 }
 
-func InitStatsWorker(ch <-chan Stats, failCh <-chan bool) {
+func (s *StatsMgr) initStatsWorker() {
 	go func() {
 		ticker := time.NewTicker(10 * time.Second)
-		c := newCount()
 		now := time.Now()
 		for {
 			select {
 			case <-ticker.C:
-				c.print(now)
-			case stat, ok := <-ch:
+				s.print(now)
+			case stat, ok := <-s.statsCh:
 				if !ok {
-					c.print(now)
+					s.print(now)
 					return
 				}
-				c.updateStat(stat)
-			case <-failCh:
-				c.updateFailed()
+				if stat.Type == SUCCESS {
+					s.updateStat(stat)
+				} else {
+					s.updateFailed()
+				}
 			}
 		}
 	}()

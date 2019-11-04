@@ -11,7 +11,7 @@ import (
 type ClientPool struct {
 	concurrency int
 	Conns       []*nebula.GraphClient
-	DataChs     []chan base.Record
+	DataChs     []chan base.Data
 }
 
 func NewClientPool(settings config.NebulaClientSettings) *ClientPool {
@@ -19,14 +19,14 @@ func NewClientPool(settings config.NebulaClientSettings) *ClientPool {
 		concurrency: settings.Concurrency,
 	}
 	pool.Conns = make([]*nebula.GraphClient, settings.Concurrency)
-	pool.DataChs = make([]chan base.Record, settings.Concurrency)
+	pool.DataChs = make([]chan base.Data, settings.Concurrency)
 	for i := 0; i < settings.Concurrency; i++ {
 		if conn, err := NewNebulaConnection(settings.Connection); err != nil {
 			log.Println("Fail to create client pool, ", err.Error())
 			continue
 		} else {
 			pool.Conns[i] = conn
-			pool.DataChs[i] = make(chan base.Record)
+			pool.DataChs[i] = make(chan base.Data)
 		}
 	}
 

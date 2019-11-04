@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/yixinglu/nebula-importer/pkg/base"
 	"github.com/yixinglu/nebula-importer/pkg/client"
 	"github.com/yixinglu/nebula-importer/pkg/config"
 	"github.com/yixinglu/nebula-importer/pkg/errhandler"
@@ -28,21 +27,19 @@ func main() {
 		log.Printf("Finish import data, consume time: %.2f", time.Since(now).Seconds())
 	}()
 
-	errCh := make(chan base.ErrData)
-	doneCh := make(chan bool)
-	failCh := make(chan bool)
-	statsCh := make(chan stats.Stats)
-	stats.InitStatsWorker(statsCh, failCh)
+	errCh := make(chan errhandler.ErrData)
 
-	mgr := client.NewNebulaClientMgr(yaml.NebulaClientSettings, errCh, statsCh, doneCh)
+	statsMgr := stats.NewStatsMgr()
+	defer statsMgr.Close()
+
+	mgr := client.NewNebulaClientMgr(yaml.NebulaClientSettings, errCh, statsMgr.GetStatsChan())
 	defer mgr.Close()
 
 	for _, file := range yaml.Files {
-		errWriter := errhandler.New(file, errCh, failCh)
+		mgr.InitFile(file)
+		errWriter := errhandler.New(errCh, statsMgr.GetStatsChan())
 		r := reader.New(file, mgr.GetDataChans())
-		errWriter.SetupErrorHandler()
+		errWriter.InitFile(file)
 		r.Read()
 	}
-
-	close(statsCh)
 }

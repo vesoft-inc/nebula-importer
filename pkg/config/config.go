@@ -52,6 +52,7 @@ type ErrConfig struct {
 
 type CSVConfig struct {
 	WithHeader bool `yaml:"withHeader"`
+	WithLabel  bool `yaml:"withLabel"`
 }
 
 type File struct {

@@ -12,6 +12,7 @@ files:
     type: csv
     csv:
       withHeader: true
+      withLabel: false
     schema:
       space: example
       type: edge
@@ -29,6 +30,7 @@ files:
     type: csv
     csv:
       withHeader: true
+      withLabel: false
     schema:
       space: example
       type: vertex

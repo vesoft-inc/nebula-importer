@@ -13,7 +13,7 @@ type DataFileReader interface {
 	Read()
 }
 
-func New(file config.File, dataChs []chan base.Record) DataFileReader {
+func New(file config.File, dataChs []chan base.Data) DataFileReader {
 	switch strings.ToUpper(file.Type) {
 	case "CSV":
 		return &csv.CSVReader{
