@@ -10,24 +10,21 @@ import (
 	"github.com/yixinglu/nebula-importer/pkg/stats"
 )
 
-type ErrData struct {
-	Error error
-	Data  base.Data
-	Done  bool
-}
-
 type ErrorWriter interface {
-	GetErrorChan() chan ErrData
 	InitFile(config.File)
+	GetFinishChan() <-chan bool
 }
 
-func New(errCh <-chan ErrData, failCh chan<- stats.Stats) ErrorWriter {
+func New(file config.File, concurrency int, errCh <-chan base.ErrData, failCh chan<- stats.Stats) ErrorWriter {
 	switch strings.ToUpper(file.Type) {
 	case "CSV":
-		return &csv.CSVErrWriter{
-			ErrCh:  errCh,
-			FailCh: failCh,
+		w := csv.CSVErrWriter{
+			ErrCh:       errCh,
+			FailCh:      failCh,
+			Concurrency: concurrency,
+			FinishCh:    make(chan bool),
 		}
+		return &w
 	default:
 		log.Fatalf("Wrong file type: %s", file.Type)
 		return nil

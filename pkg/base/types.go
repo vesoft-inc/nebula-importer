@@ -63,3 +63,8 @@ func FinishData() Data {
 		Record: nil,
 	}
 }
+
+type ErrData struct {
+	Error error
+	Data  Data
+}

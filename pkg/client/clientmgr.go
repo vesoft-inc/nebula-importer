@@ -10,22 +10,21 @@ import (
 	"github.com/vesoft-inc/nebula-go/graph"
 	"github.com/yixinglu/nebula-importer/pkg/base"
 	"github.com/yixinglu/nebula-importer/pkg/config"
-	"github.com/yixinglu/nebula-importer/pkg/errhandler"
 	"github.com/yixinglu/nebula-importer/pkg/stats"
 )
 
 type NebulaClientMgr struct {
 	config  config.NebulaClientSettings
 	file    config.File
-	errCh   chan<- errhandler.ErrData
+	errCh   chan base.ErrData
 	statsCh chan<- stats.Stats
 	pool    *ClientPool
 }
 
-func NewNebulaClientMgr(settings config.NebulaClientSettings, errCh chan<- errhandler.ErrData, statsCh chan<- stats.Stats) *NebulaClientMgr {
+func NewNebulaClientMgr(settings config.NebulaClientSettings, statsCh chan<- stats.Stats) *NebulaClientMgr {
 	mgr := NebulaClientMgr{
 		config:  settings,
-		errCh:   errCh,
+		errCh:   make(chan base.ErrData),
 		statsCh: statsCh,
 	}
 
@@ -38,11 +37,17 @@ func NewNebulaClientMgr(settings config.NebulaClientSettings, errCh chan<- errha
 }
 
 func (m *NebulaClientMgr) Close() {
+	m.statsCh <- stats.Stats{Type: stats.PRINT}
 	m.pool.Close()
+	close(m.errCh)
 }
 
 func (m *NebulaClientMgr) GetDataChans() []chan base.Data {
 	return m.pool.DataChs
+}
+
+func (m *NebulaClientMgr) GetErrChan() <-chan base.ErrData {
+	return m.errCh
 }
 
 func (m *NebulaClientMgr) InitFile(file config.File) {
@@ -54,6 +59,12 @@ func (m *NebulaClientMgr) InitFile(file config.File) {
 			log.Fatalf("Client %d can not switch space %s, error: %v, %s",
 				i, file.Schema.Space, resp.GetErrorCode(), resp.GetErrorMsg())
 		}
+	}
+}
+
+func (m *NebulaClientMgr) closeErrChan(opType base.OpType) {
+	if opType == base.DONE {
+		m.errCh <- base.ErrData{Error: nil}
 	}
 }
 
@@ -72,6 +83,7 @@ func (m *NebulaClientMgr) startWorkers() {
 				case base.DONE:
 					// Need not to notify error handler. Reset it in outside main program
 					if batchSize == 0 {
+						m.closeErrChan(data.Type)
 						continue
 					}
 				case base.HEADER:
@@ -100,21 +112,21 @@ func (m *NebulaClientMgr) startWorkers() {
 				reqTime := time.Since(now).Seconds()
 
 				if err != nil {
-					m.errCh <- errhandler.ErrData{
+					m.errCh <- base.ErrData{
 						Error: err,
 						Data:  data,
-						Done:  false,
 					}
+					m.closeErrChan(data.Type)
 					continue
 				}
 
 				if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
 					errMsg := fmt.Sprintf("Fail to execute: %s, ErrMsg: %s, ErrCode: %v", stmt, resp.GetErrorMsg(), resp.GetErrorCode())
-					m.errCh <- errhandler.ErrData{
+					m.errCh <- base.ErrData{
 						Error: errors.New(errMsg),
 						Data:  data,
-						Done:  false,
 					}
+					m.closeErrChan(data.Type)
 					continue
 				}
 
@@ -123,6 +135,7 @@ func (m *NebulaClientMgr) startWorkers() {
 					ReqTime: reqTime,
 				}
 
+				m.closeErrChan(data.Type)
 				batchSize = 0
 			}
 		}(i)

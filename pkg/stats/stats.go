@@ -2,6 +2,7 @@ package stats
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -10,6 +11,7 @@ type StatType int
 const (
 	SUCCESS StatType = 0
 	FAILURE StatType = 1
+	PRINT   StatType = 2
 )
 
 type Stats struct {
@@ -96,10 +98,15 @@ func (s *StatsMgr) initStatsWorker() {
 					s.print(now)
 					return
 				}
-				if stat.Type == SUCCESS {
+				switch stat.Type {
+				case SUCCESS:
 					s.updateStat(stat)
-				} else {
+				case FAILURE:
 					s.updateFailed()
+				case PRINT:
+					s.print(now)
+				default:
+					log.Fatalf("Error stats type: %s", stat.Type)
 				}
 			}
 		}

@@ -9,13 +9,14 @@ import (
 
 	"github.com/yixinglu/nebula-importer/pkg/base"
 	"github.com/yixinglu/nebula-importer/pkg/config"
-	"github.com/yixinglu/nebula-importer/pkg/errhandler"
 	"github.com/yixinglu/nebula-importer/pkg/stats"
 )
 
 type CSVErrWriter struct {
-	ErrCh  chan errhandler.ErrData
-	FailCh chan<- stats.Stats
+	ErrCh       <-chan base.ErrData
+	FailCh      chan<- stats.Stats
+	Concurrency int
+	FinishCh    chan bool
 }
 
 func requireFile(filePath string) *os.File {
@@ -29,8 +30,8 @@ func requireFile(filePath string) *os.File {
 	return file
 }
 
-func (w *CSVErrWriter) GetErrorChan() chan<- errhandler.ErrData {
-	return w.ErrCh
+func (w *CSVErrWriter) GetFinishChan() <-chan bool {
+	return w.FinishCh
 }
 
 func (w *CSVErrWriter) InitFile(file config.File) {
@@ -46,21 +47,23 @@ func (w *CSVErrWriter) InitFile(file config.File) {
 		logWriter := bufio.NewWriter(logFile)
 
 		for {
-			select {
-			case rawErr := <-w.ErrCh:
-				if rawErr.Done {
-					return
+			rawErr := <-w.ErrCh
+			if rawErr.Error == nil {
+				w.Concurrency--
+				if w.Concurrency == 0 {
+					w.FinishCh <- true
+					break
+				} else {
+					continue
 				}
-
-				writeFailedData(dataWriter, rawErr.Data)
-				logErrorMessage(logWriter, rawErr.Error)
-
-				w.FailCh <- stats.NewFailureStats()
 			}
+
+			writeFailedData(dataWriter, rawErr.Data.Record)
+			logErrorMessage(logWriter, rawErr.Error)
+
+			w.FailCh <- stats.NewFailureStats()
 		}
 	}()
-
-	log.Println("Setup CSV error handler")
 }
 
 func writeFailedData(writer *csv.Writer, data base.Record) {
