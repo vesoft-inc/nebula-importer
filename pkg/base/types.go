@@ -66,5 +66,5 @@ func FinishData() Data {
 
 type ErrData struct {
 	Error error
-	Data  Data
+	Data  []Data
 }

@@ -15,9 +15,10 @@ const (
 )
 
 type Stats struct {
-	Type    StatType
-	Latency uint64
-	ReqTime float64
+	Type      StatType
+	Latency   uint64
+	ReqTime   float64
+	BatchSize int
 }
 
 func NewSuccessStats(latency uint64, reqTime float64) Stats {
@@ -28,10 +29,11 @@ func NewSuccessStats(latency uint64, reqTime float64) Stats {
 	}
 }
 
-var FailureStats = Stats{Type: FAILURE}
-
-func NewFailureStats() Stats {
-	return FailureStats
+func NewFailureStats(batchSize int) Stats {
+	return Stats{
+		Type:      FAILURE,
+		BatchSize: batchSize,
+	}
 }
 
 type StatsMgr struct {
@@ -63,14 +65,14 @@ func (s *StatsMgr) Close() {
 }
 
 func (s *StatsMgr) updateStat(stat Stats) {
-	s.totalCount++
+	s.totalCount += uint64(stat.BatchSize)
 	s.totalReqTime += stat.ReqTime
 	s.totalLatency += stat.Latency
 }
 
-func (s *StatsMgr) updateFailed() {
-	s.totalCount++
-	s.numFailed++
+func (s *StatsMgr) updateFailed(stat Stats) {
+	s.totalCount += uint64(stat.BatchSize)
+	s.numFailed += uint64(stat.BatchSize)
 }
 
 func (s *StatsMgr) print(now time.Time) {
@@ -102,7 +104,7 @@ func (s *StatsMgr) initStatsWorker() {
 				case SUCCESS:
 					s.updateStat(stat)
 				case FAILURE:
-					s.updateFailed()
+					s.updateFailed(stat)
 				case PRINT:
 					s.print(now)
 				default:

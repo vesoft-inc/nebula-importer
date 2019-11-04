@@ -29,7 +29,6 @@ func NewNebulaClientMgr(settings config.NebulaClientSettings, statsCh chan<- sta
 	}
 
 	mgr.pool = NewClientPool(settings)
-	mgr.startWorkers()
 
 	log.Printf("Create %d Nebula Graph clients", mgr.config.Concurrency)
 
@@ -53,26 +52,21 @@ func (m *NebulaClientMgr) GetErrChan() <-chan base.ErrData {
 func (m *NebulaClientMgr) InitFile(file config.File) {
 	m.file = file
 	for i := 0; i < m.config.Concurrency; i++ {
-		stmt := fmt.Sprintf("Use %d;", file.Schema.Space)
+		stmt := fmt.Sprintf("Use %s;", file.Schema.Space)
 		resp, err := m.pool.Conns[i].Execute(stmt)
 		if err != nil {
 			log.Fatalf("Client %d can not switch space %s, error: %v, %s",
 				i, file.Schema.Space, resp.GetErrorCode(), resp.GetErrorMsg())
 		}
 	}
-}
-
-func (m *NebulaClientMgr) closeErrChan(opType base.OpType) {
-	if opType == base.DONE {
-		m.errCh <- base.ErrData{Error: nil}
-	}
+	m.startWorkers()
 }
 
 func (m *NebulaClientMgr) startWorkers() {
 	for i := 0; i < m.config.Concurrency; i++ {
-		go func(i int) {
+		go func(i int, file config.File) {
 			batchSize := 0
-			batch := make([]base.Data, m.file.BatchSize)
+			batch := make([]base.Data, file.BatchSize)
 			for {
 				data, ok := <-m.pool.DataChs[i]
 				if !ok {
@@ -83,8 +77,8 @@ func (m *NebulaClientMgr) startWorkers() {
 				case base.DONE:
 					// Need not to notify error handler. Reset it in outside main program
 					if batchSize == 0 {
-						m.closeErrChan(data.Type)
-						continue
+						m.errCh <- base.ErrData{Error: nil}
+						break
 					}
 				case base.HEADER:
 					// TODO:
@@ -92,19 +86,19 @@ func (m *NebulaClientMgr) startWorkers() {
 					batch[batchSize] = data
 					batchSize++
 
-					if batchSize < m.file.BatchSize {
+					if batchSize < file.BatchSize {
 						continue
 					}
 				}
 
 				var stmt string
-				switch strings.ToUpper(m.file.Schema.Type) {
+				switch strings.ToUpper(file.Schema.Type) {
 				case "VERTEX":
 					stmt = m.makeVertexStmtWithoutHeaderLine(batch)
 				case "EDGE":
 					stmt = m.makeEdgeStmtWithoutHeaderLine(batch)
 				default:
-					log.Fatalf("Error schema type: %s", m.file.Schema.Type)
+					log.Fatalf("Error schema type: %s", file.Schema.Type)
 				}
 
 				now := time.Now()
@@ -114,31 +108,46 @@ func (m *NebulaClientMgr) startWorkers() {
 				if err != nil {
 					m.errCh <- base.ErrData{
 						Error: err,
-						Data:  data,
+						Data:  batch,
 					}
-					m.closeErrChan(data.Type)
-					continue
+					if data.Type == base.DONE {
+						m.errCh <- base.ErrData{Error: nil}
+						break
+					} else {
+						batchSize = 0
+						continue
+					}
 				}
 
 				if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
 					errMsg := fmt.Sprintf("Fail to execute: %s, ErrMsg: %s, ErrCode: %v", stmt, resp.GetErrorMsg(), resp.GetErrorCode())
+					// Print batch error data
 					m.errCh <- base.ErrData{
 						Error: errors.New(errMsg),
-						Data:  data,
+						Data:  batch,
 					}
-					m.closeErrChan(data.Type)
-					continue
+					if data.Type == base.DONE {
+						m.errCh <- base.ErrData{Error: nil}
+						break
+					} else {
+						batchSize = 0
+						continue
+					}
 				}
 
 				m.statsCh <- stats.Stats{
-					Latency: uint64(resp.GetLatencyInUs()),
-					ReqTime: reqTime,
+					Latency:   uint64(resp.GetLatencyInUs()),
+					ReqTime:   reqTime,
+					BatchSize: batchSize,
 				}
 
-				m.closeErrChan(data.Type)
+				if data.Type == base.DONE {
+					m.errCh <- base.ErrData{Error: nil}
+					break
+				}
 				batchSize = 0
 			}
-		}(i)
+		}(i, m.file)
 	}
 }
 
@@ -190,12 +199,16 @@ func (m *NebulaClientMgr) makeVertexStmtWithoutHeaderLine(batch []base.Data) str
 }
 
 func (m *NebulaClientMgr) makeVertexInsertStmtWithoutHeaderLine(data []base.Data) string {
+	propTypeMap := make(map[int]string)
+	var numProps int = 0
 	var builder strings.Builder
 	builder.WriteString("INSERT VERTEX ")
 	for i, tag := range m.file.Schema.Vertex.Tags {
 		builder.WriteString(fmt.Sprintf("%s(", tag.Name))
 		for j, prop := range tag.Props {
 			builder.WriteString(prop.Name)
+			propTypeMap[numProps] = prop.Type
+			numProps++
 			if j < len(tag.Props)-1 {
 				builder.WriteString(",")
 			} else {
@@ -211,7 +224,7 @@ func (m *NebulaClientMgr) makeVertexInsertStmtWithoutHeaderLine(data []base.Data
 	batchSize := len(data)
 	for i := 0; i < batchSize; i++ {
 		builder.WriteString(fmt.Sprintf(" %s: ", data[i].Record[0]))
-		fillVertexPropsValues(&builder, data[i].Record, i == batchSize-1)
+		fillVertexPropsValues(&builder, data[i].Record, i == batchSize-1, propTypeMap)
 	}
 
 	return builder.String()
@@ -219,8 +232,8 @@ func (m *NebulaClientMgr) makeVertexInsertStmtWithoutHeaderLine(data []base.Data
 
 func (m *NebulaClientMgr) makeVertexDeleteStmtWithoutHeaderLine(data []base.Data) string {
 	var builder strings.Builder
-	builder.WriteString("DELETE VERTEX ")
 	for i, d := range data {
+		builder.WriteString("DELETE VERTEX ")
 		builder.WriteString(d.Record[0])
 		if i == len(data)-1 {
 			builder.WriteString(";")
@@ -253,10 +266,14 @@ func (m *NebulaClientMgr) makeEdgeStmtWithoutHeaderLine(batch []base.Data) strin
 }
 
 func (m *NebulaClientMgr) makeEdgeInsertStmtWithoutHeaderLine(batch []base.Data) string {
+	numProps := 0
+	propTypeMap := make(map[int]string)
 	var builder strings.Builder
 	builder.WriteString(fmt.Sprintf("INSERT EDGE %s(", m.file.Schema.Edge.Name))
 	for i, prop := range m.file.Schema.Edge.Props {
 		builder.WriteString(prop.Name)
+		propTypeMap[numProps] = prop.Type
+		numProps++
 		if i < len(m.file.Schema.Edge.Props)-1 {
 			builder.WriteString(",")
 		} else {
@@ -271,15 +288,22 @@ func (m *NebulaClientMgr) makeEdgeInsertStmtWithoutHeaderLine(batch []base.Data)
 			builder.WriteString(fmt.Sprintf("@%s", batch[i].Record[2]))
 		}
 		builder.WriteString(":")
-		m.fillEdgePropsValues(&builder, batch[i].Record, i == batchSize-1)
+		m.fillEdgePropsValues(&builder, batch[i].Record, i == batchSize-1, propTypeMap)
 	}
 	return builder.String()
 }
 
-func fillVertexPropsValues(builder *strings.Builder, record base.Record, isEnd bool) {
+func fillVertexPropsValues(builder *strings.Builder, record base.Record, isEnd bool, propTypeMap map[int]string) {
 	builder.WriteString("(")
 	for i := 1; i < len(record); i++ {
-		builder.WriteString(record[i])
+		if strings.ToLower(propTypeMap[i-1]) == "string" {
+			builder.WriteString("\"")
+			builder.WriteString(strings.Replace(record[i], "\"", "\\\"", -1))
+			builder.WriteString("\"")
+		} else {
+			builder.WriteString(record[i])
+		}
+
 		if i < len(record)-1 {
 			builder.WriteString(",")
 		} else {
@@ -293,7 +317,7 @@ func fillVertexPropsValues(builder *strings.Builder, record base.Record, isEnd b
 	}
 }
 
-func (m *NebulaClientMgr) fillEdgePropsValues(builder *strings.Builder, record base.Record, isEnd bool) {
+func (m *NebulaClientMgr) fillEdgePropsValues(builder *strings.Builder, record base.Record, isEnd bool, propTypeMap map[int]string) {
 	fromIdx := 2
 	if m.file.Schema.Edge.WithRanking {
 		fromIdx = 3
@@ -303,7 +327,13 @@ func (m *NebulaClientMgr) fillEdgePropsValues(builder *strings.Builder, record b
 	}
 	builder.WriteString("(")
 	for i := fromIdx; i < len(record); i++ {
-		builder.WriteString(record[i])
+		if strings.ToLower(propTypeMap[i-fromIdx]) == "string" {
+			builder.WriteString("\"")
+			builder.WriteString(strings.Replace(record[i], "\"", "\\\"", -1))
+			builder.WriteString("\"")
+		} else {
+			builder.WriteString(record[i])
+		}
 		if i < len(record)-1 {
 			builder.WriteString(",")
 		} else {

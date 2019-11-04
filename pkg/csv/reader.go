@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"regexp"
 	"strconv"
 
 	"github.com/yixinglu/nebula-importer/pkg/base"
@@ -31,7 +30,7 @@ func (r *CSVReader) Read() {
 
 	lineNum, numFailedLines, length := 0, 0, len(r.DataChs)
 
-	re := regexp.MustCompile(`^[+-0-9][0-9]+$`)
+	// re := regexp.MustCompile(`^[+-0-9][0-9]+$`)
 
 	for {
 		line, err := reader.Read()
@@ -65,7 +64,8 @@ func (r *CSVReader) Read() {
 			vidIdx = 1
 		}
 
-		if len(line) <= vidIdx || !re.MatchString(line[vidIdx]) {
+		// if len(line) <= vidIdx || !re.MatchString(line[vidIdx]) {
+		if len(line) <= vidIdx || len(line[vidIdx]) == 0 {
 			log.Printf("Invalid record(%d): %v", lineNum, line)
 			numFailedLines++
 			continue

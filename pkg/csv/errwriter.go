@@ -17,6 +17,7 @@ type CSVErrWriter struct {
 	FailCh      chan<- stats.Stats
 	Concurrency int
 	FinishCh    chan bool
+	file        config.File
 }
 
 func requireFile(filePath string) *os.File {
@@ -35,6 +36,7 @@ func (w *CSVErrWriter) GetFinishChan() <-chan bool {
 }
 
 func (w *CSVErrWriter) InitFile(file config.File) {
+	w.file = file
 	go func() {
 		dataFile := requireFile(file.Error.FailDataPath)
 		defer dataFile.Close()
@@ -58,22 +60,38 @@ func (w *CSVErrWriter) InitFile(file config.File) {
 				}
 			}
 
-			writeFailedData(dataWriter, rawErr.Data.Record)
-			logErrorMessage(logWriter, rawErr.Error)
+			w.writeFailedData(dataWriter, rawErr.Data)
+			w.logErrorMessage(logWriter, rawErr.Error)
 
-			w.FailCh <- stats.NewFailureStats()
+			w.FailCh <- stats.NewFailureStats(len(rawErr.Data))
 		}
 	}()
 }
 
-func writeFailedData(writer *csv.Writer, data base.Record) {
+func (w *CSVErrWriter) writeFailedData(writer *csv.Writer, data []base.Data) {
 	if len(data) == 0 {
 		log.Println("Empty error data")
 	}
-	writer.Write(data)
+	for _, d := range data {
+		if w.file.CSV.WithLabel {
+			var record []string
+			switch d.Type {
+			case base.INSERT:
+				record = append(record, "+")
+			case base.DELETE:
+				record = append(record, "-")
+			default:
+				log.Fatalf("Error data type: %s", d.Type)
+			}
+			record = append(record, d.Record...)
+			writer.Write(record)
+		} else {
+			writer.Write(d.Record)
+		}
+	}
 }
 
-func logErrorMessage(writer *bufio.Writer, err error) {
+func (w *CSVErrWriter) logErrorMessage(writer *bufio.Writer, err error) {
 	writer.WriteString(err.Error())
 	writer.WriteString("\n")
 }
