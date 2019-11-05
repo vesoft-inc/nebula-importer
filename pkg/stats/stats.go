@@ -89,7 +89,7 @@ func (s *StatsMgr) print(now time.Time) {
 
 func (s *StatsMgr) initStatsWorker() {
 	go func() {
-		ticker := time.NewTicker(10 * time.Second)
+		ticker := time.NewTicker(5 * time.Second)
 		now := time.Now()
 		for {
 			select {

@@ -13,14 +13,13 @@ import (
 )
 
 type CSVErrWriter struct {
-	ErrCh       <-chan base.ErrData
-	FailCh      chan<- stats.Stats
-	Concurrency int
-	FinishCh    chan bool
-	file        config.File
+	ErrCh    <-chan base.ErrData
+	FailCh   chan<- stats.Stats
+	FinishCh chan bool
+	file     config.File
 }
 
-func requireFile(filePath string) *os.File {
+func mustCreateFile(filePath string) *os.File {
 	if err := os.MkdirAll(path.Dir(filePath), 0775); err != nil && !os.IsExist(err) {
 		log.Fatal(err)
 	}
@@ -35,15 +34,15 @@ func (w *CSVErrWriter) GetFinishChan() <-chan bool {
 	return w.FinishCh
 }
 
-func (w *CSVErrWriter) InitFile(file config.File) {
+func (w *CSVErrWriter) InitFile(file config.File, concurrency int) {
 	w.file = file
 	go func() {
-		dataFile := requireFile(file.Error.FailDataPath)
+		dataFile := mustCreateFile(file.Error.FailDataPath)
 		defer dataFile.Close()
 
 		dataWriter := csv.NewWriter(dataFile)
 
-		logFile := requireFile(file.Error.LogPath)
+		logFile := mustCreateFile(file.Error.LogPath)
 		defer logFile.Close()
 
 		logWriter := bufio.NewWriter(logFile)
@@ -51,8 +50,8 @@ func (w *CSVErrWriter) InitFile(file config.File) {
 		for {
 			rawErr := <-w.ErrCh
 			if rawErr.Error == nil {
-				w.Concurrency--
-				if w.Concurrency == 0 {
+				concurrency--
+				if concurrency == 0 {
 					w.FinishCh <- true
 					break
 				} else {

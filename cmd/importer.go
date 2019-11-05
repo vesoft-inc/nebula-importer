@@ -36,8 +36,8 @@ func main() {
 	for _, file := range yaml.Files {
 		clientMgr.InitFile(file)
 
-		errWriter := errhandler.New(file, yaml.NebulaClientSettings.Concurrency, clientMgr.GetErrChan(), statsMgr.GetStatsChan())
-		errWriter.InitFile(file)
+		errWriter := errhandler.New(file, clientMgr.GetErrChan(), statsMgr.GetStatsChan())
+		errWriter.InitFile(file, yaml.NebulaClientSettings.Concurrency)
 
 		r := reader.New(file, clientMgr.GetDataChans())
 		r.Read()

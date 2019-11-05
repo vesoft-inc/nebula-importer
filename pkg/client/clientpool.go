@@ -22,8 +22,7 @@ func NewClientPool(settings config.NebulaClientSettings) *ClientPool {
 	pool.DataChs = make([]chan base.Data, settings.Concurrency)
 	for i := 0; i < settings.Concurrency; i++ {
 		if conn, err := NewNebulaConnection(settings.Connection); err != nil {
-			log.Println("Fail to create client pool, ", err.Error())
-			continue
+			log.Fatal("Fail to create client pool, ", err.Error())
 		} else {
 			pool.Conns[i] = conn
 			pool.DataChs[i] = make(chan base.Data)

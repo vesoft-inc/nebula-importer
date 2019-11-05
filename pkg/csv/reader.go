@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"strconv"
 
 	"github.com/yixinglu/nebula-importer/pkg/base"
@@ -28,18 +29,18 @@ func (r *CSVReader) Read() {
 
 	reader := csv.NewReader(bufio.NewReader(file))
 
-	lineNum, numFailedLines, length := 0, 0, len(r.DataChs)
+	lineNum, numErrorLines, length := 0, 0, len(r.DataChs)
 
-	// re := regexp.MustCompile(`^[+-0-9][0-9]+$`)
+	re := regexp.MustCompile(`^[+-]?\d+$`)
 
 	for {
 		line, err := reader.Read()
 		if err == io.EOF {
+			// Notify all data channels to finish
 			for i := range r.DataChs {
 				r.DataChs[i] <- base.FinishData()
 			}
-			log.Printf("Total lines of file(%s) is: %d, failed: %d", r.File.Path, lineNum, numFailedLines)
-			lineNum, numFailedLines = 0, 0
+			log.Printf("Total lines of file(%s) is: %d, error lines: %d", r.File.Path, lineNum, numErrorLines)
 			break
 		}
 
@@ -47,13 +48,13 @@ func (r *CSVReader) Read() {
 
 		if err != nil {
 			log.Printf("Fail to read line %d, error: %s", lineNum, err.Error())
-			numFailedLines++
+			numErrorLines++
 			continue
 		}
 
 		if len(line) == 0 {
 			log.Printf("Line %d is empty", lineNum)
-			numFailedLines++
+			numErrorLines++
 			continue
 		}
 
@@ -64,17 +65,16 @@ func (r *CSVReader) Read() {
 			vidIdx = 1
 		}
 
-		// if len(line) <= vidIdx || !re.MatchString(line[vidIdx]) {
-		if len(line) <= vidIdx || len(line[vidIdx]) == 0 {
+		if len(line) <= vidIdx || !re.MatchString(line[vidIdx]) {
 			log.Printf("Invalid record(%d): %v", lineNum, line)
-			numFailedLines++
+			numErrorLines++
 			continue
 		}
 
 		chanId, err := getChanId(line[vidIdx], length)
 		if err != nil {
 			log.Printf("Error vid: %s", line[vidIdx])
-			numFailedLines++
+			numErrorLines++
 			continue
 		}
 
@@ -87,7 +87,7 @@ func (r *CSVReader) Read() {
 				data = base.DeleteData(line[1:])
 			default:
 				log.Printf("Invalid label: %s", line[0])
-				numFailedLines++
+				numErrorLines++
 				continue
 			}
 		} else {

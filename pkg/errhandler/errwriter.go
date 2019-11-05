@@ -11,18 +11,17 @@ import (
 )
 
 type ErrorWriter interface {
-	InitFile(config.File)
+	InitFile(config.File, int)
 	GetFinishChan() <-chan bool
 }
 
-func New(file config.File, concurrency int, errCh <-chan base.ErrData, failCh chan<- stats.Stats) ErrorWriter {
+func New(file config.File, errCh <-chan base.ErrData, failCh chan<- stats.Stats) ErrorWriter {
 	switch strings.ToUpper(file.Type) {
 	case "CSV":
 		w := csv.CSVErrWriter{
-			ErrCh:       errCh,
-			FailCh:      failCh,
-			Concurrency: concurrency,
-			FinishCh:    make(chan bool),
+			ErrCh:    errCh,
+			FailCh:   failCh,
+			FinishCh: make(chan bool),
 		}
 		return &w
 	default:
