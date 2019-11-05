@@ -3,6 +3,7 @@ package csv
 import (
 	"bufio"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -19,7 +20,7 @@ type CSVReader struct {
 }
 
 func (r *CSVReader) Read() {
-	log.Printf("\nStart to read CSV data file: %s", r.File.Path)
+	fmt.Printf("\nStart to read CSV data file: %s", r.File.Path)
 
 	file, err := os.Open(r.File.Path)
 	if err != nil {
@@ -41,7 +42,7 @@ func (r *CSVReader) Read() {
 			for i := range r.DataChs {
 				r.DataChs[i] <- base.FinishData()
 			}
-			log.Printf("\nTotal lines of file(%s) is: %d, error lines: %d", r.File.Path, lineNum, numErrorLines)
+			fmt.Printf("\nTotal lines of file(%s) is: %d, error lines: %d", r.File.Path, lineNum, numErrorLines)
 			break
 		}
 
