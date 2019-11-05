@@ -13,10 +13,9 @@ import (
 )
 
 type CSVErrWriter struct {
-	ErrCh    <-chan base.ErrData
-	FailCh   chan<- stats.Stats
-	FinishCh chan bool
-	file     config.File
+	ErrCh  <-chan base.ErrData
+	FailCh chan<- stats.Stats
+	file   config.File
 }
 
 func mustCreateFile(filePath string) *os.File {
@@ -28,10 +27,6 @@ func mustCreateFile(filePath string) *os.File {
 		log.Fatal(err)
 	}
 	return file
-}
-
-func (w *CSVErrWriter) GetFinishChan() <-chan bool {
-	return w.FinishCh
 }
 
 func (w *CSVErrWriter) InitFile(file config.File, concurrency int) {
@@ -52,7 +47,6 @@ func (w *CSVErrWriter) InitFile(file config.File, concurrency int) {
 			if rawErr.Error == nil {
 				concurrency--
 				if concurrency == 0 {
-					w.FinishCh <- true
 					break
 				} else {
 					continue
@@ -64,6 +58,7 @@ func (w *CSVErrWriter) InitFile(file config.File, concurrency int) {
 
 			w.FailCh <- stats.NewFailureStats(len(rawErr.Data))
 		}
+		w.FailCh <- stats.NewFileDoneStats()
 	}()
 }
 

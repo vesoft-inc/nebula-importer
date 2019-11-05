@@ -24,25 +24,25 @@ func main() {
 
 	now := time.Now()
 	defer func() {
-		log.Printf("Finish import data, consume time: %.2f", time.Since(now).Seconds())
+		log.Printf("\nFinish import data, consume time: %.2fs", time.Since(now).Seconds())
 	}()
 
 	statsMgr := stats.NewStatsMgr()
 	defer statsMgr.Close()
 
-	clientMgr := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.GetStatsChan())
+	clientMgr := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
 	defer clientMgr.Close()
 
 	for _, file := range yaml.Files {
 		clientMgr.InitFile(file)
 
-		errWriter := errhandler.New(file, clientMgr.GetErrChan(), statsMgr.GetStatsChan())
+		errWriter := errhandler.New(file, clientMgr.GetErrChan(), statsMgr.StatsCh)
 		errWriter.InitFile(file, yaml.NebulaClientSettings.Concurrency)
 
 		r := reader.New(file, clientMgr.GetDataChans())
 		r.Read()
 
 		// Wait to finish handle errors
-		<-errWriter.GetFinishChan()
+		<-statsMgr.FileDoneCh
 	}
 }

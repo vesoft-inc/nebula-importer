@@ -36,7 +36,6 @@ func NewNebulaClientMgr(settings config.NebulaClientSettings, statsCh chan<- sta
 }
 
 func (m *NebulaClientMgr) Close() {
-	m.statsCh <- stats.Stats{Type: stats.PRINT}
 	m.pool.Close()
 	close(m.errCh)
 }
@@ -240,14 +239,15 @@ func (m *NebulaClientMgr) makeEdgeStmtWithoutHeaderLine(batch []base.Data) strin
 	if len(batch) == 0 {
 		log.Fatal("Fail to make edge stmt for empty batch")
 	}
-
-	if len(batch) == 1 {
+	length := len(batch)
+	if length == 1 {
 		return m.makeEdgeBatchStmt(batch)
 	}
 
 	var builder strings.Builder
 	lastIdx := 0
-	for i := range batch {
+
+	for i := 1; i < length; i++ {
 		if batch[i-1].Type != batch[i].Type {
 			builder.WriteString(m.makeEdgeBatchStmt(batch[lastIdx:i]))
 			lastIdx = i

@@ -19,7 +19,7 @@ type CSVReader struct {
 }
 
 func (r *CSVReader) Read() {
-	log.Printf("Start to read CSV data file: %s", r.File.Path)
+	log.Printf("\nStart to read CSV data file: %s", r.File.Path)
 
 	file, err := os.Open(r.File.Path)
 	if err != nil {
@@ -28,6 +28,7 @@ func (r *CSVReader) Read() {
 	defer file.Close()
 
 	reader := csv.NewReader(bufio.NewReader(file))
+	reader.ReuseRecord = true
 
 	lineNum, numErrorLines, length := 0, 0, len(r.DataChs)
 
@@ -40,7 +41,7 @@ func (r *CSVReader) Read() {
 			for i := range r.DataChs {
 				r.DataChs[i] <- base.FinishData()
 			}
-			log.Printf("Total lines of file(%s) is: %d, error lines: %d", r.File.Path, lineNum, numErrorLines)
+			log.Printf("\nTotal lines of file(%s) is: %d, error lines: %d", r.File.Path, lineNum, numErrorLines)
 			break
 		}
 

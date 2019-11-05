@@ -12,16 +12,14 @@ import (
 
 type ErrorWriter interface {
 	InitFile(config.File, int)
-	GetFinishChan() <-chan bool
 }
 
 func New(file config.File, errCh <-chan base.ErrData, failCh chan<- stats.Stats) ErrorWriter {
 	switch strings.ToUpper(file.Type) {
 	case "CSV":
 		w := csv.CSVErrWriter{
-			ErrCh:    errCh,
-			FailCh:   failCh,
-			FinishCh: make(chan bool),
+			ErrCh:  errCh,
+			FailCh: failCh,
 		}
 		return &w
 	default:

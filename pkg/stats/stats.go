@@ -9,9 +9,9 @@ import (
 type StatType int
 
 const (
-	SUCCESS StatType = 0
-	FAILURE StatType = 1
-	PRINT   StatType = 2
+	SUCCESS  StatType = 0
+	FAILURE  StatType = 1
+	FILEDONE StatType = 2
 )
 
 type Stats struct {
@@ -36,8 +36,15 @@ func NewFailureStats(batchSize int) Stats {
 	}
 }
 
+var fileDoneStats = Stats{Type: FILEDONE}
+
+func NewFileDoneStats() Stats {
+	return fileDoneStats
+}
+
 type StatsMgr struct {
-	statsCh      chan Stats
+	StatsCh      chan Stats
+	FileDoneCh   chan bool
 	totalCount   uint64
 	totalLatency uint64
 	numFailed    uint64
@@ -46,7 +53,8 @@ type StatsMgr struct {
 
 func NewStatsMgr() *StatsMgr {
 	m := &StatsMgr{
-		statsCh:      make(chan Stats),
+		StatsCh:      make(chan Stats),
+		FileDoneCh:   make(chan bool),
 		totalCount:   0,
 		totalLatency: 0,
 		numFailed:    0,
@@ -56,12 +64,8 @@ func NewStatsMgr() *StatsMgr {
 	return m
 }
 
-func (s *StatsMgr) GetStatsChan() chan<- Stats {
-	return s.statsCh
-}
-
 func (s *StatsMgr) Close() {
-	close(s.statsCh)
+	close(s.StatsCh)
 }
 
 func (s *StatsMgr) updateStat(stat Stats) {
@@ -95,7 +99,7 @@ func (s *StatsMgr) initStatsWorker() {
 			select {
 			case <-ticker.C:
 				s.print(now)
-			case stat, ok := <-s.statsCh:
+			case stat, ok := <-s.StatsCh:
 				if !ok {
 					s.print(now)
 					return
@@ -105,8 +109,9 @@ func (s *StatsMgr) initStatsWorker() {
 					s.updateStat(stat)
 				case FAILURE:
 					s.updateFailed(stat)
-				case PRINT:
+				case FILEDONE:
 					s.print(now)
+					s.FileDoneCh <- true
 				default:
 					log.Fatalf("Error stats type: %s", stat.Type)
 				}
