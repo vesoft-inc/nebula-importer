@@ -25,7 +25,7 @@ func main() {
 
 	now := time.Now()
 	defer func() {
-		fmt.Printf("\nFinish import data, consume time: %.2fs", time.Since(now).Seconds())
+		fmt.Printf("\nFinish import data, consume time: %.2fs\n", time.Since(now).Seconds())
 	}()
 
 	statsMgr := stats.NewStatsMgr()

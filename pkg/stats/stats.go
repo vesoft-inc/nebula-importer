@@ -87,7 +87,7 @@ func (s *StatsMgr) print(now time.Time) {
 	avgLatency := s.totalLatency / s.totalCount
 	avgReq := 1000000 * s.totalReqTime / float64(s.totalCount)
 	qps := float64(s.totalCount) / secs
-	fmt.Printf("\rTime(%ds), Finished(%d), Failed(%d), Latency AVG(%dus), Req AVG(%.2fus), QPS(%.2f/s)",
+	fmt.Printf("\rTime(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Req AVG(%.2fus), QPS(%.2f/s)",
 		secs, s.totalCount, s.numFailed, avgLatency, avgReq, qps)
 }
 

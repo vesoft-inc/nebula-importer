@@ -20,7 +20,7 @@ type CSVReader struct {
 }
 
 func (r *CSVReader) Read() {
-	fmt.Printf("\nStart to read CSV data file: %s", r.File.Path)
+	fmt.Printf("\nStart to read CSV data file: %s\n", r.File.Path)
 
 	file, err := os.Open(r.File.Path)
 	if err != nil {
@@ -38,11 +38,6 @@ func (r *CSVReader) Read() {
 	for {
 		line, err := reader.Read()
 		if err == io.EOF {
-			// Notify all data channels to finish
-			for i := range r.DataChs {
-				r.DataChs[i] <- base.FinishData()
-			}
-			fmt.Printf("\nTotal lines of file(%s) is: %d, error lines: %d", r.File.Path, lineNum, numErrorLines)
 			break
 		}
 
@@ -98,6 +93,11 @@ func (r *CSVReader) Read() {
 
 		r.DataChs[chanId] <- data
 	}
+	// Notify all data channels to finish
+	for i := range r.DataChs {
+		r.DataChs[i] <- base.FinishData()
+	}
+	fmt.Printf("\nTotal read lines of file(%s) is: %d, error lines: %d\n", r.File.Path, lineNum, numErrorLines)
 }
 
 func getChanId(idStr string, numChans int) (int, error) {
