@@ -20,7 +20,7 @@ type CSVReader struct {
 }
 
 func (r *CSVReader) Read() {
-	fmt.Printf("\nStart to read CSV data file: %s\n", r.File.Path)
+	fmt.Printf("\n\nStart to read CSV data file: %s\n", r.File.Path)
 
 	file, err := os.Open(r.File.Path)
 	if err != nil {

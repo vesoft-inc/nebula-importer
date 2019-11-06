@@ -46,6 +46,7 @@ type StatsMgr struct {
 	StatsCh      chan Stats
 	FileDoneCh   chan bool
 	totalCount   uint64
+	totalBatches uint64
 	totalLatency uint64
 	numFailed    uint64
 	totalReqTime float64
@@ -57,6 +58,7 @@ func NewStatsMgr() *StatsMgr {
 		FileDoneCh:   make(chan bool),
 		totalCount:   0,
 		totalLatency: 0,
+		totalBatches: 0,
 		numFailed:    0,
 		totalReqTime: 0.0,
 	}
@@ -69,12 +71,14 @@ func (s *StatsMgr) Close() {
 }
 
 func (s *StatsMgr) updateStat(stat Stats) {
+	s.totalBatches++
 	s.totalCount += uint64(stat.BatchSize)
 	s.totalReqTime += stat.ReqTime
 	s.totalLatency += stat.Latency
 }
 
 func (s *StatsMgr) updateFailed(stat Stats) {
+	s.totalBatches++
 	s.totalCount += uint64(stat.BatchSize)
 	s.numFailed += uint64(stat.BatchSize)
 }
@@ -85,9 +89,9 @@ func (s *StatsMgr) print(now time.Time) {
 	}
 	secs := time.Since(now).Seconds()
 	avgLatency := s.totalLatency / s.totalCount
-	avgReq := 1000000 * s.totalReqTime / float64(s.totalCount)
+	avgReq := 1000000 * s.totalReqTime / float64(s.totalBatches)
 	qps := float64(s.totalCount) / secs
-	fmt.Printf("\rTime(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Req AVG(%.2fus), QPS(%.2f/s)",
+	fmt.Printf("\rTime(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%.2fus), QPS(%.2f/s)",
 		secs, s.totalCount, s.numFailed, avgLatency, avgReq, qps)
 }
 
@@ -102,7 +106,6 @@ func (s *StatsMgr) initStatsWorker() {
 				s.print(now)
 			case stat, ok := <-s.StatsCh:
 				if !ok {
-					s.print(now)
 					return
 				}
 				switch stat.Type {
