@@ -122,8 +122,8 @@ There will be two csv data formats supported in the future. But now please use t
 In vertex csv data file, first column can be label(+/-) or vid. Vertex VID column always is the first column or following the label. And property values are behind VID.
 
 ```csv
-1,2,this is a string
-2,4,yet another string
+1,2,this is a property string
+2,4,yet another property string
 ```
 
 with label:
@@ -148,6 +148,13 @@ Without label column, `src_vid`, `dst_vid` and `ranking` always are first three 
 ```csv
 1,2,0,first property value
 1,3,2,prop value
+```
+
+Ranking column is not required, you must not give it if you don't need it.
+
+```csv
+1,2,first property value
+1,3,prop value
 ```
 
 with label:
