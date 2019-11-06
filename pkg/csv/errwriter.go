@@ -58,6 +58,14 @@ func (w *CSVErrWriter) InitFile(file config.File, concurrency int) {
 
 			w.FailCh <- stats.NewFailureStats(len(rawErr.Data))
 		}
+
+		logWriter.Flush()
+
+		dataWriter.Flush()
+		if err := dataWriter.Error(); err != nil {
+			log.Fatal(err)
+		}
+
 		w.FailCh <- stats.NewFileDoneStats()
 	}()
 }

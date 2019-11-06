@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -107,9 +106,9 @@ func (m *NebulaClientMgr) startWorkers() {
 					}
 				} else {
 					if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-						errMsg := fmt.Sprintf("Fail to execute: %s, ErrMsg: %s, ErrCode: %v", stmt, resp.GetErrorMsg(), resp.GetErrorCode())
+						err = fmt.Errorf("Client %d fail to execute: %s, ErrMsg: %s, ErrCode: %v", i, stmt, resp.GetErrorMsg(), resp.GetErrorCode())
 						m.errCh <- base.ErrData{
-							Error: errors.New(errMsg),
+							Error: err,
 							Data:  batch[:batchSize],
 						}
 					} else {
