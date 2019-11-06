@@ -15,8 +15,6 @@ FROM alpine
 
 COPY --from=builder /usr/local/bin/nebula-importer /usr/local/bin/nebula-importer
 
-RUN mkdir -p /home/nebula
-
-WORKDIR /home/nebula
+WORKDIR /root
 
 ENTRYPOINT ["nebula-importer"]

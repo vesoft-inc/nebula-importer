@@ -1,50 +1,53 @@
-version: 1beta
+version: v1rc1
 description: example
 settings:
-  retry: 5
-  concurrency: 4 # Graph client pool size
+  concurrency: 4 # number of graph clients
   connection:
     user: user
     password: password
     address: 127.0.0.1:3699
 files:
-  - path: ~/example/inherit.csv
+  - path: ./edge.csv
+    batchSize: 100
     type: csv
+    csv:
+      withHeader: false
+      withLabel: false
     schema:
-      space: sp
-      name: inherit
+      space: test
       type: edge
-      props:
-        - name: job_id
-          type: string
-        - name: start_time
-          type: timestamp
+      edge:
+        name: edge_name
+        withRanking: true
+        props:
+          - name: prop_name
+            type: string
     error:
-      failDataPath: ~/example/inherit/err/inherit.csv
-      logPath: ~/example/inherit/err/inherit.log
-
-  - path: ~/example/job.csv
+      failDataPath: ./err/edge.csv
+      logPath: ./err/edge.log
+  - path: ./vertex.csv
+    batchSize: 100
     type: csv
+    csv:
+      withHeader: false
+      withLabel: false
     schema:
-      space: sp
-      name: job
+      space: test
       type: vertex
-      props:
-        - name: job_id
-          type: string
-        - name: start_time
-          type: timestamp
+      vertex:
+        tags:
+          - name: tag1
+            props:
+              - name: prop1
+                type: int
+              - name: prop2
+                type: timestamp
+          - name: tag2
+            props:
+              - name: prop3
+                type: double
+              - name: prop4
+                type: string
     error:
-      failDataPath: ~/example/job/err/job.csv
-      logPath: ~/example/job/err/job.log
-
-  - path: ~/example/contain.csv
-    type: csv
-    schema:
-      space: sp
-      name: contain
-      type: edge
-      props: []
-    error:
-      failDataPath: ~/example/contain/err/contain.csv
-      logPath: ~/example/contain/err/contain.log
+      failDataPath: ./err/vertex.csv
+      logPath: ./err/vertex.log
