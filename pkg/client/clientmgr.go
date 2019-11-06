@@ -72,15 +72,15 @@ func (m *NebulaClientMgr) startWorkers() {
 					break
 				}
 
-				switch data.Type {
-				case base.DONE:
+				if data.Type == base.DONE {
 					// Need not to notify error handler. Reset it in outside main program
 					if batchSize == 0 {
 						break
 					}
-				case base.HEADER:
+				} else if data.Type == base.HEADER {
 					// TODO:
-				default:
+					log.Fatal("Unsupported HEADER data type")
+				} else {
 					batch[batchSize] = data
 					batchSize++
 
@@ -113,10 +113,9 @@ func (m *NebulaClientMgr) startWorkers() {
 							Data:  batch[:batchSize],
 						}
 					} else {
-						reqTime := time.Since(now).Seconds()
 						m.statsCh <- stats.Stats{
 							Latency:   uint64(resp.GetLatencyInUs()),
-							ReqTime:   reqTime,
+							ReqTime:   time.Since(now).Seconds(),
 							BatchSize: batchSize,
 						}
 					}
