@@ -1,38 +1,38 @@
 version: v1rc1
 description: example
 settings:
-  concurrency: 4 # Graph client pool size
+  concurrency: 4 # number of graph clients
   connection:
     user: user
     password: password
     address: 127.0.0.1:3699
 files:
-  - path: ~/example/edge.csv
-    batchSize: 5
+  - path: ./edge.csv
+    batchSize: 100
     type: csv
     csv:
-      withHeader: true
+      withHeader: false
       withLabel: false
     schema:
-      space: example
+      space: test
       type: edge
       edge:
-        name: edge
+        name: edge_name
         withRanking: true
         props:
-          - name: prop
+          - name: prop_name
             type: string
     error:
-      failDataPath: ~/example/err/edge.csv
-      logPath: ~/example/err/edge.log
-  - path: ~/example/vertex.csv
-    batchSize: 5
+      failDataPath: ./err/edge.csv
+      logPath: ./err/edge.log
+  - path: ./vertex.csv
+    batchSize: 100
     type: csv
     csv:
-      withHeader: true
+      withHeader: false
       withLabel: false
     schema:
-      space: example
+      space: test
       type: vertex
       vertex:
         tags:
@@ -49,5 +49,5 @@ files:
               - name: prop4
                 type: string
     error:
-      failDataPath: ~/example/err/vertex.csv
-      logPath: ~/example/err/vertex.log
+      failDataPath: ./err/vertex.csv
+      logPath: ./err/vertex.log
