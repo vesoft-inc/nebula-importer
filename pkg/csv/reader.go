@@ -29,7 +29,7 @@ func (r *CSVReader) Read() {
 	defer file.Close()
 
 	reader := csv.NewReader(bufio.NewReader(file))
-	reader.ReuseRecord = true
+	// reader.ReuseRecord = true
 
 	lineNum, numErrorLines, length := 0, 0, len(r.DataChs)
 

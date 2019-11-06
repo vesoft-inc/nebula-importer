@@ -57,11 +57,13 @@ func HeaderData(record Record) Data {
 	}
 }
 
+var done = Data{
+	Type:   DONE,
+	Record: nil,
+}
+
 func FinishData() Data {
-	return Data{
-		Type:   DONE,
-		Record: nil,
-	}
+	return done
 }
 
 type ErrData struct {
