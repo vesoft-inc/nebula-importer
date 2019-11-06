@@ -92,49 +92,34 @@ func (m *NebulaClientMgr) startWorkers() {
 				var stmt string
 				switch strings.ToUpper(m.file.Schema.Type) {
 				case "VERTEX":
-					stmt = m.makeVertexStmtWithoutHeaderLine(batch)
+					stmt = m.makeVertexStmtWithoutHeaderLine(batch[:batchSize])
 				case "EDGE":
-					stmt = m.makeEdgeStmtWithoutHeaderLine(batch)
+					stmt = m.makeEdgeStmtWithoutHeaderLine(batch[:batchSize])
 				default:
 					log.Fatalf("Error schema type: %s", m.file.Schema.Type)
 				}
 
 				now := time.Now()
-				resp, err := m.pool.Conns[i].Execute(stmt)
-				reqTime := time.Since(now).Seconds()
-
-				if err != nil {
+				if resp, err := m.pool.Conns[i].Execute(stmt); err != nil {
 					m.errCh <- base.ErrData{
 						Error: err,
-						Data:  batch,
+						Data:  batch[:batchSize],
 					}
-					if data.Type == base.DONE {
-						break
+				} else {
+					if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
+						errMsg := fmt.Sprintf("Fail to execute: %s, ErrMsg: %s, ErrCode: %v", stmt, resp.GetErrorMsg(), resp.GetErrorCode())
+						m.errCh <- base.ErrData{
+							Error: errors.New(errMsg),
+							Data:  batch[:batchSize],
+						}
 					} else {
-						batchSize = 0
-						continue
+						reqTime := time.Since(now).Seconds()
+						m.statsCh <- stats.Stats{
+							Latency:   uint64(resp.GetLatencyInUs()),
+							ReqTime:   reqTime,
+							BatchSize: batchSize,
+						}
 					}
-				}
-
-				if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-					errMsg := fmt.Sprintf("Fail to execute: %s, ErrMsg: %s, ErrCode: %v", stmt, resp.GetErrorMsg(), resp.GetErrorCode())
-					// Print batch error data
-					m.errCh <- base.ErrData{
-						Error: errors.New(errMsg),
-						Data:  batch,
-					}
-					if data.Type == base.DONE {
-						break
-					} else {
-						batchSize = 0
-						continue
-					}
-				}
-
-				m.statsCh <- stats.Stats{
-					Latency:   uint64(resp.GetLatencyInUs()),
-					ReqTime:   reqTime,
-					BatchSize: batchSize,
 				}
 
 				batchSize = 0
