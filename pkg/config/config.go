@@ -2,7 +2,6 @@ package config
 
 import (
 	"io/ioutil"
-	"log"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -71,16 +70,16 @@ type YAMLConfig struct {
 	Files                []File               `yaml:"files"`
 }
 
-func Parse(filename string) (YAMLConfig, error) {
+func Parse(filename string) (*YAMLConfig, error) {
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return YAMLConfig{}, err
+		return nil, err
 	}
 
 	var conf YAMLConfig
 	if err = yaml.Unmarshal(content, &conf); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return conf, nil
+	return &conf, nil
 }

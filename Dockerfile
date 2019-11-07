@@ -8,7 +8,8 @@ COPY . ${NEBULA_IMPORTER}
 
 WORKDIR ${NEBULA_IMPORTER}
 
-RUN go build -o target/nebula-importer . \
+RUN cd cmd \
+  && go build -o target/nebula-importer . \
   && cp target/nebula-importer /usr/local/bin/nebula-importer
 
 FROM alpine

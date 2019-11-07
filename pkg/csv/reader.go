@@ -10,8 +10,8 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/yixinglu/nebula-importer/pkg/base"
-	"github.com/yixinglu/nebula-importer/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/pkg/config"
 )
 
 type CSVReader struct {

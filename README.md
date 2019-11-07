@@ -119,7 +119,8 @@ There will be two csv data formats supported in the future. But now please use t
 
 #### Vertex
 
-In vertex csv data file, first column can be label(+/-) or vid. Vertex VID column always is the first column or following the label. And property values are behind VID.
+In vertex csv data file, first column could be a label(+/-) or the vid. Vertex VID column is the first column if the label option `csv.withLabel` configured `false`.
+Then property values are behind VID and the order of these values must be same as `props` in configuration.
 
 ```csv
 1,2,this is a property string
@@ -171,8 +172,8 @@ This feature has not been supported now. Please remove the header from your csv 
 #### Edge
 
 ```csv
-1 _src,_dst,_ranking,prop1,prop2
-2 ...
+_src,_dst,_ranking,prop1,prop2
+...
 ```
 
 `_src` and `_dst` represent edge source and destination vertex id. `_ranking` column is value of edge ranking.
@@ -180,8 +181,8 @@ This feature has not been supported now. Please remove the header from your csv 
 #### Vertex
 
 ```csv
-1 _vid,tag1.prop1,tag2.prop2,tag1.prop3,tag2.prop4
-2 ...
+_vid,tag1.prop1,tag2.prop2,tag1.prop3,tag2.prop4
+...
 ```
 
 `_vid` column represent the global unique vertex id.
@@ -195,7 +196,7 @@ This tool depends on golang 1.13, so make sure you have install `go` first.
 Use `git` to clone this project to your local directory and execute the `cmd/importer.go` with `config` parameter.
 
 ``` shell
-$ git clone https://github.com/yixinglu/nebula-importer.git
+$ git clone https://github.com/vesoft-inc/nebula-importer.git
 $ cd nebula-importer/cmd
 $ go run importer.go --config /path/to/yaml/config/file
 ```
@@ -209,7 +210,7 @@ $ docker run --rm -ti \
     --network=host \
     -v {your-config-file}:/root/{your-config-file} \
     -v {your-csv-data-dir}:/root/{your-csv-data-dir} \
-    xl4times/nebula-importer
+    vesoft/nebula-importer
     --config /root/{your-config-file}
 ```
 

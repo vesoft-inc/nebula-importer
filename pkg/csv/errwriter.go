@@ -7,9 +7,9 @@ import (
 	"os"
 	"path"
 
-	"github.com/yixinglu/nebula-importer/pkg/base"
-	"github.com/yixinglu/nebula-importer/pkg/config"
-	"github.com/yixinglu/nebula-importer/pkg/stats"
+	"github.com/vesoft-inc/nebula-importer/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/pkg/stats"
 )
 
 type CSVErrWriter struct {

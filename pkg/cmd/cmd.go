@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/yixinglu/nebula-importer/pkg/client"
-	"github.com/yixinglu/nebula-importer/pkg/config"
-	"github.com/yixinglu/nebula-importer/pkg/errhandler"
-	"github.com/yixinglu/nebula-importer/pkg/reader"
-	"github.com/yixinglu/nebula-importer/pkg/stats"
+	"github.com/vesoft-inc/nebula-importer/pkg/client"
+	"github.com/vesoft-inc/nebula-importer/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/pkg/errhandler"
+	"github.com/vesoft-inc/nebula-importer/pkg/reader"
+	"github.com/vesoft-inc/nebula-importer/pkg/stats"
 )
 
 func Run(conf string) error {
