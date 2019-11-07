@@ -232,3 +232,4 @@ $ docker run --rm -ti \
 - [X] Handle string column in nice way
 - [ ] Update concurrency and batch size online
 - [ ] Count duplicate vids
+- [ ] Support VID generation automatically

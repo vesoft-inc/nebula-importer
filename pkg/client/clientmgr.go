@@ -72,7 +72,6 @@ func (m *NebulaClientMgr) startWorkers() {
 				}
 
 				if data.Type == base.DONE {
-					// Need not to notify error handler. Reset it in outside main program
 					if batchSize == 0 {
 						break
 					}
