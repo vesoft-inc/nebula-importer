@@ -105,5 +105,8 @@ func getChanId(idStr string, numChans int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	if id < 0 {
+		id = -id
+	}
 	return int(id % int64(numChans)), nil
 }
