@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/yixinglu/nebula-importer/pkg/cmd"
+	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
 )
 
 var configuration = flag.String("config", "", "Specify importer configure file path")

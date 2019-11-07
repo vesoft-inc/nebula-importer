@@ -4,10 +4,10 @@ import (
 	"log"
 	"strings"
 
-	"github.com/yixinglu/nebula-importer/pkg/base"
-	"github.com/yixinglu/nebula-importer/pkg/config"
-	"github.com/yixinglu/nebula-importer/pkg/csv"
-	"github.com/yixinglu/nebula-importer/pkg/stats"
+	"github.com/vesoft-inc/nebula-importer/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/pkg/csv"
+	"github.com/vesoft-inc/nebula-importer/pkg/stats"
 )
 
 type ErrorWriter interface {

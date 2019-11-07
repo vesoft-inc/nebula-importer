@@ -2,7 +2,6 @@ github.com/facebook/fbthrift v0.0.0-20190922225929-2f9839604e25 h1:dezRDs9oGYxea
 github.com/facebook/fbthrift v0.0.0-20190922225929-2f9839604e25/go.mod h1:2tncLx5rmw69e5kMBv/yJneERbzrr1yr5fdlnTbu8lU=
 github.com/vesoft-inc/nebula-go v0.0.0-20190929150249-5af3ab30c240 h1:M5mnesOu+6slByWY3sFlb4qG13g0EU8fqwAKvr1CPZI=
 github.com/vesoft-inc/nebula-go v0.0.0-20190929150249-5af3ab30c240/go.mod h1:sZwaFK3Cz1F1Pas/ZjLzVDEFcTNXYENKur89XYP0nbA=
-github.com/yixinglu/nebula-importer v0.0.0-20191026033253-92761cf1f7db h1:F5oaKTVw8B7glE2fssG9KIPZUYX3ZJ3r6E2qSBDNr3s=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.4 h1:/eiJrUcujPVeJ3xlSWaiNi3uSVmDGBK1pDHUHAnao1I=

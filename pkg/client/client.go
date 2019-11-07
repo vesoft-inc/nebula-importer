@@ -3,7 +3,7 @@ package client
 import (
 	nebula "github.com/vesoft-inc/nebula-go"
 
-	"github.com/yixinglu/nebula-importer/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/pkg/config"
 )
 
 func NewNebulaConnection(conn config.NebulaClientConnection) (*nebula.GraphClient, error) {
