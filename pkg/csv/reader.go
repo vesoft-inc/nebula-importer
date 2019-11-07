@@ -100,7 +100,7 @@ func (r *CSVReader) Read() error {
 	return nil
 }
 
-func getChanId(idStr string, numChans int) (int, error) {
+func getChanId(idStr string, numChans int) (uint, error) {
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		return 0, err
@@ -108,5 +108,5 @@ func getChanId(idStr string, numChans int) (int, error) {
 	if id < 0 {
 		id = -id
 	}
-	return int(id % int64(numChans)), nil
+	return uint(id % int64(numChans)), nil
 }
