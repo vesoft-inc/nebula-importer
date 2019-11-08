@@ -96,7 +96,7 @@ func (r *CSVReader) Read() error {
 	for i := range r.DataChs {
 		r.DataChs[i] <- base.FinishData()
 	}
-	logger.Log.Printf("Total read lines of file(%s) is: %d, error lines: %d", r.File.Path, lineNum, numErrorLines)
+	logger.Log.Printf("Total lines of file(%s) is: %d, error lines: %d", r.File.Path, lineNum, numErrorLines)
 	return nil
 }
 

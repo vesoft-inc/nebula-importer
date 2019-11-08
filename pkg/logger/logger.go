@@ -10,5 +10,5 @@ var Log *log.Logger
 
 func Init(path string) {
 	file := base.MustCreateFile(path)
-	Log = log.New(file, "", log.LstdFlags|log.Llongfile)
+	Log = log.New(file, "", log.LstdFlags|log.Lshortfile)
 }
