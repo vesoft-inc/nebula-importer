@@ -25,8 +25,10 @@ settings:
     user: user
     password: password
     address: 127.0.0.1:3699
+  logPath: ./err/test.log
 files:
   - path: ./edge.csv
+    failDataPath: ./err/edge.csv
     batchSize: 100
     type: csv
     csv:
@@ -41,10 +43,8 @@ files:
         props:
           - name: prop_name
             type: string
-    error:
-      failDataPath: ./err/edge.csv
-      logPath: ./err/edge.log
   - path: ./vertex.csv
+    failDataPath: ./err/vertex.csv
     batchSize: 100
     type: csv
     csv:
@@ -67,9 +67,6 @@ files:
                 type: double
               - name: prop4
                 type: string
-    error:
-      failDataPath: ./err/vertex.csv
-      logPath: ./err/vertex.log
 ```
 
 As for this example, nebula-importer will import two **csv** data files `edge.csv` and `vertex.csv` in turn.
@@ -86,6 +83,7 @@ As for this example, nebula-importer will import two **csv** data files `edge.cs
 | settings.connection.user                     | Username                                                                  | user           |
 | settings.connection.password                 | Password                                                                  | password       |
 | settings.connection.address                  | Address of graph client                                                   | 127.0.0.1:3699 |
+| settings.logPath                             | Path of log file                                                          | ""             |
 | files                                        | File list to be imported                                                  | -              |
 | files[0].path                                | File path                                                                 | ""             |
 | files[0].type                                | File type                                                                 | csv            |
@@ -107,9 +105,7 @@ As for this example, nebula-importer will import two **csv** data files `edge.cs
 | files[0].schema.vertex.tags[0].props         | Vertex tag's properties                                                   | -              |
 | files[0].schema.vertex.tags[0].props[0].name | Vertex tag's property name                                                | ""             |
 | files[0].schema.vertex.tags[0].props[0].type | Vertex tag's property type                                                | ""             |
-| files[0].error                               | File error configuration                                                  | -              |
-| files[0].error.failDataPath                  | Failed data file path                                                     | ""             |
-| files[0].error.logPath                       | Error log file path                                                       | ""             |
+| files[0].failDataPath                        | Failed data file path                                                     | ""             |
 
 ## CSV Data Example
 

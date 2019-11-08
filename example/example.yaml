@@ -6,8 +6,10 @@ settings:
     user: user
     password: password
     address: 127.0.0.1:3699
+  logPath: ./err/test.log
 files:
   - path: ./edge.csv
+    failDataPath: ./err/edge.csv
     batchSize: 100
     type: csv
     csv:
@@ -22,10 +24,8 @@ files:
         props:
           - name: prop_name
             type: string
-    error:
-      failDataPath: ./err/edge.csv
-      logPath: ./err/edge.log
   - path: ./vertex.csv
+    failDataPath: ./err/vertex.csv
     batchSize: 100
     type: csv
     csv:
@@ -48,6 +48,3 @@ files:
                 type: double
               - name: prop4
                 type: string
-    error:
-      failDataPath: ./err/vertex.csv
-      logPath: ./err/vertex.log
