@@ -31,8 +31,13 @@ func Run(conf string) error {
 	for _, file := range yaml.Files {
 		clientMgr.InitFile(file)
 
-		errWriter := errhandler.New(file, clientMgr.GetErrChan(), statsMgr.StatsCh)
-		errWriter.InitFile(file, yaml.NebulaClientSettings.Concurrency)
+		if handler, err := errhandler.New(file, clientMgr.GetErrChan(), statsMgr.StatsCh); err != nil {
+			return err
+		} else {
+			if err = handler.InitFile(file, yaml.NebulaClientSettings.Concurrency); err != nil {
+				return err
+			}
+		}
 
 		r := reader.New(file, clientMgr.GetDataChans())
 		r.Read()

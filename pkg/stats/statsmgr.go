@@ -17,7 +17,7 @@ type StatsMgr struct {
 }
 
 func NewStatsMgr() *StatsMgr {
-	m := &StatsMgr{
+	m := StatsMgr{
 		StatsCh:      make(chan Stats),
 		FileDoneCh:   make(chan bool),
 		totalCount:   0,
@@ -27,7 +27,7 @@ func NewStatsMgr() *StatsMgr {
 		totalReqTime: 0.0,
 	}
 	m.initStatsWorker()
-	return m
+	return &m
 }
 
 func (s *StatsMgr) Close() {

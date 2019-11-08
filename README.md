@@ -233,3 +233,4 @@ $ docker run --rm -ti \
 - [ ] Update concurrency and batch size online
 - [ ] Count duplicate vids
 - [ ] Support VID generation automatically
+- [ ] Output logs to file
