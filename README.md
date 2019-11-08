@@ -210,6 +210,10 @@ $ docker run --rm -ti \
     --config /root/{your-config-file}
 ```
 
+### Log
+
+All logs info will output to your `logPath` file in configuration.
+
 ## TODO
 
 - [X] Summary statistics of response

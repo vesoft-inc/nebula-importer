@@ -1,7 +1,9 @@
 package logger
 
 import (
+	"io"
 	"log"
+	"os"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 )
@@ -10,5 +12,6 @@ var Log *log.Logger
 
 func Init(path string) {
 	file := base.MustCreateFile(path)
-	Log = log.New(file, "", log.LstdFlags|log.Lshortfile)
+	w := io.MultiWriter(os.Stdout, file)
+	Log = log.New(w, "", log.LstdFlags|log.Lshortfile)
 }
