@@ -3,15 +3,14 @@ package csv
 import (
 	"bufio"
 	"encoding/csv"
-	"fmt"
 	"io"
-	"log"
 	"os"
 	"regexp"
 	"strconv"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 )
 
 type CSVReader struct {
@@ -19,12 +18,12 @@ type CSVReader struct {
 	DataChs []chan base.Data
 }
 
-func (r *CSVReader) Read() {
-	fmt.Printf("\n\nStart to read CSV data file: %s\n", r.File.Path)
+func (r *CSVReader) Read() error {
+	logger.Log.Printf("Start to read CSV data file: %s", r.File.Path)
 
 	file, err := os.Open(r.File.Path)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer file.Close()
 
@@ -44,13 +43,13 @@ func (r *CSVReader) Read() {
 		lineNum++
 
 		if err != nil {
-			log.Printf("Fail to read line %d, error: %s", lineNum, err.Error())
+			logger.Log.Printf("Fail to read line %d, error: %s", lineNum, err.Error())
 			numErrorLines++
 			continue
 		}
 
 		if len(line) == 0 {
-			log.Printf("Line %d is empty", lineNum)
+			logger.Log.Printf("Line %d is empty", lineNum)
 			numErrorLines++
 			continue
 		}
@@ -63,14 +62,14 @@ func (r *CSVReader) Read() {
 		}
 
 		if len(line) <= vidIdx || !re.MatchString(line[vidIdx]) {
-			log.Printf("Invalid record(%d): %v", lineNum, line)
+			logger.Log.Printf("Invalid record(%d): %v", lineNum, line)
 			numErrorLines++
 			continue
 		}
 
 		chanId, err := getChanId(line[vidIdx], length)
 		if err != nil {
-			log.Printf("Error vid: %s", line[vidIdx])
+			logger.Log.Printf("Error vid: %s", line[vidIdx])
 			numErrorLines++
 			continue
 		}
@@ -83,7 +82,7 @@ func (r *CSVReader) Read() {
 			case "-":
 				data = base.DeleteData(line[1:])
 			default:
-				log.Printf("Invalid label: %s", line[0])
+				logger.Log.Printf("Invalid label: %s", line[0])
 				numErrorLines++
 				continue
 			}
@@ -97,7 +96,8 @@ func (r *CSVReader) Read() {
 	for i := range r.DataChs {
 		r.DataChs[i] <- base.FinishData()
 	}
-	fmt.Printf("\nTotal read lines of file(%s) is: %d, error lines: %d\n", r.File.Path, lineNum, numErrorLines)
+	logger.Log.Printf("Total lines of file(%s) is: %d, error lines: %d", r.File.Path, lineNum, numErrorLines)
+	return nil
 }
 
 func getChanId(idStr string, numChans int) (int, error) {

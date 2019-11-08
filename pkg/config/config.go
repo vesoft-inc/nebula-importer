@@ -44,29 +44,25 @@ type Schema struct {
 	Vertex Vertex `yaml:"vertex"`
 }
 
-type ErrConfig struct {
-	FailDataPath string `yaml:"failDataPath"`
-	LogPath      string `yaml:"logPath"`
-}
-
 type CSVConfig struct {
 	WithHeader bool `yaml:"withHeader"`
 	WithLabel  bool `yaml:"withLabel"`
 }
 
 type File struct {
-	Path      string    `yaml:"path"`
-	BatchSize int       `yaml:"batchSize"`
-	Type      string    `yaml:"type"`
-	CSV       CSVConfig `yaml:"csv"`
-	Schema    Schema    `yaml:"schema"`
-	Error     ErrConfig `yaml:"error"`
+	Path         string    `yaml:"path"`
+	FailDataPath string    `yaml:"failDataPath"`
+	BatchSize    int       `yaml:"batchSize"`
+	Type         string    `yaml:"type"`
+	CSV          CSVConfig `yaml:"csv"`
+	Schema       Schema    `yaml:"schema"`
 }
 
 type YAMLConfig struct {
 	Version              string               `yaml:"version"`
 	Description          string               `yaml:"description"`
-	NebulaClientSettings NebulaClientSettings `yaml:"settings"`
+	NebulaClientSettings NebulaClientSettings `yaml:"clientSettings"`
+	LogPath              string               `yaml:"logPath"`
 	Files                []File               `yaml:"files"`
 }
 

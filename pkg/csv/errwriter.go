@@ -2,10 +2,10 @@ package csv
 
 import (
 	"encoding/csv"
-	"log"
 	"os"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 )
 
 type ErrWriter struct {
@@ -29,7 +29,7 @@ func (w *ErrWriter) Init(f *os.File) {
 
 func (w *ErrWriter) Write(data []base.Data) {
 	if len(data) == 0 {
-		log.Println("Empty error data")
+		logger.Log.Println("Empty error data")
 	}
 	for _, d := range data {
 		if w.withLabel {
@@ -40,7 +40,7 @@ func (w *ErrWriter) Write(data []base.Data) {
 			case base.DELETE:
 				record = append(record, "-")
 			default:
-				log.Fatalf("Error data type: %s", d.Type)
+				logger.Log.Fatalf("Error data type: %s", d.Type)
 			}
 			record = append(record, d.Record...)
 			w.writer.Write(record)
