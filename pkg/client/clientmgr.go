@@ -51,7 +51,7 @@ func (m *NebulaClientMgr) GetErrChan() <-chan base.ErrData {
 func (m *NebulaClientMgr) InitFile(file config.File) {
 	m.file = file
 	for i := 0; i < m.config.Concurrency; i++ {
-		stmt := fmt.Sprintf("Use %s;", file.Schema.Space)
+		stmt := fmt.Sprintf("USE %s;", file.Schema.Space)
 		resp, err := m.pool.Conns[i].Execute(stmt)
 		if err != nil {
 			log.Fatalf("Client %d can not switch space %s, error: %v, %s",
