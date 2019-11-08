@@ -19,13 +19,13 @@ See description below
 ```yaml
 version: v1rc1
 description: example
-settings:
+clientSettings:
   concurrency: 4 # number of graph clients
   connection:
     user: user
     password: password
     address: 127.0.0.1:3699
-  logPath: ./err/test.log
+logPath: ./err/test.log
 files:
   - path: ./edge.csv
     failDataPath: ./err/edge.csv
@@ -77,13 +77,13 @@ As for this example, nebula-importer will import two **csv** data files `edge.cs
 | :--                                          | :--                                                                       | :--            |
 | version                                      | Configuration file version                                                | v1rc1          |
 | description                                  | Description of this configure file                                        | ""             |
-| settings                                     | Graph client settings                                                     | -              |
-| settings.concurrency                         | Number of graph clients                                                   | 4              |
-| settings.connection                          | Connection options of graph client                                        | -              |
-| settings.connection.user                     | Username                                                                  | user           |
-| settings.connection.password                 | Password                                                                  | password       |
-| settings.connection.address                  | Address of graph client                                                   | 127.0.0.1:3699 |
-| settings.logPath                             | Path of log file                                                          | ""             |
+| clientSettings                               | Graph client settings                                                     | -              |
+| clientSettings.concurrency                   | Number of graph clients                                                   | 4              |
+| clientSettings.connection                    | Connection options of graph client                                        | -              |
+| clientSettings.connection.user               | Username                                                                  | user           |
+| clientSettings.connection.password           | Password                                                                  | password       |
+| clientSettings.connection.address            | Address of graph client                                                   | 127.0.0.1:3699 |
+| logPath                                      | Path of log file                                                          | ""             |
 | files                                        | File list to be imported                                                  | -              |
 | files[0].path                                | File path                                                                 | ""             |
 | files[0].type                                | File type                                                                 | csv            |

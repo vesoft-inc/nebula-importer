@@ -66,7 +66,7 @@ type File struct {
 type YAMLConfig struct {
 	Version              string               `yaml:"version"`
 	Description          string               `yaml:"description"`
-	NebulaClientSettings NebulaClientSettings `yaml:"settings"`
+	NebulaClientSettings NebulaClientSettings `yaml:"clientSettings"`
 	Files                []File               `yaml:"files"`
 }
 

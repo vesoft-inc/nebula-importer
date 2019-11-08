@@ -1,12 +1,12 @@
 version: v1rc1
 description: example
-settings:
+clientSettings:
   concurrency: 4 # number of graph clients
   connection:
     user: user
     password: password
     address: 127.0.0.1:3699
-  logPath: ./err/test.log
+logPath: ./err/test.log
 files:
   - path: ./edge.csv
     failDataPath: ./err/edge.csv
