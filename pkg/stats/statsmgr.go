@@ -1,9 +1,10 @@
 package stats
 
 import (
-	"fmt"
 	"log"
 	"time"
+
+	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 )
 
 type StatsMgr struct {
@@ -55,7 +56,7 @@ func (s *StatsMgr) print(now time.Time) {
 	avgLatency := s.totalLatency / s.totalBatches
 	avgReq := 1000000 * s.totalReqTime / float64(s.totalBatches)
 	qps := float64(s.totalCount) / secs
-	fmt.Printf("\rTime(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%.2fus), QPS(%.2f/s)",
+	logger.Log.Printf("Time(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%.2fus), QPS(%.2f/s)",
 		secs, s.totalCount, s.numFailed, avgLatency, avgReq, qps)
 }
 

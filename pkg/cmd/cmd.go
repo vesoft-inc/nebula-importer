@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/client"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/errhandler"
+	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/pkg/reader"
 	"github.com/vesoft-inc/nebula-importer/pkg/stats"
 )
@@ -17,9 +17,11 @@ func Run(conf string) error {
 		return err
 	}
 
+	logger.Init(yaml.LogPath)
+
 	now := time.Now()
 	defer func() {
-		fmt.Printf("\nFinish import data, consume time: %.2fs\n", time.Since(now).Seconds())
+		logger.Log.Printf("Finish import data, consume time: %.2fs", time.Since(now).Seconds())
 	}()
 
 	statsMgr := stats.NewStatsMgr()
@@ -34,13 +36,13 @@ func Run(conf string) error {
 		if handler, err := errhandler.New(file, clientMgr.GetErrChan(), statsMgr.StatsCh); err != nil {
 			return err
 		} else {
-			if err = handler.InitFile(file, yaml.NebulaClientSettings.Concurrency); err != nil {
-				return err
-			}
+			handler.Init(yaml.NebulaClientSettings.Concurrency)
 		}
 
 		r := reader.New(file, clientMgr.GetDataChans())
-		r.Read()
+		if err := r.Read(); err != nil {
+			return err
+		}
 
 		// Wait to finish handle errors
 		<-statsMgr.FileDoneCh

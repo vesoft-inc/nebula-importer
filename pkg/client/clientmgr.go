@@ -9,6 +9,7 @@ import (
 	"github.com/vesoft-inc/nebula-go/graph"
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/pkg/stats"
 )
 
@@ -29,7 +30,7 @@ func NewNebulaClientMgr(settings config.NebulaClientSettings, statsCh chan<- sta
 
 	mgr.pool = NewClientPool(settings)
 
-	log.Printf("Create %d Nebula Graph clients", mgr.config.Concurrency)
+	logger.Log.Printf("Create %d Nebula Graph clients", mgr.config.Concurrency)
 
 	return &mgr
 }

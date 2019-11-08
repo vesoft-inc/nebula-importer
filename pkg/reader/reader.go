@@ -10,7 +10,7 @@ import (
 )
 
 type DataFileReader interface {
-	Read()
+	Read() error
 }
 
 func New(file config.File, dataChs []chan base.Data) DataFileReader {
