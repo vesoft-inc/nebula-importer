@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"log"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
 )
@@ -13,6 +12,6 @@ func main() {
 	flag.Parse()
 
 	if err := cmd.Run(*configuration); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }

@@ -1,8 +1,6 @@
 package client
 
 import (
-	"log"
-
 	nebula "github.com/vesoft-inc/nebula-go"
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
@@ -14,7 +12,7 @@ type ClientPool struct {
 	DataChs     []chan base.Data
 }
 
-func NewClientPool(settings config.NebulaClientSettings) *ClientPool {
+func NewClientPool(settings config.NebulaClientSettings) (*ClientPool, error) {
 	pool := ClientPool{
 		concurrency: settings.Concurrency,
 	}
@@ -22,19 +20,23 @@ func NewClientPool(settings config.NebulaClientSettings) *ClientPool {
 	pool.DataChs = make([]chan base.Data, settings.Concurrency)
 	for i := 0; i < settings.Concurrency; i++ {
 		if conn, err := NewNebulaConnection(settings.Connection); err != nil {
-			log.Fatal("Fail to create client pool, ", err.Error())
+			return nil, err
 		} else {
 			pool.Conns[i] = conn
 			pool.DataChs[i] = make(chan base.Data, 128)
 		}
 	}
 
-	return &pool
+	return &pool, nil
 }
 
 func (p *ClientPool) Close() {
 	for i := 0; i < p.concurrency; i++ {
-		p.Conns[i].Disconnect()
-		close(p.DataChs[i])
+		if p.Conns[i] != nil {
+			p.Conns[i].Disconnect()
+		}
+		if p.DataChs[i] != nil {
+			close(p.DataChs[i])
+		}
 	}
 }

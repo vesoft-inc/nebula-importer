@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -21,18 +20,20 @@ type NebulaClientMgr struct {
 	pool    *ClientPool
 }
 
-func NewNebulaClientMgr(settings config.NebulaClientSettings, statsCh chan<- stats.Stats) *NebulaClientMgr {
+func NewNebulaClientMgr(settings config.NebulaClientSettings, statsCh chan<- stats.Stats) (*NebulaClientMgr, error) {
 	mgr := NebulaClientMgr{
 		config:  settings,
 		errCh:   make(chan base.ErrData),
 		statsCh: statsCh,
 	}
 
-	mgr.pool = NewClientPool(settings)
+	if mgr.pool, err = NewClientPool(settings); err != nil {
+		return nil, err
+	}
 
 	logger.Log.Printf("Create %d Nebula Graph clients", mgr.config.Concurrency)
 
-	return &mgr
+	return &mgr, nil
 }
 
 func (m *NebulaClientMgr) Close() {
@@ -48,17 +49,18 @@ func (m *NebulaClientMgr) GetErrChan() <-chan base.ErrData {
 	return m.errCh
 }
 
-func (m *NebulaClientMgr) InitFile(file config.File) {
+func (m *NebulaClientMgr) InitFile(file config.File) error {
 	m.file = file
 	for i := 0; i < m.config.Concurrency; i++ {
 		stmt := fmt.Sprintf("USE %s;", file.Schema.Space)
 		resp, err := m.pool.Conns[i].Execute(stmt)
 		if err != nil {
-			log.Fatalf("Client %d can not switch space %s, error: %v, %s",
+			return fmt.Errorf("Client %d can not switch space %s, error: %v, %s",
 				i, file.Schema.Space, resp.GetErrorCode(), resp.GetErrorMsg())
 		}
 	}
 	m.startWorkers()
+	return nil
 }
 
 func (m *NebulaClientMgr) startWorkers() {
@@ -78,7 +80,7 @@ func (m *NebulaClientMgr) startWorkers() {
 					}
 				} else if data.Type == base.HEADER {
 					// TODO:
-					log.Fatal("Unsupported HEADER data type")
+					logger.Log.Fatal("Unsupported HEADER data type")
 				} else {
 					batch[batchSize] = data
 					batchSize++
@@ -95,7 +97,7 @@ func (m *NebulaClientMgr) startWorkers() {
 				case "EDGE":
 					stmt = m.makeEdgeStmtWithoutHeaderLine(batch[:batchSize])
 				default:
-					log.Fatalf("Error schema type: %s", m.file.Schema.Type)
+					logger.Log.Fatalf("Error schema type: %s", m.file.Schema.Type)
 				}
 
 				now := time.Now()
@@ -140,7 +142,7 @@ func (m *NebulaClientMgr) makeVertexBatchStmt(batch []base.Data) string {
 	case base.DELETE:
 		return m.makeVertexDeleteStmtWithoutHeaderLine(batch)
 	default:
-		log.Fatalf("Invalid data type: %s", batch[length-1].Type)
+		logger.Log.Fatalf("Invalid data type: %s", batch[length-1].Type)
 		return ""
 	}
 }
@@ -151,16 +153,16 @@ func (m *NebulaClientMgr) makeEdgeBatchStmt(batch []base.Data) string {
 	case base.INSERT:
 		return m.makeEdgeInsertStmtWithoutHeaderLine(batch)
 	case base.DELETE:
-		log.Fatal("Unsupported delete edge")
+		logger.Log.Fatal("Unsupported delete edge")
 	default:
-		log.Fatalf("Invalid data type: %s", batch[length-1].Type)
+		logger.Log.Fatalf("Invalid data type: %s", batch[length-1].Type)
 	}
 	return ""
 }
 
 func (m *NebulaClientMgr) makeVertexStmtWithoutHeaderLine(batch []base.Data) string {
 	if len(batch) == 0 {
-		log.Fatal("Make vertex stmt for empty batch")
+		logger.Log.Fatal("Make vertex stmt for empty batch")
 	}
 
 	if len(batch) == 1 {
@@ -220,7 +222,7 @@ func (m *NebulaClientMgr) makeVertexDeleteStmtWithoutHeaderLine(data []base.Data
 
 func (m *NebulaClientMgr) makeEdgeStmtWithoutHeaderLine(batch []base.Data) string {
 	if len(batch) == 0 {
-		log.Fatal("Fail to make edge stmt for empty batch")
+		logger.Log.Fatal("Fail to make edge stmt for empty batch")
 	}
 	length := len(batch)
 	if length == 1 {
@@ -295,7 +297,7 @@ func (m *NebulaClientMgr) fillEdgePropsValues(builder *strings.Builder, record b
 		fromIdx = 3
 	}
 	if fromIdx > len(record) {
-		log.Fatalf("Invalid record for edge: %v", record)
+		logger.Log.Fatalf("Invalid record for edge: %v", record)
 	}
 	builder.WriteString("(")
 	for i := fromIdx; i < len(record); i++ {

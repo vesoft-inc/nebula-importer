@@ -1,12 +1,12 @@
 package reader
 
 import (
-	"log"
 	"strings"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/csv"
+	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 )
 
 type DataFileReader interface {
@@ -21,7 +21,7 @@ func New(file config.File, dataChs []chan base.Data) DataFileReader {
 			DataChs: dataChs,
 		}
 	default:
-		log.Fatalf("Wrong file type: %s", file.Type)
+		logger.Log.Fatalf("Wrong file type: %s", file.Type)
 		return nil
 	}
 }

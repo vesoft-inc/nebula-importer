@@ -31,7 +31,9 @@ func Run(conf string) error {
 	defer clientMgr.Close()
 
 	for _, file := range yaml.Files {
-		clientMgr.InitFile(file)
+		if err := clientMgr.InitFile(file); err != nil {
+			return err
+		}
 
 		if handler, err := errhandler.New(file, clientMgr.GetErrChan(), statsMgr.StatsCh); err != nil {
 			return err
