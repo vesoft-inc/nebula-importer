@@ -59,11 +59,26 @@ func (m *NebulaClientMgr) InitFile(file config.File) error {
 				i, file.Schema.Space, resp.GetErrorCode(), resp.GetErrorMsg())
 		}
 	}
-	m.startWorkers()
-	return nil
+	return m.startWorkers()
 }
 
-func (m *NebulaClientMgr) startWorkers() {
+func (m *NebulaClientMgr) isVertex() (bool, error) {
+	switch strings.ToUpper(m.file.Schema.Type) {
+	case "VERTEX":
+		return true, nil
+	case "EDGE":
+		return false, nil
+	default:
+		return false, fmt.Errorf("Error schema type: %s", m.file.Schema.Type)
+	}
+}
+
+func (m *NebulaClientMgr) startWorkers() error {
+	isVertex, err := m.isVertex()
+	if err != nil {
+		return err
+	}
+
 	for i := 0; i < m.config.Concurrency; i++ {
 		go func(i int) {
 			batchSize := 0
@@ -91,13 +106,10 @@ func (m *NebulaClientMgr) startWorkers() {
 				}
 
 				var stmt string
-				switch strings.ToUpper(m.file.Schema.Type) {
-				case "VERTEX":
+				if isVertex {
 					stmt = m.makeVertexStmtWithoutHeaderLine(batch[:batchSize])
-				case "EDGE":
+				} else {
 					stmt = m.makeEdgeStmtWithoutHeaderLine(batch[:batchSize])
-				default:
-					logger.Log.Fatalf("Error schema type: %s", m.file.Schema.Type)
 				}
 
 				now := time.Now()

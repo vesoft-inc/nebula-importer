@@ -41,9 +41,12 @@ func Run(conf string) error {
 			handler.Init(yaml.NebulaClientSettings.Concurrency)
 		}
 
-		r := reader.New(file, clientMgr.GetDataChans())
-		if err := r.Read(); err != nil {
+		if r, err := reader.New(file, clientMgr.GetDataChans()); err != nil {
 			return err
+		} else {
+			if err := r.Read(); err != nil {
+				return err
+			}
 		}
 
 		// Wait to finish handle errors
