@@ -1,7 +1,6 @@
 package stats
 
 import (
-	"log"
 	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
@@ -82,7 +81,7 @@ func (s *StatsMgr) initStatsWorker() {
 					s.print(now)
 					s.FileDoneCh <- true
 				default:
-					log.Fatalf("Error stats type: %s", stat.Type)
+					logger.Log.Fatalf("Error stats type: %s", stat.Type)
 				}
 			}
 		}

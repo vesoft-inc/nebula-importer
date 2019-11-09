@@ -1,7 +1,7 @@
 package reader
 
 import (
-	"log"
+	"fmt"
 	"strings"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
@@ -13,15 +13,15 @@ type DataFileReader interface {
 	Read() error
 }
 
-func New(file config.File, dataChs []chan base.Data) DataFileReader {
+func New(file config.File, dataChs []chan base.Data) (DataFileReader, error) {
 	switch strings.ToUpper(file.Type) {
 	case "CSV":
-		return &csv.CSVReader{
+		r := csv.CSVReader{
 			File:    file,
 			DataChs: dataChs,
 		}
+		return &r, nil
 	default:
-		log.Fatalf("Wrong file type: %s", file.Type)
-		return nil
+		return nil, fmt.Errorf("Wrong file type: %s", file.Type)
 	}
 }

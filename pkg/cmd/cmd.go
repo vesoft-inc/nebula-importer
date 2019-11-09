@@ -27,11 +27,16 @@ func Run(conf string) error {
 	statsMgr := stats.NewStatsMgr()
 	defer statsMgr.Close()
 
-	clientMgr := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
+	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
+	if err != nil {
+		return err
+	}
 	defer clientMgr.Close()
 
 	for _, file := range yaml.Files {
-		clientMgr.InitFile(file)
+		if err := clientMgr.InitFile(file); err != nil {
+			return err
+		}
 
 		if handler, err := errhandler.New(file, clientMgr.GetErrChan(), statsMgr.StatsCh); err != nil {
 			return err
@@ -39,9 +44,12 @@ func Run(conf string) error {
 			handler.Init(yaml.NebulaClientSettings.Concurrency)
 		}
 
-		r := reader.New(file, clientMgr.GetDataChans())
-		if err := r.Read(); err != nil {
+		if r, err := reader.New(file, clientMgr.GetDataChans()); err != nil {
 			return err
+		} else {
+			if err := r.Read(); err != nil {
+				return err
+			}
 		}
 
 		// Wait to finish handle errors
