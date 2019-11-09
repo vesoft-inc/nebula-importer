@@ -54,7 +54,7 @@ func (m *NebulaClientMgr) InitFile(file config.File) error {
 	for i := 0; i < m.config.Concurrency; i++ {
 		stmt := fmt.Sprintf("USE %s;", file.Schema.Space)
 		resp, err := m.pool.Conns[i].Execute(stmt)
-		if err != nil {
+		if err != nil || resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
 			return fmt.Errorf("Client %d can not switch space %s, error: %v, %s",
 				i, file.Schema.Space, resp.GetErrorCode(), resp.GetErrorMsg())
 		}
