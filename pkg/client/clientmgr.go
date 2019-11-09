@@ -27,8 +27,10 @@ func NewNebulaClientMgr(settings config.NebulaClientSettings, statsCh chan<- sta
 		statsCh: statsCh,
 	}
 
-	if mgr.pool, err = NewClientPool(settings); err != nil {
+	if pool, err := NewClientPool(settings); err != nil {
 		return nil, err
+	} else {
+		mgr.pool = pool
 	}
 
 	logger.Log.Printf("Create %d Nebula Graph clients", mgr.config.Concurrency)
@@ -144,6 +146,7 @@ func (m *NebulaClientMgr) startWorkers() error {
 			m.errCh <- base.ErrData{Error: nil}
 		}(i)
 	}
+	return nil
 }
 
 func (m *NebulaClientMgr) makeVertexBatchStmt(batch []base.Data) string {

@@ -27,7 +27,10 @@ func Run(conf string) error {
 	statsMgr := stats.NewStatsMgr()
 	defer statsMgr.Close()
 
-	clientMgr := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
+	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
+	if err != nil {
+		return err
+	}
 	defer clientMgr.Close()
 
 	for _, file := range yaml.Files {
