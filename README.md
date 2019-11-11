@@ -21,6 +21,7 @@ version: v1rc1
 description: example
 clientSettings:
   concurrency: 4 # number of graph clients
+  channelBufferSize: 128
   connection:
     user: user
     password: password
@@ -79,6 +80,7 @@ As for this example, nebula-importer will import two **csv** data files `edge.cs
 | description                                  | Description of this configure file                                        | ""             |
 | clientSettings                               | Graph client settings                                                     | -              |
 | clientSettings.concurrency                   | Number of graph clients                                                   | 4              |
+| clientSettings.channelBufferSize             | Buffer size of client channels                                            | 128            |
 | clientSettings.connection                    | Connection options of graph client                                        | -              |
 | clientSettings.connection.user               | Username                                                                  | user           |
 | clientSettings.connection.password           | Password                                                                  | password       |

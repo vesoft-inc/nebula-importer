@@ -13,8 +13,9 @@ type NebulaClientConnection struct {
 }
 
 type NebulaClientSettings struct {
-	Concurrency int                    `yaml:"concurrency"`
-	Connection  NebulaClientConnection `yaml:"connection"`
+	Concurrency       int                    `yaml:"concurrency"`
+	ChannelBufferSize int                    `yaml:"channelBufferSize"`
+	Connection        NebulaClientConnection `yaml:"connection"`
 }
 
 type Prop struct {

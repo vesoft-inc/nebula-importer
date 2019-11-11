@@ -2,6 +2,7 @@ version: v1rc1
 description: example
 clientSettings:
   concurrency: 4 # number of graph clients
+  channelBufferSize: 128
   connection:
     user: user
     password: password

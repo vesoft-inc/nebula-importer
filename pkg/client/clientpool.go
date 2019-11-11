@@ -23,7 +23,11 @@ func NewClientPool(settings config.NebulaClientSettings) (*ClientPool, error) {
 			return nil, err
 		} else {
 			pool.Conns[i] = conn
-			pool.DataChs[i] = make(chan base.Data, 128)
+			var chanBufferSize int = 128
+			if settings.ChannelBufferSize > 0 {
+				chanBufferSize = settings.ChannelBufferSize
+			}
+			pool.DataChs[i] = make(chan base.Data, chanBufferSize)
 		}
 	}
 
