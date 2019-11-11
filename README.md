@@ -165,25 +165,33 @@ with label:
 
 ### With Header Line
 
-This feature has not been supported now. Please remove the header from your csv data file at present.
+#### Format
+
+`<type.field_name>:<field_type>`, `field_type` default type is `string`.
 
 #### Edge
 
 ```csv
-_src,_dst,_ranking,prop1,prop2
+:SRC_VID,:DST_VID,:RANK,prop1,prop2
 ...
 ```
 
-`_src` and `_dst` represent edge source and destination vertex id. `_ranking` column is value of edge ranking.
+`:SRC_VID` and `:DST_VID` represent edge source and destination vertex id. `:RANK` column is value of edge ranking.
 
 #### Vertex
 
 ```csv
-_vid,tag1.prop1,tag2.prop2,tag1.prop3,tag2.prop4
+:VID,tag1.prop1:string,tag2.prop2:int,tag1.prop3:string,tag2.prop4:int
 ...
 ```
 
-`_vid` column represent the global unique vertex id.
+`:VID` column represent the global unique vertex id.
+
+#### Skipping columns
+
+```csv
+:VID,name,:IGNORE,age:int
+```
 
 ## Usage
 
