@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 	"strings"
 
+	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -81,6 +83,13 @@ func Parse(filename string) (*YAMLConfig, error) {
 	if err = yaml.Unmarshal(content, &conf); err != nil {
 		return nil, err
 	}
+	path, err := filepath.Abs(filepath.Dir(filename))
+	if err != nil {
+		return nil, err
+	}
+	if err = conf.validateAndReset(path); err != nil {
+		return nil, err
+	}
 
 	if err = conf.validateAndReset(); err != nil {
 		return nil, err
@@ -89,7 +98,7 @@ func Parse(filename string) (*YAMLConfig, error) {
 	return &conf, nil
 }
 
-func (config *YAMLConfig) validateAndReset() error {
+func (config *YAMLConfig) validateAndReset(dir string) error {
 	if err := config.NebulaClientSettings.validateAndReset(); err != nil {
 		return err
 	}
@@ -103,7 +112,7 @@ func (config *YAMLConfig) validateAndReset() error {
 	}
 
 	for i := range config.Files {
-		if err := config.Files[i].validateAndReset(fmt.Sprintf("files[%d]", i)); err != nil {
+		if err := config.Files[i].validateAndReset(dir, fmt.Sprintf("files[%d]", i)); err != nil {
 			return err
 		}
 	}
@@ -138,9 +147,17 @@ func (n *NebulaClientSettings) validateAndReset() error {
 	return nil
 }
 
-func (f *File) validateAndReset(prefix string) error {
+func (f *File) validateAndReset(dir, prefix string) error {
 	if f.Path == "" {
 		return fmt.Errorf("Please configure file path in: %s.path", prefix)
+	}
+	if !base.FileExists(f.Path) {
+		path := filepath.FromSlash(fmt.Sprintf("%s/%s", filepath.ToSlash(dir), filepath.ToSlash(f.Path)))
+		if !base.FileExists(path) {
+			return fmt.Errorf("File(%s) doesn't exist", f.Path)
+		} else {
+			f.Path = path
+		}
 	}
 	if f.FailDataPath == "" {
 		return fmt.Errorf("Please configure the failed data output file path in: %s.failDataPath", prefix)
@@ -151,13 +168,10 @@ func (f *File) validateAndReset(prefix string) error {
 	}
 	if strings.ToLower(f.Type) != "csv" {
 		// TODO: Now only support csv import
-		log.Printf("Invalid file data type: %s, reset to csv", f.Type)
+		return fmt.Errorf("Invalid file data type: %s, reset to csv", f.Type)
 	}
 
-	if err := f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix)); err != nil {
-		return err
-	}
-	return nil
+	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
 }
 
 func (s *Schema) validateAndReset(prefix string) error {
