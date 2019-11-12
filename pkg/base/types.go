@@ -70,3 +70,13 @@ type ErrData struct {
 	Error error
 	Data  []Data
 }
+
+type ResponseData struct {
+	Error error
+	Stats Stats
+}
+
+type ClientRequest struct {
+	Stmt       string
+	ResponseCh chan ResponseData
+}

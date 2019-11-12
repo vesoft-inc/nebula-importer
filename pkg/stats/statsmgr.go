@@ -3,11 +3,12 @@ package stats
 import (
 	"time"
 
+	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 )
 
 type StatsMgr struct {
-	StatsCh      chan Stats
+	StatsCh      chan base.Stats
 	FileDoneCh   chan bool
 	totalCount   uint64
 	totalBatches uint64
@@ -18,7 +19,7 @@ type StatsMgr struct {
 
 func NewStatsMgr() *StatsMgr {
 	m := StatsMgr{
-		StatsCh:      make(chan Stats),
+		StatsCh:      make(chan base.Stats),
 		FileDoneCh:   make(chan bool),
 		totalCount:   0,
 		totalLatency: 0,
@@ -34,14 +35,14 @@ func (s *StatsMgr) Close() {
 	close(s.StatsCh)
 }
 
-func (s *StatsMgr) updateStat(stat Stats) {
+func (s *StatsMgr) updateStat(stat base.Stats) {
 	s.totalBatches++
 	s.totalCount += uint64(stat.BatchSize)
 	s.totalReqTime += stat.ReqTime
 	s.totalLatency += stat.Latency
 }
 
-func (s *StatsMgr) updateFailed(stat Stats) {
+func (s *StatsMgr) updateFailed(stat base.Stats) {
 	s.totalBatches++
 	s.totalCount += uint64(stat.BatchSize)
 	s.numFailed += uint64(stat.BatchSize)
@@ -73,11 +74,11 @@ func (s *StatsMgr) initStatsWorker() {
 					return
 				}
 				switch stat.Type {
-				case SUCCESS:
+				case base.SUCCESS:
 					s.updateStat(stat)
-				case FAILURE:
+				case base.FAILURE:
 					s.updateFailed(stat)
-				case FILEDONE:
+				case base.FILEDONE:
 					s.print(now)
 					s.FileDoneCh <- true
 				default:

@@ -9,7 +9,7 @@ import (
 type ClientPool struct {
 	concurrency int
 	Conns       []*nebula.GraphClient
-	DataChs     []chan base.Data
+	DataChs     []chan base.ClientRequest
 }
 
 func NewClientPool(settings config.NebulaClientSettings) (*ClientPool, error) {
@@ -17,7 +17,7 @@ func NewClientPool(settings config.NebulaClientSettings) (*ClientPool, error) {
 		concurrency: settings.Concurrency,
 	}
 	pool.Conns = make([]*nebula.GraphClient, settings.Concurrency)
-	pool.DataChs = make([]chan base.Data, settings.Concurrency)
+	pool.DataChs = make([]chan base.ClientRequest, settings.Concurrency)
 	for i := 0; i < settings.Concurrency; i++ {
 		if conn, err := NewNebulaConnection(settings.Connection); err != nil {
 			return nil, err
@@ -27,7 +27,7 @@ func NewClientPool(settings config.NebulaClientSettings) (*ClientPool, error) {
 			if settings.ChannelBufferSize > 0 {
 				chanBufferSize = settings.ChannelBufferSize
 			}
-			pool.DataChs[i] = make(chan base.Data, chanBufferSize)
+			pool.DataChs[i] = make(chan base.ClientRequest, chanBufferSize)
 		}
 	}
 

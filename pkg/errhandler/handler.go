@@ -8,61 +8,69 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/csv"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
-	"github.com/vesoft-inc/nebula-importer/pkg/stats"
 )
 
 type Handler struct {
-	file       config.File
-	errCh      <-chan base.ErrData
-	failCh     chan<- stats.Stats
-	dataWriter DataWriter
+	ErrCh  chan base.ErrData
+	failCh chan<- base.Stats
+	logCh  chan error
 }
 
-func New(file config.File, errCh <-chan base.ErrData, failCh chan<- stats.Stats) (*Handler, error) {
+func New(failCh chan<- base.Stats) *Handler {
 	h := Handler{
-		file:   file,
-		errCh:  errCh,
+		ErrCh:  make(chan base.ErrData),
 		failCh: failCh,
+		logCh:  make(chan error),
 	}
 
+	go h.startErrorLogWorker()
+
+	return &h
+}
+
+func (w *Handler) startErrorLogWorker() {
+	for {
+		err := <-w.logCh
+		logger.Log.Println(err.Error())
+	}
+}
+
+func (w *Handler) Init(file config.File, concurrency int) error {
+	var dataWriter DataWriter
 	switch strings.ToLower(file.Type) {
 	case "csv":
-		h.dataWriter = csv.NewErrDataWriter(file.CSV.WithLabel)
+		dataWriter = csv.NewErrDataWriter(file.CSV)
 	default:
-		return nil, fmt.Errorf("Wrong file type: %s", file.Type)
+		return fmt.Errorf("Wrong file type: %s", file.Type)
 	}
 
-	return &h, nil
-}
-
-func (w *Handler) Init(concurrency int) {
-	dataFile := base.MustCreateFile(w.file.FailDataPath)
+	dataFile := base.MustCreateFile(file.FailDataPath)
 
 	go func() {
 		defer dataFile.Close()
-		w.dataWriter.Init(dataFile)
+		dataWriter.Init(dataFile)
 
 		for {
-			rawErr := <-w.errCh
+			rawErr := <-w.ErrCh
 			if rawErr.Error == nil {
 				concurrency--
 				if concurrency == 0 {
 					break
 				}
 			} else {
-				w.dataWriter.Write(rawErr.Data)
-
-				logger.Log.Println(rawErr.Error.Error())
-
-				w.failCh <- stats.NewFailureStats(len(rawErr.Data))
+				dataWriter.Write(rawErr.Data)
+				w.logCh <- rawErr.Error
+				w.failCh <- base.NewFailureStats(len(rawErr.Data))
 			}
 		}
 
-		w.dataWriter.Flush()
-		if w.dataWriter.Error() != nil {
-			logger.Log.Println(w.dataWriter.Error())
+		dataWriter.Flush()
+		if dataWriter.Error() != nil {
+			w.logCh <- dataWriter.Error()
 		}
 
-		w.failCh <- stats.NewFileDoneStats()
+		w.failCh <- base.NewFileDoneStats()
 	}()
+
+	return nil
 }

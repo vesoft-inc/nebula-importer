@@ -1,4 +1,4 @@
-package stats
+package base
 
 type StatType int
 
