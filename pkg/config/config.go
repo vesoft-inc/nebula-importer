@@ -171,7 +171,7 @@ func (s *Schema) validateAndReset(prefix string) error {
 	case "vertex":
 		err = s.Vertex.validateAndReset(fmt.Sprintf("%s.vertex", prefix))
 	default:
-		err = fmt.Errorf("Error schema type(%s), only edge and vertex are supported", s.Type)
+		err = fmt.Errorf("Error schema type(%s) in %s.type only edge and vertex are supported", s.Type, prefix)
 	}
 	return err
 }

@@ -68,8 +68,6 @@ func (w *Handler) Init(file config.File, concurrency int) error {
 		if dataWriter.Error() != nil {
 			w.logCh <- dataWriter.Error()
 		}
-
-		w.failCh <- base.NewFileDoneStats()
 	}()
 
 	return nil

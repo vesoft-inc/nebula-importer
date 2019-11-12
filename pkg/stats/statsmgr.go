@@ -9,7 +9,6 @@ import (
 
 type StatsMgr struct {
 	StatsCh      chan base.Stats
-	FileDoneCh   chan bool
 	totalCount   uint64
 	totalBatches uint64
 	totalLatency uint64
@@ -20,14 +19,13 @@ type StatsMgr struct {
 func NewStatsMgr() *StatsMgr {
 	m := StatsMgr{
 		StatsCh:      make(chan base.Stats),
-		FileDoneCh:   make(chan bool),
 		totalCount:   0,
 		totalLatency: 0,
 		totalBatches: 0,
 		numFailed:    0,
 		totalReqTime: 0.0,
 	}
-	m.initStatsWorker()
+	go m.startWorker()
 	return &m
 }
 
@@ -60,31 +58,26 @@ func (s *StatsMgr) print(now time.Time) {
 		secs, s.totalCount, s.numFailed, avgLatency, avgReq, qps)
 }
 
-func (s *StatsMgr) initStatsWorker() {
-	go func() {
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-		now := time.Now()
-		for {
-			select {
-			case <-ticker.C:
-				s.print(now)
-			case stat, ok := <-s.StatsCh:
-				if !ok {
-					return
-				}
-				switch stat.Type {
-				case base.SUCCESS:
-					s.updateStat(stat)
-				case base.FAILURE:
-					s.updateFailed(stat)
-				case base.FILEDONE:
-					s.print(now)
-					s.FileDoneCh <- true
-				default:
-					logger.Log.Fatalf("Error stats type: %s", stat.Type)
-				}
+func (s *StatsMgr) startWorker() {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+	now := time.Now()
+	for {
+		select {
+		case <-ticker.C:
+			s.print(now)
+		case stat, ok := <-s.StatsCh:
+			if !ok {
+				return
+			}
+			switch stat.Type {
+			case base.SUCCESS:
+				s.updateStat(stat)
+			case base.FAILURE:
+				s.updateFailed(stat)
+			default:
+				logger.Log.Fatalf("Error stats type: %s", stat.Type)
 			}
 		}
-	}()
+	}
 }

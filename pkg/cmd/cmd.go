@@ -48,9 +48,6 @@ func Run(conf string) error {
 				return err
 			}
 		}
-
-		// Wait to finish handle errors
-		<-statsMgr.FileDoneCh
 	}
 
 	return nil
