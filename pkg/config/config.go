@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -141,6 +142,9 @@ func (n *NebulaClientSettings) validateAndReset() error {
 func (f *File) validateAndReset(prefix string) error {
 	if f.Path == "" {
 		return fmt.Errorf("Please configure file path in: %s.path", prefix)
+	}
+	if !base.FileExists(f.Path) {
+		return fmt.Errorf("File(%s) doesn't exist", f.Path)
 	}
 	if f.FailDataPath == "" {
 		return fmt.Errorf("Please configure the failed data output file path in: %s.failDataPath", prefix)
