@@ -3,8 +3,9 @@ package base
 type StatType int
 
 const (
-	SUCCESS StatType = 0
-	FAILURE StatType = 1
+	SUCCESS  StatType = 0
+	FAILURE  StatType = 1
+	FILEDONE StatType = 2
 )
 
 type Stats struct {
@@ -27,4 +28,10 @@ func NewFailureStats(batchSize int) Stats {
 		Type:      FAILURE,
 		BatchSize: batchSize,
 	}
+}
+
+var fileDoneStats = Stats{Type: FILEDONE}
+
+func NewFileDoneStats() Stats {
+	return fileDoneStats
 }

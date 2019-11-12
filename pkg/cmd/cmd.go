@@ -24,7 +24,7 @@ func Run(conf string) error {
 		logger.Log.Printf("Finish import data, consume time: %.2fs", time.Since(now).Seconds())
 	}()
 
-	statsMgr := stats.NewStatsMgr()
+	statsMgr := stats.NewStatsMgr(len(yaml.Files))
 	defer statsMgr.Close()
 
 	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings)
@@ -45,11 +45,11 @@ func Run(conf string) error {
 		if r, err := reader.New(file, clientMgr.GetRequestChans(), statsMgr.StatsCh, errCh); err != nil {
 			return err
 		} else {
-			if err := r.Read(); err != nil {
-				return err
-			}
+			go r.Read()
 		}
 	}
+
+	<-statsMgr.DoneCh
 
 	return nil
 }

@@ -9,14 +9,16 @@ import (
 
 type StatsMgr struct {
 	StatsCh      chan base.Stats
+	DoneCh       chan bool
 	totalCount   uint64
 	totalBatches uint64
 	totalLatency uint64
 	numFailed    uint64
 	totalReqTime float64
+	numFiles     int
 }
 
-func NewStatsMgr() *StatsMgr {
+func NewStatsMgr(numFiles int) *StatsMgr {
 	m := StatsMgr{
 		StatsCh:      make(chan base.Stats),
 		totalCount:   0,
@@ -24,6 +26,7 @@ func NewStatsMgr() *StatsMgr {
 		totalBatches: 0,
 		numFailed:    0,
 		totalReqTime: 0.0,
+		numFiles:     numFiles,
 	}
 	go m.startWorker()
 	return &m
@@ -75,9 +78,16 @@ func (s *StatsMgr) startWorker() {
 				s.updateStat(stat)
 			case base.FAILURE:
 				s.updateFailed(stat)
+			case base.FILEDONE:
+				s.numFiles--
 			default:
 				logger.Log.Fatalf("Error stats type: %s", stat.Type)
 			}
+		}
+
+		if s.numFiles == 0 {
+			s.DoneCh <- true
+			break
 		}
 	}
 }

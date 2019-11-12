@@ -91,10 +91,6 @@ func Parse(filename string) (*YAMLConfig, error) {
 		return nil, err
 	}
 
-	if err = conf.validateAndReset(); err != nil {
-		return nil, err
-	}
-
 	return &conf, nil
 }
 

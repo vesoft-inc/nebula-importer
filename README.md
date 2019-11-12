@@ -214,10 +214,10 @@ With docker, we can easily to import our local data to nebula without `golang` r
 ```shell
 $ docker run --rm -ti \
     --network=host \
-    -v {your-config-file}:/root/{your-config-file} \
-    -v {your-csv-data-dir}:/root/{your-csv-data-dir} \
+    -v {your-config-file}:{your-config-file} \
+    -v {your-csv-data-dir}:{your-csv-data-dir} \
     vesoft/nebula-importer
-    --config /root/{your-config-file}
+    --config {your-config-file}
 ```
 
 ### Log

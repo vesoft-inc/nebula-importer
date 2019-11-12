@@ -36,7 +36,7 @@ func NewBatch(mgr *BatchMgr, bufferSize int, isVertex bool, clientReq chan base.
 }
 
 func (b *Batch) IsFull() bool {
-	return len(b.buffer) == b.bufferSize
+	return b.currentIndex == b.bufferSize
 }
 
 func (b *Batch) Add(data base.Data) {
