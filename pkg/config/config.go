@@ -151,13 +151,10 @@ func (f *File) validateAndReset(prefix string) error {
 	}
 	if strings.ToLower(f.Type) != "csv" {
 		// TODO: Now only support csv import
-		log.Printf("Invalid file data type: %s, reset to csv", f.Type)
+		return fmt.Errorf("Invalid file data type: %s, reset to csv", f.Type)
 	}
 
-	if err := f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix)); err != nil {
-		return err
-	}
-	return nil
+	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
 }
 
 func (s *Schema) validateAndReset(prefix string) error {
