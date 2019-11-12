@@ -117,13 +117,13 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 
 func (n *NebulaClientSettings) validateAndReset() error {
 	if n.Concurrency <= 0 {
-		n.Concurrency = 40
 		log.Printf("Invalide client concurrency: %d, reset to default 40", n.Concurrency)
+		n.Concurrency = 40
 	}
 
 	if n.ChannelBufferSize <= 0 {
-		n.ChannelBufferSize = 128
 		log.Printf("Invalide client channel buffer size: %d, reset to default 128", n.ChannelBufferSize)
+		n.ChannelBufferSize = 128
 	}
 
 	if n.Connection.Address == "" {
@@ -159,8 +159,8 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		return fmt.Errorf("Please configure the failed data output file path in: %s.failDataPath", prefix)
 	}
 	if f.BatchSize <= 0 {
-		f.BatchSize = 128
 		log.Printf("Invalide batch size: %d in file(%s), reset to default 128", f.BatchSize, f.Path)
+		f.BatchSize = 128
 	}
 	if strings.ToLower(f.Type) != "csv" {
 		// TODO: Now only support csv import

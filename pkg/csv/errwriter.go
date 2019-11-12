@@ -11,7 +11,6 @@ import (
 
 type ErrWriter struct {
 	writer    *csv.Writer
-	withLabel bool
 	csvConfig config.CSVConfig
 }
 
