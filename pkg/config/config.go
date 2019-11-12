@@ -148,7 +148,7 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		return fmt.Errorf("Please configure file path in: %s.path", prefix)
 	}
 	if !base.FileExists(f.Path) {
-		path := fmt.Sprintf("%s/%s", dir, f.Path)
+		path := filepath.FromSlash(fmt.Sprintf("%s/%s", filepath.ToSlash(dir), filepath.ToSlash(f.Path)))
 		if !base.FileExists(path) {
 			return fmt.Errorf("File(%s) doesn't exist", f.Path)
 		} else {
