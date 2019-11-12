@@ -11,16 +11,16 @@ import (
 )
 
 type Handler struct {
-	ErrCh  chan base.ErrData
-	failCh chan<- base.Stats
-	logCh  chan error
+	ErrCh   chan base.ErrData
+	statsCh chan<- base.Stats
+	logCh   chan error
 }
 
-func New(failCh chan<- base.Stats) *Handler {
+func New(statsCh chan<- base.Stats) *Handler {
 	h := Handler{
-		ErrCh:  make(chan base.ErrData),
-		failCh: failCh,
-		logCh:  make(chan error),
+		ErrCh:   make(chan base.ErrData),
+		statsCh: statsCh,
+		logCh:   make(chan error),
 	}
 
 	go h.startErrorLogWorker()
@@ -60,7 +60,7 @@ func (w *Handler) Init(file config.File, concurrency int) error {
 			} else {
 				dataWriter.Write(rawErr.Data)
 				w.logCh <- rawErr.Error
-				w.failCh <- base.NewFailureStats(len(rawErr.Data))
+				w.statsCh <- base.NewFailureStats(len(rawErr.Data))
 			}
 		}
 

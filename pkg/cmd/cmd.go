@@ -41,7 +41,7 @@ func Run(conf string) error {
 			return err
 		}
 
-		if r, err := reader.New(file, clientMgr.GetDataChans(), statsMgr.StatsCh, errHandler.ErrCh); err != nil {
+		if r, err := reader.New(file, clientMgr.GetRequestChans(), statsMgr.StatsCh, errHandler.ErrCh); err != nil {
 			return err
 		} else {
 			if err := r.Read(); err != nil {

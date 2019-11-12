@@ -39,13 +39,13 @@ func (m *NebulaClientMgr) Close() {
 	m.pool.Close()
 }
 
-func (m *NebulaClientMgr) GetDataChans() []chan base.ClientRequest {
-	return m.pool.DataChs
+func (m *NebulaClientMgr) GetRequestChans() []chan base.ClientRequest {
+	return m.pool.requestChs
 }
 
 func (m *NebulaClientMgr) startWorker(i int) {
 	for {
-		data, ok := <-m.pool.DataChs[i]
+		data, ok := <-m.pool.requestChs[i]
 		if !ok {
 			break
 		}
