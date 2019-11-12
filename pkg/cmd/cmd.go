@@ -37,11 +37,12 @@ func Run(conf string) error {
 
 	for _, file := range yaml.Files {
 		// TODO: skip files with error
-		if err := errHandler.Init(file, yaml.NebulaClientSettings.Concurrency); err != nil {
+		errCh, err := errHandler.Init(file, yaml.NebulaClientSettings.Concurrency)
+		if err != nil {
 			return err
 		}
 
-		if r, err := reader.New(file, clientMgr.GetRequestChans(), statsMgr.StatsCh, errHandler.ErrCh); err != nil {
+		if r, err := reader.New(file, clientMgr.GetRequestChans(), statsMgr.StatsCh, errCh); err != nil {
 			return err
 		} else {
 			if err := r.Read(); err != nil {
