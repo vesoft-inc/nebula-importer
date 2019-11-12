@@ -7,7 +7,7 @@ import (
 )
 
 func TestYAMLParser(t *testing.T) {
-	yaml, err := Parse("../example/example.yaml")
+	yaml, err := Parse("../../example/example.yaml")
 	if err != nil {
 		t.Error(err)
 	}
