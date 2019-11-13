@@ -83,6 +83,7 @@ func (b *Batch) requestClient() {
 			stat.BatchSize = len(batch)
 			b.statsCh <- stat
 		}
+		// Ensure that last error has been sent before file done signal
 		b.wg.Done()
 	}(b.buffer[:b.currentIndex])
 

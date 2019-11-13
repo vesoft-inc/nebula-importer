@@ -37,7 +37,7 @@ func (bm *BatchMgr) Done() {
 }
 
 func (bm *BatchMgr) InitSchema(record base.Record) {
-
+	// TODO: header in csv data file
 }
 
 func (bm *BatchMgr) Add(data base.Data) error {
