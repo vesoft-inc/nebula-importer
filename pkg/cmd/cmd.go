@@ -48,6 +48,7 @@ func Run(conf string) error {
 			go r.Read()
 		}
 	}
+
 	<-statsMgr.DoneCh
 
 	return nil

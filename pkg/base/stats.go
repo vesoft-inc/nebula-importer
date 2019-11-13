@@ -13,6 +13,7 @@ type Stats struct {
 	Latency   uint64
 	ReqTime   float64
 	BatchSize int
+	Filename  string
 }
 
 func NewSuccessStats(latency uint64, reqTime float64) Stats {
@@ -30,8 +31,9 @@ func NewFailureStats(batchSize int) Stats {
 	}
 }
 
-var fileDoneStats = Stats{Type: FILEDONE}
-
-func NewFileDoneStats() Stats {
-	return fileDoneStats
+func NewFileDoneStats(filename string) Stats {
+	return Stats{
+		Type:     FILEDONE,
+		Filename: filename,
+	}
 }

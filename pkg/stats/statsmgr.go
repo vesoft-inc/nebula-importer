@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
@@ -21,6 +22,7 @@ type StatsMgr struct {
 func NewStatsMgr(numReadingFiles int) *StatsMgr {
 	m := StatsMgr{
 		StatsCh:         make(chan base.Stats),
+		DoneCh:          make(chan bool),
 		totalCount:      0,
 		totalLatency:    0,
 		totalBatches:    0,
@@ -34,6 +36,7 @@ func NewStatsMgr(numReadingFiles int) *StatsMgr {
 
 func (s *StatsMgr) Close() {
 	close(s.StatsCh)
+	close(s.DoneCh)
 }
 
 func (s *StatsMgr) updateStat(stat base.Stats) {
@@ -49,7 +52,7 @@ func (s *StatsMgr) updateFailed(stat base.Stats) {
 	s.numFailed += uint64(stat.BatchSize)
 }
 
-func (s *StatsMgr) print(now time.Time) {
+func (s *StatsMgr) print(prefix string, now time.Time) {
 	if s.totalCount == 0 {
 		return
 	}
@@ -57,8 +60,8 @@ func (s *StatsMgr) print(now time.Time) {
 	avgLatency := s.totalLatency / s.totalBatches
 	avgReq := 1000000 * s.totalReqTime / float64(s.totalBatches)
 	qps := float64(s.totalCount) / secs
-	logger.Log.Printf("Time(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%.2fus), QPS(%.2f/s)",
-		secs, s.totalCount, s.numFailed, avgLatency, avgReq, qps)
+	logger.Log.Printf("%s: Time(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%.2fus), QPS(%.2f/s)",
+		prefix, secs, s.totalCount, s.numFailed, avgLatency, avgReq, qps)
 }
 
 func (s *StatsMgr) startWorker() {
@@ -68,7 +71,7 @@ func (s *StatsMgr) startWorker() {
 	for {
 		select {
 		case <-ticker.C:
-			s.print(now)
+			s.print("Tick", now)
 		case stat, ok := <-s.StatsCh:
 			if !ok {
 				return
@@ -79,7 +82,7 @@ func (s *StatsMgr) startWorker() {
 			case base.FAILURE:
 				s.updateFailed(stat)
 			case base.FILEDONE:
-				s.print(now)
+				s.print(fmt.Sprintf("Done(%s)", stat.Filename), now)
 				s.numReadingFiles--
 				if s.numReadingFiles == 0 {
 					s.DoneCh <- true

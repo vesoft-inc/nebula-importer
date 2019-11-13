@@ -45,8 +45,12 @@ func (p *ClientPool) Close() {
 	stmt := "UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };"
 	for i := 0; i < p.concurrency; i++ {
 		if p.Conns[i] != nil {
-			if resp, err := p.Conns[i].Execute(stmt); err != nil || resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-				logger.Log.Printf("Fail to open compaction option when close connection, error: %v, code: %v, message: %s", err, resp.GetErrorCode(), resp.GetErrorMsg())
+			if resp, err := p.Conns[i].Execute(stmt); err != nil {
+				logger.Log.Printf("Client %d fails to open compaction option when close connection, error: %s", i, err)
+			} else {
+				if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
+					logger.Log.Printf("Client %d fails to open compaction option when close connection, error code: %v, message: %s", i, resp.GetErrorCode(), resp.GetErrorMsg())
+				}
 			}
 			p.Conns[i].Disconnect()
 		}

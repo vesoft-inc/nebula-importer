@@ -3,7 +3,6 @@ description: example
 clientSettings:
   concurrency: 4 # number of graph clients
   channelBufferSize: 128
-  parallelFiles: 2
   space: test
   connection:
     user: user

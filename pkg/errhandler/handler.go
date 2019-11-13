@@ -56,7 +56,7 @@ func (w *Handler) Init(file config.File, concurrency int) (chan base.ErrData, er
 		if dataWriter.Error() != nil {
 			logger.Log.Println(dataWriter.Error())
 		}
-		w.statsCh <- base.NewFileDoneStats()
+		w.statsCh <- base.NewFileDoneStats(file.Path)
 	}()
 
 	return errCh, nil

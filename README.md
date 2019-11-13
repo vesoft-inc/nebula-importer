@@ -22,7 +22,6 @@ description: example
 clientSettings:
   concurrency: 4 # number of graph clients
   channelBufferSize: 128
-  parallelFiles: 2
   space: test
   connection:
     user: user
@@ -82,7 +81,6 @@ As for this example, nebula-importer will import two **csv** data files `edge.cs
 | clientSettings                                 | Graph client settings                                                     | -              |
 | clientSettings.concurrency                     | Number of graph clients                                                   | 4              |
 | clientSettings.channelBufferSize               | Buffer size of client channels                                            | 128            |
-| clientSettings.parallelFiles                   | File parallelism                                                          | 1              |
 | clientSettings.space                           | Space name of all data to be inserted                                     | ""             |
 | clientSettings.connection                      | Connection options of graph client                                        | -              |
 | clientSettings.connection.user                 | Username                                                                  | user           |

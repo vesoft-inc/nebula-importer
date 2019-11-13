@@ -21,7 +21,6 @@ type NebulaClientConnection struct {
 type NebulaClientSettings struct {
 	Concurrency       int                    `yaml:"concurrency"`
 	ChannelBufferSize int                    `yaml:"channelBufferSize"`
-	ParallelFiles     int                    `yaml:"parallelFiles"`
 	Space             string                 `yaml:"space"`
 	Connection        NebulaClientConnection `yaml:"connection"`
 }
@@ -130,11 +129,6 @@ func (n *NebulaClientSettings) validateAndReset() error {
 	if n.ChannelBufferSize <= 0 {
 		log.Printf("Invalide client channel buffer size: %d in clientSettings.channelBufferSize, reset to default 128", n.ChannelBufferSize)
 		n.ChannelBufferSize = 128
-	}
-
-	if n.ParallelFiles <= 0 {
-		log.Printf("Invalide parallel files: %d in clientSettings.parallelFiles, reset to default 1", n.ParallelFiles)
-		n.ParallelFiles = 1
 	}
 
 	if n.Connection.Address == "" {
