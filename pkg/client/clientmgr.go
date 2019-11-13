@@ -283,7 +283,7 @@ func (m *NebulaClientMgr) makeEdgeInsertStmtWithoutHeaderLine(batch []base.Data)
 	return builder.String()
 }
 
-func replaceString(str string) string {
+func escapeString(str string) string {
 	r := strings.Replace(str, "\r\n", "\n", -1)
 	r = strings.Replace(r, "\r", "\n", -1)
 	r = strings.Replace(r, "\\", "\\\\", -1)
@@ -295,7 +295,7 @@ func fillVertexPropsValues(builder *strings.Builder, record base.Record, isEnd b
 	for i := 1; i < len(record); i++ {
 		if strings.ToLower(propTypeMap[i-1]) == "string" {
 			builder.WriteString("\"")
-			builder.WriteString(replaceString(record[i]))
+			builder.WriteString(escapeString(record[i]))
 			builder.WriteString("\"")
 		} else {
 			builder.WriteString(record[i])
@@ -325,7 +325,7 @@ func (m *NebulaClientMgr) fillEdgePropsValues(builder *strings.Builder, record b
 	for i := fromIdx; i < len(record); i++ {
 		if strings.ToLower(propTypeMap[i-fromIdx]) == "string" {
 			builder.WriteString("\"")
-			builder.WriteString(replaceString(record[i]))
+			builder.WriteString(escapeString(record[i]))
 			builder.WriteString("\"")
 		} else {
 			builder.WriteString(record[i])
