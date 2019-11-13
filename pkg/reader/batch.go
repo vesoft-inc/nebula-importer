@@ -63,7 +63,7 @@ func (b *Batch) requestClient() {
 		stmt = b.makeEdgeInsertStmtWithoutHeaderLine(b.buffer[:b.currentIndex])
 	}
 	b.clientRequestCh <- base.ClientRequest{
-		Stmt:       fmt.Sprintf("USE %s; %s", b.batchMgr.Schema.Space, stmt),
+		Stmt:       stmt,
 		ResponseCh: b.responseCh,
 	}
 

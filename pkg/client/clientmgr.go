@@ -1,10 +1,6 @@
 package client
 
 import (
-	"fmt"
-	"time"
-
-	"github.com/vesoft-inc/nebula-go/graph"
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
@@ -23,11 +19,10 @@ func NewNebulaClientMgr(settings config.NebulaClientSettings) (*NebulaClientMgr,
 	if pool, err := NewClientPool(settings); err != nil {
 		return nil, err
 	} else {
+		if err := pool.Init(); err != nil {
+			return nil, err
+		}
 		mgr.pool = pool
-	}
-
-	for i := 0; i < settings.Concurrency; i++ {
-		go mgr.startWorker(i)
 	}
 
 	logger.Log.Printf("Create %d Nebula Graph clients", mgr.config.Concurrency)
@@ -41,31 +36,4 @@ func (m *NebulaClientMgr) Close() {
 
 func (m *NebulaClientMgr) GetRequestChans() []chan base.ClientRequest {
 	return m.pool.requestChs
-}
-
-func (m *NebulaClientMgr) startWorker(i int) {
-	for {
-		data, ok := <-m.pool.requestChs[i]
-		if !ok {
-			break
-		}
-
-		now := time.Now()
-		resp, err := m.pool.Conns[i].Execute(data.Stmt)
-		if err == nil && resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-			err = fmt.Errorf("Client %d fail to execute: %s, ErrMsg: %s, ErrCode: %v", i, data.Stmt, resp.GetErrorMsg(), resp.GetErrorCode())
-		}
-
-		if err != nil {
-			data.ResponseCh <- base.ResponseData{Error: err}
-		} else {
-			data.ResponseCh <- base.ResponseData{
-				Error: nil,
-				Stats: base.Stats{
-					Latency: uint64(resp.GetLatencyInUs()),
-					ReqTime: time.Since(now).Seconds(),
-				},
-			}
-		}
-	}
 }

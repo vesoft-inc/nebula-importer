@@ -3,6 +3,8 @@ description: example
 clientSettings:
   concurrency: 4 # number of graph clients
   channelBufferSize: 128
+  parallelFiles: 2
+  space: test
   connection:
     user: user
     password: password
@@ -17,7 +19,6 @@ files:
       withHeader: false
       withLabel: false
     schema:
-      space: test
       type: edge
       edge:
         name: edge_name
@@ -33,7 +34,6 @@ files:
       withHeader: false
       withLabel: false
     schema:
-      space: test
       type: vertex
       vertex:
         tags:
@@ -41,6 +41,7 @@ files:
             props:
               - name: prop1
                 type: int
+                ignore: true
               - name: prop2
                 type: timestamp
           - name: tag2
