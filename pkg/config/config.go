@@ -21,12 +21,15 @@ type NebulaClientConnection struct {
 type NebulaClientSettings struct {
 	Concurrency       int                    `yaml:"concurrency"`
 	ChannelBufferSize int                    `yaml:"channelBufferSize"`
+	ParallelFiles     int                    `yaml:"parallelFiles"`
+	Space             string                 `yaml:"space"`
 	Connection        NebulaClientConnection `yaml:"connection"`
 }
 
 type Prop struct {
-	Name string `yaml:"name"`
-	Type string `yaml:"type"`
+	Name   string `yaml:"name"`
+	Type   string `yaml:"type"`
+	Ignore bool   `yaml:"ignore"`
 }
 
 type Edge struct {
@@ -45,7 +48,6 @@ type Vertex struct {
 }
 
 type Schema struct {
-	Space  string `yaml:"space"`
 	Type   string `yaml:"type"`
 	Edge   Edge   `yaml:"edge"`
 	Vertex Vertex `yaml:"vertex"`
@@ -100,7 +102,8 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 	}
 
 	if config.LogPath == "" {
-		return errors.New("Please configure the log file path in: logPath")
+		config.LogPath = "/tmp/nebula-importer.log"
+		log.Printf("You have not configured the log file path in: logPath, reset to default path: %s", config.LogPath)
 	}
 
 	if len(config.Files) == 0 {
@@ -116,14 +119,22 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 }
 
 func (n *NebulaClientSettings) validateAndReset() error {
+	if n.Space == "" {
+		return errors.New("Please configure the space name in: clientSettings.space")
+	}
 	if n.Concurrency <= 0 {
-		log.Printf("Invalide client concurrency: %d, reset to default 40", n.Concurrency)
+		log.Printf("Invalide client concurrency: %d in clientSettings.concurrency, reset to default 40", n.Concurrency)
 		n.Concurrency = 40
 	}
 
 	if n.ChannelBufferSize <= 0 {
-		log.Printf("Invalide client channel buffer size: %d, reset to default 128", n.ChannelBufferSize)
+		log.Printf("Invalide client channel buffer size: %d in clientSettings.channelBufferSize, reset to default 128", n.ChannelBufferSize)
 		n.ChannelBufferSize = 128
+	}
+
+	if n.ParallelFiles <= 0 {
+		log.Printf("Invalide parallel files: %d in clientSettings.parallelFiles, reset to default 1", n.ParallelFiles)
+		n.ParallelFiles = 1
 	}
 
 	if n.Connection.Address == "" {
@@ -148,7 +159,7 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		return fmt.Errorf("Please configure file path in: %s.path", prefix)
 	}
 	if !base.FileExists(f.Path) {
-		path := filepath.FromSlash(fmt.Sprintf("%s/%s", filepath.ToSlash(dir), filepath.ToSlash(f.Path)))
+		path := filepath.Join(dir, f.Path)
 		if !base.FileExists(path) {
 			return fmt.Errorf("File(%s) doesn't exist", f.Path)
 		} else {
@@ -156,7 +167,12 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		}
 	}
 	if f.FailDataPath == "" {
-		return fmt.Errorf("Please configure the failed data output file path in: %s.failDataPath", prefix)
+		if d, err := filepath.Abs(filepath.Dir(f.Path)); err != nil {
+			return err
+		} else {
+			f.FailDataPath = filepath.Join(d, "err", filepath.Base(f.Path))
+			log.Printf("You have not configured the failed data output file path in: %s.failDataPath, reset to default path: %s", prefix, f.FailDataPath)
+		}
 	}
 	if f.BatchSize <= 0 {
 		log.Printf("Invalide batch size: %d in file(%s), reset to default 128", f.BatchSize, f.Path)
@@ -171,9 +187,6 @@ func (f *File) validateAndReset(dir, prefix string) error {
 }
 
 func (s *Schema) validateAndReset(prefix string) error {
-	if s.Space == "" {
-		return fmt.Errorf("Please configure the space name in: %s.space", prefix)
-	}
 	var err error = nil
 	switch strings.ToLower(s.Type) {
 	case "edge":
