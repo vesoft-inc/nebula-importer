@@ -220,7 +220,7 @@ func fillVertexPropsValues(builder *strings.Builder, record base.Record, isEnd b
 	for i := 1; i < len(record); i++ {
 		if strings.ToLower(propTypeMap[i-1]) == "string" {
 			builder.WriteString("\"")
-			builder.WriteString(strings.Replace(record[i], "\"", "\\\"", -1))
+			builder.WriteString(escapeString(record[i]))
 			builder.WriteString("\"")
 		} else {
 			builder.WriteString(record[i])
@@ -250,7 +250,7 @@ func (m *Batch) fillEdgePropsValues(builder *strings.Builder, record base.Record
 	for i := fromIdx; i < len(record); i++ {
 		if strings.ToLower(propTypeMap[i-fromIdx]) == "string" {
 			builder.WriteString("\"")
-			builder.WriteString(strings.Replace(record[i], "\"", "\\\"", -1))
+			builder.WriteString(escapeString(record[i]))
 			builder.WriteString("\"")
 		} else {
 			builder.WriteString(record[i])
@@ -265,4 +265,11 @@ func (m *Batch) fillEdgePropsValues(builder *strings.Builder, record base.Record
 	} else {
 		builder.WriteString(",")
 	}
+}
+
+func escapeString(str string) string {
+	r := strings.Replace(str, "\r\n", "\n", -1)
+	r = strings.Replace(r, "\r", "\n", -1)
+	r = strings.Replace(r, "\\", "\\\\", -1)
+	return strings.Replace(r, "\"", "\\\"", -1)
 }

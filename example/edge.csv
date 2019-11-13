@@ -1,2 +1,4 @@
 1,2,0,this is a string
 2,1,1,Yet another a string
+3,2,2,"Yet ""another"" a string"
+4,3,3,Yet \another\ a string
