@@ -13,7 +13,6 @@ import (
 type BatchMgr struct {
 	Schema           config.Schema
 	Batches          []*Batch
-	IsVertex         bool
 	InsertStmtPrefix string
 }
 
@@ -23,12 +22,10 @@ func NewBatchMgr(schema config.Schema, batchSize int, clientRequestChs []chan ba
 		Batches: make([]*Batch, len(clientRequestChs)),
 	}
 
-	if strings.ToUpper(schema.Type) == "EDGE" {
-		bm.IsVertex = false
-		bm.Schema.Edge.Props = nil
-	} else {
-		bm.IsVertex = true
+	if schema.IsVertex() {
 		bm.Schema.Vertex.Tags = nil
+	} else {
+		bm.Schema.Edge.Props = nil
 	}
 
 	bm.InitSchema(strings.Split(schema.String(), ","))
@@ -54,7 +51,7 @@ func (bm *BatchMgr) InitSchema(record base.Record) {
 		case ":RANK":
 		case ":IGNORE":
 		default:
-			if bm.IsVertex {
+			if bm.Schema.IsVertex() {
 				bm.addVertexTags(r, i)
 			} else {
 				bm.addEdgeProps(r, i)
@@ -97,7 +94,7 @@ func (bm *BatchMgr) addEdgeProps(r string, i int) {
 
 func (bm *BatchMgr) generateInsertStmtPrefix() {
 	var builder strings.Builder
-	if bm.IsVertex {
+	if bm.Schema.IsVertex() {
 		builder.WriteString("INSERT VERTEX ")
 		for i, tag := range bm.Schema.Vertex.Tags {
 			builder.WriteString(fmt.Sprintf("%s(", tag.Name))

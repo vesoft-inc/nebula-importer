@@ -50,7 +50,7 @@ func (b *Batch) Done() {
 
 func (b *Batch) requestClient() {
 	var stmt string
-	if b.batchMgr.IsVertex {
+	if b.batchMgr.Schema.IsVertex() {
 		stmt = b.batchMgr.makeVertexStmt(b.buffer[:b.currentIndex])
 	} else {
 		stmt = b.batchMgr.makeEdgeStmt(b.buffer[:b.currentIndex])

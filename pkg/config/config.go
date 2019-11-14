@@ -181,8 +181,12 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
 }
 
+func (s *Schema) IsVertex() bool {
+	return strings.ToUpper(s.Type) == "VERTEX"
+}
+
 func (s *Schema) String() string {
-	if strings.ToUpper(s.Type) == "VERTEX" {
+	if s.IsVertex() {
 		return s.Vertex.String()
 	} else {
 		return s.Edge.String()
