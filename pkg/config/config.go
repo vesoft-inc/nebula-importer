@@ -29,6 +29,7 @@ type Prop struct {
 	Name   string `yaml:"name"`
 	Type   string `yaml:"type"`
 	Ignore bool   `yaml:"ignore"`
+	Index  int
 }
 
 type Edge struct {
@@ -180,6 +181,38 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
 }
 
+func (s *Schema) String() string {
+	var cells []string
+	if strings.ToUpper(s.Type) == "VERTEX" {
+		cells = append(cells, ":VID")
+		for _, tag := range s.Vertex.Tags {
+			for _, prop := range tag.Props {
+				if prop.Ignore {
+					cells = append(cells, ":IGNORE")
+				} else {
+					cells = append(cells, fmt.Sprintf("%s.%s:%s", tag.Name, prop.Name, prop.Type))
+				}
+			}
+		}
+	} else {
+		// edge type
+		cells = append(cells, ":SRC_VID")
+		cells = append(cells, ":DST_VID")
+		if s.Edge.WithRanking {
+			cells = append(cells, ":RANK")
+		}
+		for _, prop := range s.Edge.Props {
+			if prop.Ignore {
+				cells = append(cells, ":IGNORE")
+			} else {
+				cells = append(cells, fmt.Sprintf("%s.%s:%s", s.Edge.Name, prop.Name, prop.Type))
+			}
+		}
+	}
+	// TODO: delimeter
+	return strings.Join(cells, ",")
+}
+
 func (s *Schema) validateAndReset(prefix string) error {
 	var err error = nil
 	switch strings.ToLower(s.Type) {
@@ -216,18 +249,11 @@ func (v *Vertex) validateAndReset(prefix string) error {
 
 func (p *Prop) validateAndReset(prefix string) error {
 	p.Type = strings.ToLower(p.Type)
-	var err error = nil
-	switch p.Type {
-	case "string":
-	case "int":
-	case "float":
-	case "double":
-	case "bool":
-	case "timestamp":
-	default:
-		err = fmt.Errorf("Error property type of %s.type: %s", prefix, p.Type)
+	if base.IsValidType(p.Type) {
+		return nil
+	} else {
+		return fmt.Errorf("Error property type of %s.type: %s", prefix, p.Type)
 	}
-	return err
 }
 
 func (t *Tag) validateAndReset(prefix string) error {

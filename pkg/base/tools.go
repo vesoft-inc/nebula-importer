@@ -3,6 +3,7 @@ package base
 import (
 	"os"
 	"path"
+	"strings"
 )
 
 func MustCreateFile(filePath string) *os.File {
@@ -22,4 +23,18 @@ func FileExists(filename string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func IsValidType(t string) bool {
+	switch strings.ToLower(t) {
+	case "string":
+	case "int":
+	case "float":
+	case "double":
+	case "bool":
+	case "timestamp":
+	default:
+		return false
+	}
+	return true
 }

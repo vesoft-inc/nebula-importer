@@ -54,7 +54,7 @@ func (r *FileReader) Read() error {
 
 	lineNum, numErrorLines := 0, 0
 
-	logger.Log.Printf("Start to read CSV data file: %s", r.File.Path)
+	logger.Log.Printf("Start to read file: %s, schema: %s", r.File.Path, r.File.Schema.String())
 
 	for {
 		data, err := r.DataReader.ReadLine()
@@ -67,7 +67,11 @@ func (r *FileReader) Read() error {
 		lineNum++
 
 		if err == nil {
-			err = r.BatchMgr.Add(data)
+			if data.Type == base.HEADER {
+				r.BatchMgr.InitSchema(data.Record)
+			} else {
+				err = r.BatchMgr.Add(data)
+			}
 		}
 
 		if err != nil {
