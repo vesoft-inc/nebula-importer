@@ -175,25 +175,29 @@ func getBatchId(idStr string, numChans int) (uint, error) {
 	return uint(id % int64(numChans)), nil
 }
 
-func (m *BatchMgr) MakeVertexStmt(batch []base.Data) string {
+func makeStmt(batch []base.Data, f func([]base.Data) string) string {
 	if len(batch) == 0 {
-		logger.Log.Fatal("Make vertex stmt for empty batch")
+		logger.Log.Fatal("Make stmt for empty batch")
 	}
 
 	if len(batch) == 1 {
-		return m.makeVertexBatchStmt(batch)
+		return f(batch)
 	}
 
 	var builder strings.Builder
 	lastIdx, length := 0, len(batch)
 	for i := 1; i < length; i++ {
 		if batch[i-1].Type != batch[i].Type {
-			builder.WriteString(m.makeVertexBatchStmt(batch[lastIdx:i]))
+			builder.WriteString(f(batch[lastIdx:i]))
 			lastIdx = i
 		}
 	}
-	builder.WriteString(m.makeVertexBatchStmt(batch[lastIdx:]))
+	builder.WriteString(f(batch[lastIdx:]))
 	return builder.String()
+}
+
+func (m *BatchMgr) MakeVertexStmt(batch []base.Data) string {
+	return makeStmt(batch, m.makeVertexBatchStmt)
 }
 
 func (m *BatchMgr) makeVertexBatchStmt(batch []base.Data) string {
@@ -252,25 +256,7 @@ func (m *BatchMgr) makeVertexDeleteStmt(data []base.Data) string {
 }
 
 func (m *BatchMgr) MakeEdgeStmt(batch []base.Data) string {
-	if len(batch) == 0 {
-		logger.Log.Fatal("Fail to make edge stmt for empty batch")
-	}
-	length := len(batch)
-	if length == 1 {
-		return m.makeEdgeBatchStmt(batch)
-	}
-
-	var builder strings.Builder
-	lastIdx := 0
-
-	for i := 1; i < length; i++ {
-		if batch[i-1].Type != batch[i].Type {
-			builder.WriteString(m.makeEdgeBatchStmt(batch[lastIdx:i]))
-			lastIdx = i
-		}
-	}
-	builder.WriteString(m.makeEdgeBatchStmt(batch[lastIdx:]))
-	return builder.String()
+	return makeStmt(batch, m.makeEdgeBatchStmt)
 }
 
 func (m *BatchMgr) makeEdgeBatchStmt(batch []base.Data) string {
