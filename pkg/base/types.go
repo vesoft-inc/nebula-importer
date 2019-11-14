@@ -81,3 +81,11 @@ type ClientRequest struct {
 	ErrCh chan<- ErrData
 	Data  []Data
 }
+
+const (
+	LABEL_VID     = ":VID"
+	LABEL_SRC_VID = ":SRC_VID"
+	LABEL_DST_VID = ":DST_VID"
+	LABEL_RANK    = ":RANK"
+	LABEL_IGNORE  = ":IGNORE"
+)

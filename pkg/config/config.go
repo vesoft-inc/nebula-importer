@@ -208,9 +208,9 @@ func (s *Schema) validateAndReset(prefix string) error {
 
 func (e *Edge) String() string {
 	var cells []string
-	cells = append(cells, ":SRC_VID", ":DST_VID")
+	cells = append(cells, base.LABEL_SRC_VID, base.LABEL_DST_VID)
 	if e.WithRanking {
-		cells = append(cells, ":RANK")
+		cells = append(cells, base.LABEL_RANK)
 	}
 	for _, prop := range e.Props {
 		cells = append(cells, prop.String(e.Name))
@@ -232,7 +232,7 @@ func (e *Edge) validateAndReset(prefix string) error {
 
 func (v *Vertex) String() string {
 	var cells []string
-	cells = append(cells, ":VID")
+	cells = append(cells, base.LABEL_VID)
 	for _, tag := range v.Tags {
 		for _, prop := range tag.Props {
 			cells = append(cells, prop.String(tag.Name))
@@ -252,7 +252,7 @@ func (v *Vertex) validateAndReset(prefix string) error {
 
 func (p *Prop) String(prefix string) string {
 	if p.Ignore {
-		return ":IGNORE"
+		return base.LABEL_IGNORE
 	} else {
 		return fmt.Sprintf("%s.%s:%s", prefix, p.Name, p.Type)
 	}

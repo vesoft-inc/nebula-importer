@@ -45,11 +45,11 @@ func (bm *BatchMgr) Done() {
 func (bm *BatchMgr) InitSchema(header base.Record) {
 	for i, h := range header {
 		switch strings.ToUpper(h) {
-		case ":VID":
-		case ":SRC_VID":
-		case ":DST_VID":
-		case ":RANK":
-		case ":IGNORE":
+		case base.LABEL_VID:
+		case base.LABEL_SRC_VID:
+		case base.LABEL_DST_VID:
+		case base.LABEL_RANK:
+		case base.LABEL_IGNORE:
 		default:
 			if bm.Schema.IsVertex() {
 				bm.addVertexTags(h, i)
