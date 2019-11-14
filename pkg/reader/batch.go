@@ -3,14 +3,12 @@ package reader
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 )
 
 type Batch struct {
-	statsCh         chan<- base.Stats
 	errCh           chan<- base.ErrData
 	clientRequestCh chan base.ClientRequest
 	isVertex        bool
@@ -18,12 +16,10 @@ type Batch struct {
 	currentIndex    int
 	buffer          []base.Data
 	batchMgr        *BatchMgr
-	wg              *sync.WaitGroup
 }
 
-func NewBatch(mgr *BatchMgr, bufferSize int, isVertex bool, clientReq chan base.ClientRequest, statsCh chan<- base.Stats, errCh chan<- base.ErrData) *Batch {
+func NewBatch(mgr *BatchMgr, bufferSize int, isVertex bool, clientReq chan base.ClientRequest, errCh chan<- base.ErrData) *Batch {
 	b := Batch{
-		statsCh:         statsCh,
 		errCh:           errCh,
 		clientRequestCh: clientReq,
 		bufferSize:      bufferSize,
@@ -31,7 +27,6 @@ func NewBatch(mgr *BatchMgr, bufferSize int, isVertex bool, clientReq chan base.
 		currentIndex:    0,
 		buffer:          make([]base.Data, bufferSize),
 		batchMgr:        mgr,
-		wg:              &sync.WaitGroup{},
 	}
 	return &b
 }
@@ -53,8 +48,10 @@ func (b *Batch) Done() {
 		b.requestClient()
 	}
 
-	b.wg.Wait()
-	b.errCh <- base.ErrData{Error: nil}
+	b.clientRequestCh <- base.ClientRequest{
+		ErrCh: b.errCh,
+		Stmt:  "FILEDONE",
+	}
 }
 
 func (b *Batch) requestClient() {
@@ -64,28 +61,12 @@ func (b *Batch) requestClient() {
 	} else {
 		stmt = b.makeEdgeInsertStmtWithoutHeaderLine(b.buffer[:b.currentIndex])
 	}
-	responseCh := make(chan base.ResponseData)
-	b.clientRequestCh <- base.ClientRequest{
-		Stmt:       stmt,
-		ResponseCh: responseCh,
-	}
 
-	b.wg.Add(1)
-	go func(batch []base.Data) {
-		if resp := <-responseCh; resp.Error != nil {
-			b.errCh <- base.ErrData{
-				Error: resp.Error,
-				Data:  batch,
-			}
-		} else {
-			stat := resp.Stats
-			stat.BatchSize = len(batch)
-			b.statsCh <- stat
-		}
-		close(responseCh)
-		// Ensure that last error has been sent before file done signal
-		b.wg.Done()
-	}(b.buffer[:b.currentIndex])
+	b.clientRequestCh <- base.ClientRequest{
+		Stmt:  stmt,
+		ErrCh: b.errCh,
+		Data:  b.buffer[:b.currentIndex],
+	}
 
 	b.currentIndex = 0
 }

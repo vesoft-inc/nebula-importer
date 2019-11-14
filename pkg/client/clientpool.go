@@ -14,14 +14,16 @@ import (
 type ClientPool struct {
 	concurrency int
 	space       string
+	statsCh     chan<- base.Stats
 	Conns       []*nebula.GraphClient
 	requestChs  []chan base.ClientRequest
 }
 
-func NewClientPool(settings config.NebulaClientSettings) (*ClientPool, error) {
+func NewClientPool(settings config.NebulaClientSettings, statsCh chan<- base.Stats) (*ClientPool, error) {
 	pool := ClientPool{
 		concurrency: settings.Concurrency,
 		space:       settings.Space,
+		statsCh:     statsCh,
 	}
 	pool.Conns = make([]*nebula.GraphClient, settings.Concurrency)
 	pool.requestChs = make([]chan base.ClientRequest, settings.Concurrency)
@@ -82,6 +84,11 @@ func (p *ClientPool) startWorker(i int) {
 			break
 		}
 
+		if data.Stmt == "FILEDONE" {
+			data.ErrCh <- base.ErrData{Error: nil}
+			continue
+		}
+
 		now := time.Now()
 		resp, err := p.Conns[i].Execute(data.Stmt)
 		if err == nil && resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
@@ -89,15 +96,12 @@ func (p *ClientPool) startWorker(i int) {
 		}
 
 		if err != nil {
-			data.ResponseCh <- base.ResponseData{Error: err}
-		} else {
-			data.ResponseCh <- base.ResponseData{
-				Error: nil,
-				Stats: base.Stats{
-					Latency: uint64(resp.GetLatencyInUs()),
-					ReqTime: time.Since(now).Seconds(),
-				},
+			data.ErrCh <- base.ErrData{
+				Error: err,
+				Data:  data.Data,
 			}
+		} else {
+			p.statsCh <- base.NewSuccessStats(uint64(resp.GetLatencyInUs()), time.Since(now).Seconds(), len(data.Data))
 		}
 	}
 }

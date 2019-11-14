@@ -25,7 +25,7 @@ type FileReader struct {
 	BatchMgr    *BatchMgr
 }
 
-func New(file config.File, clientRequestChs []chan base.ClientRequest, statsCh chan<- base.Stats, errCh chan<- base.ErrData) (*FileReader, error) {
+func New(file config.File, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) (*FileReader, error) {
 	switch strings.ToLower(file.Type) {
 	case "csv":
 		r := csv.CSVReader{
@@ -36,7 +36,7 @@ func New(file config.File, clientRequestChs []chan base.ClientRequest, statsCh c
 			DataReader: &r,
 			File:       file,
 		}
-		reader.BatchMgr = NewBatchMgr(file.Schema, file.BatchSize, clientRequestChs, statsCh, errCh)
+		reader.BatchMgr = NewBatchMgr(file.Schema, file.BatchSize, clientRequestChs, errCh)
 		return &reader, nil
 	default:
 		return nil, fmt.Errorf("Wrong file type: %s", file.Type)

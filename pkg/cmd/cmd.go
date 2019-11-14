@@ -27,7 +27,7 @@ func Run(conf string) error {
 	statsMgr := stats.NewStatsMgr(len(yaml.Files))
 	defer statsMgr.Close()
 
-	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings)
+	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func Run(conf string) error {
 			return err
 		}
 
-		if r, err := reader.New(file, clientMgr.GetRequestChans(), statsMgr.StatsCh, errCh); err != nil {
+		if r, err := reader.New(file, clientMgr.GetRequestChans(), errCh); err != nil {
 			return err
 		} else {
 			go r.Read()

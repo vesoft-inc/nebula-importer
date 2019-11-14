@@ -13,7 +13,7 @@ type BatchMgr struct {
 	Batches []*Batch
 }
 
-func NewBatchMgr(schema config.Schema, batchSize int, clientRequestChs []chan base.ClientRequest, statsCh chan<- base.Stats, errCh chan<- base.ErrData) *BatchMgr {
+func NewBatchMgr(schema config.Schema, batchSize int, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) *BatchMgr {
 	bm := BatchMgr{
 		Schema:  schema,
 		Batches: make([]*Batch, len(clientRequestChs)),
@@ -25,7 +25,7 @@ func NewBatchMgr(schema config.Schema, batchSize int, clientRequestChs []chan ba
 	}
 
 	for i := range bm.Batches {
-		bm.Batches[i] = NewBatch(&bm, batchSize, isVertex, clientRequestChs[i], statsCh, errCh)
+		bm.Batches[i] = NewBatch(&bm, batchSize, isVertex, clientRequestChs[i], errCh)
 	}
 	return &bm
 }

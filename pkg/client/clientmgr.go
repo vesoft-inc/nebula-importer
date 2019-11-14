@@ -11,12 +11,12 @@ type NebulaClientMgr struct {
 	pool   *ClientPool
 }
 
-func NewNebulaClientMgr(settings config.NebulaClientSettings) (*NebulaClientMgr, error) {
+func NewNebulaClientMgr(settings config.NebulaClientSettings, statsCh chan<- base.Stats) (*NebulaClientMgr, error) {
 	mgr := NebulaClientMgr{
 		config: settings,
 	}
 
-	if pool, err := NewClientPool(settings); err != nil {
+	if pool, err := NewClientPool(settings, statsCh); err != nil {
 		return nil, err
 	} else {
 		if err := pool.Init(); err != nil {

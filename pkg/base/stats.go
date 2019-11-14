@@ -16,11 +16,12 @@ type Stats struct {
 	Filename  string
 }
 
-func NewSuccessStats(latency uint64, reqTime float64) Stats {
+func NewSuccessStats(latency uint64, reqTime float64, batchSize int) Stats {
 	return Stats{
-		Type:    SUCCESS,
-		Latency: latency,
-		ReqTime: reqTime,
+		Type:      SUCCESS,
+		Latency:   latency,
+		ReqTime:   reqTime,
+		BatchSize: batchSize,
 	}
 }
 

@@ -77,6 +77,7 @@ type ResponseData struct {
 }
 
 type ClientRequest struct {
-	Stmt       string
-	ResponseCh chan ResponseData
+	Stmt  string
+	ErrCh chan<- ErrData
+	Data  []Data
 }
