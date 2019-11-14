@@ -36,6 +36,7 @@ func (w *Handler) Init(file config.File, concurrency int) (chan base.ErrData, er
 
 	go func() {
 		defer dataFile.Close()
+		defer close(errCh)
 		dataWriter.Init(dataFile)
 
 		for {
