@@ -182,35 +182,11 @@ func (f *File) validateAndReset(dir, prefix string) error {
 }
 
 func (s *Schema) String() string {
-	var cells []string
 	if strings.ToUpper(s.Type) == "VERTEX" {
-		cells = append(cells, ":VID")
-		for _, tag := range s.Vertex.Tags {
-			for _, prop := range tag.Props {
-				if prop.Ignore {
-					cells = append(cells, ":IGNORE")
-				} else {
-					cells = append(cells, fmt.Sprintf("%s.%s:%s", tag.Name, prop.Name, prop.Type))
-				}
-			}
-		}
+		return s.Vertex.String()
 	} else {
-		// edge type
-		cells = append(cells, ":SRC_VID")
-		cells = append(cells, ":DST_VID")
-		if s.Edge.WithRanking {
-			cells = append(cells, ":RANK")
-		}
-		for _, prop := range s.Edge.Props {
-			if prop.Ignore {
-				cells = append(cells, ":IGNORE")
-			} else {
-				cells = append(cells, fmt.Sprintf("%s.%s:%s", s.Edge.Name, prop.Name, prop.Type))
-			}
-		}
+		return s.Edge.String()
 	}
-	// TODO: delimeter
-	return strings.Join(cells, ",")
 }
 
 func (s *Schema) validateAndReset(prefix string) error {
@@ -226,6 +202,18 @@ func (s *Schema) validateAndReset(prefix string) error {
 	return err
 }
 
+func (e *Edge) String() string {
+	var cells []string
+	cells = append(cells, ":SRC_VID", ":DST_VID")
+	if e.WithRanking {
+		cells = append(cells, ":RANK")
+	}
+	for _, prop := range e.Props {
+		cells = append(cells, prop.String(e.Name))
+	}
+	return strings.Join(cells, ",")
+}
+
 func (e *Edge) validateAndReset(prefix string) error {
 	if e.Name == "" {
 		fmt.Errorf("Please configure edge name in: %s.name", prefix)
@@ -238,6 +226,17 @@ func (e *Edge) validateAndReset(prefix string) error {
 	return nil
 }
 
+func (v *Vertex) String() string {
+	var cells []string
+	cells = append(cells, ":VID")
+	for _, tag := range v.Tags {
+		for _, prop := range tag.Props {
+			cells = append(cells, prop.String(tag.Name))
+		}
+	}
+	return strings.Join(cells, ",")
+}
+
 func (v *Vertex) validateAndReset(prefix string) error {
 	for i := range v.Tags {
 		if err := v.Tags[i].validateAndReset(fmt.Sprintf("%s.tags[%d]", prefix, i)); err != nil {
@@ -245,6 +244,14 @@ func (v *Vertex) validateAndReset(prefix string) error {
 		}
 	}
 	return nil
+}
+
+func (p *Prop) String(prefix string) string {
+	if p.Ignore {
+		return ":IGNORE"
+	} else {
+		return fmt.Sprintf("%s.%s:%s", prefix, p.Name, p.Type)
+	}
 }
 
 func (p *Prop) validateAndReset(prefix string) error {
