@@ -101,7 +101,8 @@ func (p *ClientPool) startWorker(i int) {
 				Data:  data.Data,
 			}
 		} else {
-			p.statsCh <- base.NewSuccessStats(uint64(resp.GetLatencyInUs()), time.Since(now).Seconds(), len(data.Data))
+			timeInMs := time.Since(now).Microseconds()
+			p.statsCh <- base.NewSuccessStats(int64(resp.GetLatencyInUs()), timeInMs, len(data.Data))
 		}
 	}
 }

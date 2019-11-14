@@ -11,11 +11,11 @@ import (
 type StatsMgr struct {
 	StatsCh         chan base.Stats
 	DoneCh          chan bool
-	totalCount      uint64
-	totalBatches    uint64
-	totalLatency    uint64
-	numFailed       uint64
-	totalReqTime    float64
+	totalCount      int64
+	totalBatches    int64
+	totalLatency    int64
+	numFailed       int64
+	totalReqTime    int64
 	numReadingFiles int
 }
 
@@ -41,15 +41,15 @@ func (s *StatsMgr) Close() {
 
 func (s *StatsMgr) updateStat(stat base.Stats) {
 	s.totalBatches++
-	s.totalCount += uint64(stat.BatchSize)
+	s.totalCount += int64(stat.BatchSize)
 	s.totalReqTime += stat.ReqTime
 	s.totalLatency += stat.Latency
 }
 
 func (s *StatsMgr) updateFailed(stat base.Stats) {
 	s.totalBatches++
-	s.totalCount += uint64(stat.BatchSize)
-	s.numFailed += uint64(stat.BatchSize)
+	s.totalCount += int64(stat.BatchSize)
+	s.numFailed += int64(stat.BatchSize)
 }
 
 func (s *StatsMgr) print(prefix string, now time.Time) {
@@ -58,9 +58,9 @@ func (s *StatsMgr) print(prefix string, now time.Time) {
 	}
 	secs := time.Since(now).Seconds()
 	avgLatency := s.totalLatency / s.totalBatches
-	avgReq := 1000000 * s.totalReqTime / float64(s.totalBatches)
+	avgReq := s.totalReqTime / s.totalBatches
 	qps := float64(s.totalCount) / secs
-	logger.Log.Printf("%s: Time(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%.2fus), QPS(%.2f/s)",
+	logger.Log.Printf("%s: Time(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%dus), QPS(%.2f/s)",
 		prefix, secs, s.totalCount, s.numFailed, avgLatency, avgReq, qps)
 }
 

@@ -10,13 +10,13 @@ const (
 
 type Stats struct {
 	Type      StatType
-	Latency   uint64
-	ReqTime   float64
+	Latency   int64
+	ReqTime   int64
 	BatchSize int
 	Filename  string
 }
 
-func NewSuccessStats(latency uint64, reqTime float64, batchSize int) Stats {
+func NewSuccessStats(latency int64, reqTime int64, batchSize int) Stats {
 	return Stats{
 		Type:      SUCCESS,
 		Latency:   latency,
