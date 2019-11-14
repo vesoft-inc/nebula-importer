@@ -5,17 +5,18 @@ import (
 	"os"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 )
 
 type ErrWriter struct {
 	writer    *csv.Writer
-	withLabel bool
+	csvConfig config.CSVConfig
 }
 
-func NewErrDataWriter(withLabel bool) *ErrWriter {
+func NewErrDataWriter(config config.CSVConfig) *ErrWriter {
 	return &ErrWriter{
-		withLabel: withLabel,
+		csvConfig: config,
 	}
 }
 
@@ -32,7 +33,7 @@ func (w *ErrWriter) Write(data []base.Data) {
 		logger.Log.Println("Empty error data")
 	}
 	for _, d := range data {
-		if w.withLabel {
+		if w.csvConfig.WithLabel {
 			var record []string
 			switch d.Type {
 			case base.INSERT:

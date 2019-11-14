@@ -22,6 +22,7 @@ description: example
 clientSettings:
   concurrency: 4 # number of graph clients
   channelBufferSize: 128
+  space: test
   connection:
     user: user
     password: password
@@ -36,7 +37,6 @@ files:
       withHeader: false
       withLabel: false
     schema:
-      space: test
       type: edge
       edge:
         name: edge_name
@@ -52,7 +52,6 @@ files:
       withHeader: false
       withLabel: false
     schema:
-      space: test
       type: vertex
       vertex:
         tags:
@@ -60,6 +59,7 @@ files:
             props:
               - name: prop1
                 type: int
+                ignore: true
               - name: prop2
                 type: timestamp
           - name: tag2
@@ -74,40 +74,42 @@ As for this example, nebula-importer will import two **csv** data files `edge.cs
 
 ### Configuration Properties
 
-| options                                      | description                                                               | default        |
-| :--                                          | :--                                                                       | :--            |
-| version                                      | Configuration file version                                                | v1rc1          |
-| description                                  | Description of this configure file                                        | ""             |
-| clientSettings                               | Graph client settings                                                     | -              |
-| clientSettings.concurrency                   | Number of graph clients                                                   | 4              |
-| clientSettings.channelBufferSize             | Buffer size of client channels                                            | 128            |
-| clientSettings.connection                    | Connection options of graph client                                        | -              |
-| clientSettings.connection.user               | Username                                                                  | user           |
-| clientSettings.connection.password           | Password                                                                  | password       |
-| clientSettings.connection.address            | Address of graph client                                                   | 127.0.0.1:3699 |
-| logPath                                      | Path of log file                                                          | ""             |
-| files                                        | File list to be imported                                                  | -              |
-| files[0].path                                | File path                                                                 | ""             |
-| files[0].type                                | File type                                                                 | csv            |
-| files[0].csv                                 | CSV file options                                                          | -              |
-| files[0].csv.withHeader                      | Whether csv file has header                                               | false          |
-| files[0].csv.withLabel                       | Whether csv file has `+/-` label to represent **delete/insert** operation | false          |
-| files[0].schema                              | Schema definition for this file data                                      | -              |
-| files[0].schema.space                        | Space name created in nebula                                              | ""             |
-| files[0].schema.type                         | Schema type: vertex or edge                                               | vertex         |
-| files[0].schema.edge                         | Edge options                                                              | -              |
-| files[0].schema.edge.name                    | Edge name in above space                                                  | ""             |
-| files[0].schema.edge.withRanking             | Whether this edge has ranking                                             | false          |
-| files[0].schema.edge.props                   | Properties of the edge                                                    | -              |
-| files[0].schema.edge.props[0].name           | Property name                                                             | ""             |
-| files[0].schema.edge.props[0].type           | Property type                                                             | ""             |
-| files[0].schema.vertex                       | Vertex options                                                            | -              |
-| files[0].schema.vertex.tags                  | Vertex tags options                                                       | -              |
-| files[0].schema.vertex.tags[0].name          | Vertex tag name                                                           | ""             |
-| files[0].schema.vertex.tags[0].props         | Vertex tag's properties                                                   | -              |
-| files[0].schema.vertex.tags[0].props[0].name | Vertex tag's property name                                                | ""             |
-| files[0].schema.vertex.tags[0].props[0].type | Vertex tag's property type                                                | ""             |
-| files[0].failDataPath                        | Failed data file path                                                     | ""             |
+| options                                        | description                                                               | default        |
+| :--                                            | :--                                                                       | :--            |
+| version                                        | Configuration file version                                                | v1rc1          |
+| description                                    | Description of this configure file                                        | ""             |
+| clientSettings                                 | Graph client settings                                                     | -              |
+| clientSettings.concurrency                     | Number of graph clients                                                   | 4              |
+| clientSettings.channelBufferSize               | Buffer size of client channels                                            | 128            |
+| clientSettings.space                           | Space name of all data to be inserted                                     | ""             |
+| clientSettings.connection                      | Connection options of graph client                                        | -              |
+| clientSettings.connection.user                 | Username                                                                  | user           |
+| clientSettings.connection.password             | Password                                                                  | password       |
+| clientSettings.connection.address              | Address of graph client                                                   | 127.0.0.1:3699 |
+| logPath                                        | Path of log file                                                          | ""             |
+| files                                          | File list to be imported                                                  | -              |
+| files[0].path                                  | File path                                                                 | ""             |
+| files[0].type                                  | File type                                                                 | csv            |
+| files[0].csv                                   | CSV file options                                                          | -              |
+| files[0].csv.withHeader                        | Whether csv file has header                                               | false          |
+| files[0].csv.withLabel                         | Whether csv file has `+/-` label to represent **delete/insert** operation | false          |
+| files[0].schema                                | Schema definition for this file data                                      | -              |
+| files[0].schema.type                           | Schema type: vertex or edge                                               | vertex         |
+| files[0].schema.edge                           | Edge options                                                              | -              |
+| files[0].schema.edge.name                      | Edge name in above space                                                  | ""             |
+| files[0].schema.edge.withRanking               | Whether this edge has ranking                                             | false          |
+| files[0].schema.edge.props                     | Properties of the edge                                                    | -              |
+| files[0].schema.edge.props[0].name             | Property name                                                             | ""             |
+| files[0].schema.edge.props[0].type             | Property type                                                             | ""             |
+| files[0].schema.edge.props[0].ignore           | Whether to ignore this property                                           | false          |
+| files[0].schema.vertex                         | Vertex options                                                            | -              |
+| files[0].schema.vertex.tags                    | Vertex tags options                                                       | -              |
+| files[0].schema.vertex.tags[0].name            | Vertex tag name                                                           | ""             |
+| files[0].schema.vertex.tags[0].props           | Vertex tag's properties                                                   | -              |
+| files[0].schema.vertex.tags[0].props[0].name   | Vertex tag's property name                                                | ""             |
+| files[0].schema.vertex.tags[0].props[0].type   | Vertex tag's property type                                                | ""             |
+| files[0].schema.vertex.tags[0].props[0].ignore | Whether to ignore this vertex tag's property                              | false          |
+| files[0].failDataPath                          | Failed data file path                                                     | ""             |
 
 ## CSV Data Example
 
@@ -165,25 +167,33 @@ with label:
 
 ### With Header Line
 
-This feature has not been supported now. Please remove the header from your csv data file at present.
+#### Format
+
+`<type.field_name>:<field_type>`, `field_type` default type is `string`.
 
 #### Edge
 
 ```csv
-_src,_dst,_ranking,prop1,prop2
+:SRC_VID,:DST_VID,:RANK,prop1,prop2
 ...
 ```
 
-`_src` and `_dst` represent edge source and destination vertex id. `_ranking` column is value of edge ranking.
+`:SRC_VID` and `:DST_VID` represent edge source and destination vertex id. `:RANK` column is value of edge ranking.
 
 #### Vertex
 
 ```csv
-_vid,tag1.prop1,tag2.prop2,tag1.prop3,tag2.prop4
+:VID,tag1.prop1:string,tag2.prop2:int,tag1.prop3:string,tag2.prop4:int
 ...
 ```
 
-`_vid` column represent the global unique vertex id.
+`:VID` column represent the global unique vertex id.
+
+#### Skipping columns
+
+```csv
+:VID,name,:IGNORE,age:int
+```
 
 ## Usage
 
@@ -206,10 +216,10 @@ With docker, we can easily to import our local data to nebula without `golang` r
 ```shell
 $ docker run --rm -ti \
     --network=host \
-    -v {your-config-file}:/root/{your-config-file} \
-    -v {your-csv-data-dir}:/root/{your-csv-data-dir} \
+    -v {your-config-file}:{your-config-file} \
+    -v {your-csv-data-dir}:{your-csv-data-dir} \
     vesoft/nebula-importer
-    --config /root/{your-config-file}
+    --config {your-config-file}
 ```
 
 ### Log

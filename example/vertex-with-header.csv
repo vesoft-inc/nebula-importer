@@ -1,3 +1,3 @@
-_vid,tag1.prop1,tag2.prop3,tag1.prop2,tag2.prop4
+:VID,tag1.prop1:int,tag2.prop3:float,tag1.prop2:timestamp,tag2.prop4
 1,1,1.0,15726364,first
 2,2,2.0,15726666,second
