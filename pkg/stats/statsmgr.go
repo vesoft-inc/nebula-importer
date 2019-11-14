@@ -9,28 +9,26 @@ import (
 )
 
 type StatsMgr struct {
-	StatsCh         chan base.Stats
-	DoneCh          chan bool
-	totalCount      int64
-	totalBatches    int64
-	totalLatency    int64
-	numFailed       int64
-	totalReqTime    int64
-	numReadingFiles int
+	StatsCh      chan base.Stats
+	DoneCh       chan bool
+	totalCount   int64
+	totalBatches int64
+	totalLatency int64
+	numFailed    int64
+	totalReqTime int64
 }
 
 func NewStatsMgr(numReadingFiles int) *StatsMgr {
 	m := StatsMgr{
-		StatsCh:         make(chan base.Stats),
-		DoneCh:          make(chan bool),
-		totalCount:      0,
-		totalLatency:    0,
-		totalBatches:    0,
-		numFailed:       0,
-		totalReqTime:    0.0,
-		numReadingFiles: numReadingFiles,
+		StatsCh:      make(chan base.Stats),
+		DoneCh:       make(chan bool),
+		totalCount:   0,
+		totalLatency: 0,
+		totalBatches: 0,
+		numFailed:    0,
+		totalReqTime: 0.0,
 	}
-	go m.startWorker()
+	go m.startWorker(numReadingFiles)
 	return &m
 }
 
@@ -64,7 +62,7 @@ func (s *StatsMgr) print(prefix string, now time.Time) {
 		prefix, secs, s.totalCount, s.numFailed, avgLatency, avgReq, qps)
 }
 
-func (s *StatsMgr) startWorker() {
+func (s *StatsMgr) startWorker(numReadingFiles int) {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	now := time.Now()
@@ -83,8 +81,8 @@ func (s *StatsMgr) startWorker() {
 				s.updateFailed(stat)
 			case base.FILEDONE:
 				s.print(fmt.Sprintf("Done(%s)", stat.Filename), now)
-				s.numReadingFiles--
-				if s.numReadingFiles == 0 {
+				numReadingFiles--
+				if numReadingFiles == 0 {
 					s.DoneCh <- true
 				}
 			default:
