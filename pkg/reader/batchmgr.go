@@ -19,15 +19,16 @@ type BatchMgr struct {
 
 func NewBatchMgr(schema config.Schema, batchSize int, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) *BatchMgr {
 	bm := BatchMgr{
-		Batches:  make([]*Batch, len(clientRequestChs)),
-		IsVertex: true,
+		Schema:  schema,
+		Batches: make([]*Batch, len(clientRequestChs)),
 	}
 
-	bm.Schema.Type = schema.Type
 	if strings.ToUpper(schema.Type) == "EDGE" {
 		bm.IsVertex = false
-		bm.Schema.Edge.Name = schema.Edge.Name
-		bm.Schema.Edge.WithRanking = schema.Edge.WithRanking
+		bm.Schema.Edge.Props = nil
+	} else {
+		bm.IsVertex = true
+		bm.Schema.Vertex.Tags = nil
 	}
 
 	bm.InitSchema(strings.Split(schema.String(), ","))
