@@ -54,36 +54,45 @@ func (bm *BatchMgr) InitSchema(record base.Record) {
 		case ":RANK":
 		case ":IGNORE":
 		default:
-			columnName, columnType := bm.parseProperty(r)
 			if bm.IsVertex {
-				tagName, prop := bm.parseTag(columnName)
-				if tagName == "" {
-					continue
-				}
-				tag := bm.getOrCreateVertexTagByName(tagName)
-				tag.Props = append(tag.Props, config.Prop{
-					Name:   prop,
-					Type:   columnType,
-					Index:  i,
-					Ignore: prop == "",
-				})
+				bm.addVertexTags(r, i)
 			} else {
-				res := strings.SplitN(columnName, ".", 2)
-				prop := res[0]
-				if len(res) > 1 {
-					prop = res[1]
-				}
-				bm.Schema.Edge.Props = append(bm.Schema.Edge.Props, config.Prop{
-					Name:   prop,
-					Type:   columnType,
-					Index:  i,
-					Ignore: prop == "",
-				})
+				bm.addEdgeProps(r, i)
 			}
 		}
 	}
 
 	bm.generateInsertStmtPrefix()
+}
+
+func (bm *BatchMgr) addVertexTags(r string, i int) {
+	columnName, columnType := bm.parseProperty(r)
+	tagName, prop := bm.parseTag(columnName)
+	if tagName == "" {
+		return
+	}
+	tag := bm.getOrCreateVertexTagByName(tagName)
+	tag.Props = append(tag.Props, config.Prop{
+		Name:   prop,
+		Type:   columnType,
+		Index:  i,
+		Ignore: prop == "",
+	})
+}
+
+func (bm *BatchMgr) addEdgeProps(r string, i int) {
+	columnName, columnType := bm.parseProperty(r)
+	res := strings.SplitN(columnName, ".", 2)
+	prop := res[0]
+	if len(res) > 1 {
+		prop = res[1]
+	}
+	bm.Schema.Edge.Props = append(bm.Schema.Edge.Props, config.Prop{
+		Name:   prop,
+		Type:   columnType,
+		Index:  i,
+		Ignore: prop == "",
+	})
 }
 
 func (bm *BatchMgr) generateInsertStmtPrefix() {
