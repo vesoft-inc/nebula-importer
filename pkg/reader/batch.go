@@ -13,7 +13,6 @@ type Batch struct {
 	statsCh         chan<- base.Stats
 	errCh           chan<- base.ErrData
 	clientRequestCh chan base.ClientRequest
-	responseCh      chan base.ResponseData
 	isVertex        bool
 	bufferSize      int
 	currentIndex    int
@@ -27,7 +26,6 @@ func NewBatch(mgr *BatchMgr, bufferSize int, isVertex bool, clientReq chan base.
 		statsCh:         statsCh,
 		errCh:           errCh,
 		clientRequestCh: clientReq,
-		responseCh:      make(chan base.ResponseData),
 		bufferSize:      bufferSize,
 		isVertex:        isVertex,
 		currentIndex:    0,
@@ -66,14 +64,15 @@ func (b *Batch) requestClient() {
 	} else {
 		stmt = b.makeEdgeInsertStmtWithoutHeaderLine(b.buffer[:b.currentIndex])
 	}
+	responseCh := make(chan base.ResponseData)
 	b.clientRequestCh <- base.ClientRequest{
 		Stmt:       stmt,
-		ResponseCh: b.responseCh,
+		ResponseCh: responseCh,
 	}
 
 	b.wg.Add(1)
 	go func(batch []base.Data) {
-		if resp := <-b.responseCh; resp.Error != nil {
+		if resp := <-responseCh; resp.Error != nil {
 			b.errCh <- base.ErrData{
 				Error: resp.Error,
 				Data:  batch,
@@ -83,6 +82,7 @@ func (b *Batch) requestClient() {
 			stat.BatchSize = len(batch)
 			b.statsCh <- stat
 		}
+		close(responseCh)
 		// Ensure that last error has been sent before file done signal
 		b.wg.Done()
 	}(b.buffer[:b.currentIndex])
