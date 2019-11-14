@@ -12,7 +12,6 @@ import (
 )
 
 type CSVReader struct {
-	Path      string
 	CSVConfig config.CSVConfig
 	reader    *csv.Reader
 	lineNum   uint64
