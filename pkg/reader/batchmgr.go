@@ -42,9 +42,9 @@ func (bm *BatchMgr) Done() {
 	}
 }
 
-func (bm *BatchMgr) InitSchema(record base.Record) {
-	for i, r := range record {
-		switch strings.ToUpper(r) {
+func (bm *BatchMgr) InitSchema(header base.Record) {
+	for i, h := range header {
+		switch strings.ToUpper(h) {
 		case ":VID":
 		case ":SRC_VID":
 		case ":DST_VID":
@@ -52,9 +52,9 @@ func (bm *BatchMgr) InitSchema(record base.Record) {
 		case ":IGNORE":
 		default:
 			if bm.Schema.IsVertex() {
-				bm.addVertexTags(r, i)
+				bm.addVertexTags(h, i)
 			} else {
-				bm.addEdgeProps(r, i)
+				bm.addEdgeProps(h, i)
 			}
 		}
 	}
@@ -97,34 +97,30 @@ func (bm *BatchMgr) generateInsertStmtPrefix() {
 	if bm.Schema.IsVertex() {
 		builder.WriteString("INSERT VERTEX ")
 		for i, tag := range bm.Schema.Vertex.Tags {
-			builder.WriteString(fmt.Sprintf("%s(", tag.Name))
-			for j, prop := range tag.Props {
-				if !prop.Ignore {
-					builder.WriteString(prop.Name)
-					if j < len(tag.Props)-1 {
-						builder.WriteString(",")
-					}
-				}
-			}
-			builder.WriteString(")")
+			builder.WriteString(fmt.Sprintf("%s(%s)", tag.Name, bm.GeneratePropsString(tag.Props)))
 			if i < len(bm.Schema.Vertex.Tags)-1 {
 				builder.WriteString(",")
 			}
 		}
 		builder.WriteString(" VALUES ")
 	} else {
-		builder.WriteString(fmt.Sprintf("INSERT EDGE %s(", bm.Schema.Edge.Name))
-		for i, prop := range bm.Schema.Edge.Props {
-			if !prop.Ignore {
-				builder.WriteString(prop.Name)
-				if i < len(bm.Schema.Edge.Props)-1 {
-					builder.WriteString(",")
-				}
-			}
-		}
-		builder.WriteString(") VALUES ")
+		edge := &bm.Schema.Edge
+		builder.WriteString(fmt.Sprintf("INSERT EDGE %s(%s) VALUES ", edge.Name, bm.GeneratePropsString(edge.Props)))
 	}
 	bm.InsertStmtPrefix = builder.String()
+}
+
+func (bm *BatchMgr) GeneratePropsString(props []config.Prop) string {
+	var builder strings.Builder
+	for i, prop := range props {
+		if !prop.Ignore {
+			builder.WriteString(prop.Name)
+			if i < len(props)-1 {
+				builder.WriteString(",")
+			}
+		}
+	}
+	return builder.String()
 }
 
 func (bm *BatchMgr) getOrCreateVertexTagByName(name string) *config.Tag {
@@ -179,7 +175,7 @@ func getBatchId(idStr string, numChans int) (uint, error) {
 	return uint(id % int64(numChans)), nil
 }
 
-func (m *BatchMgr) makeVertexStmt(batch []base.Data) string {
+func (m *BatchMgr) MakeVertexStmt(batch []base.Data) string {
 	if len(batch) == 0 {
 		logger.Log.Fatal("Make vertex stmt for empty batch")
 	}
@@ -255,7 +251,7 @@ func (m *BatchMgr) makeVertexDeleteStmt(data []base.Data) string {
 	return builder.String()
 }
 
-func (m *BatchMgr) makeEdgeStmt(batch []base.Data) string {
+func (m *BatchMgr) MakeEdgeStmt(batch []base.Data) string {
 	if len(batch) == 0 {
 		logger.Log.Fatal("Fail to make edge stmt for empty batch")
 	}
