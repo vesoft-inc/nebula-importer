@@ -44,7 +44,7 @@ func (b *Batch) Done() {
 
 	b.clientRequestCh <- base.ClientRequest{
 		ErrCh: b.errCh,
-		Stmt:  "FILEDONE",
+		Stmt:  base.STAT_FILEDONE,
 	}
 }
 

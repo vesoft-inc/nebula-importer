@@ -8,6 +8,8 @@ const (
 	FILEDONE StatType = 2
 )
 
+const STAT_FILEDONE string = "FILEDONE"
+
 type Stats struct {
 	Type      StatType
 	Latency   int64

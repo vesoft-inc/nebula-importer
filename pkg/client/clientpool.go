@@ -84,7 +84,7 @@ func (p *ClientPool) startWorker(i int) {
 			break
 		}
 
-		if data.Stmt == "FILEDONE" {
+		if data.Stmt == base.STAT_FILEDONE {
 			data.ErrCh <- base.ErrData{Error: nil}
 			continue
 		}
