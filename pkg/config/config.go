@@ -206,6 +206,16 @@ func (s *Schema) validateAndReset(prefix string) error {
 	return err
 }
 
+func (e *Edge) FormatValues(record base.Record) string {
+	var cells []string
+	for _, prop := range e.Props {
+		if !prop.Ignore {
+			cells = append(cells, prop.FormatValue(record))
+		}
+	}
+	return strings.Join(cells, ",")
+}
+
 func (e *Edge) String() string {
 	var cells []string
 	cells = append(cells, base.LABEL_SRC_VID, base.LABEL_DST_VID)
@@ -220,7 +230,7 @@ func (e *Edge) String() string {
 
 func (e *Edge) validateAndReset(prefix string) error {
 	if e.Name == "" {
-		fmt.Errorf("Please configure edge name in: %s.name", prefix)
+		return fmt.Errorf("Please configure edge name in: %s.name", prefix)
 	}
 	for i := range e.Props {
 		if err := e.Props[i].validateAndReset(fmt.Sprintf("%s.prop[%d]", prefix, i)); err != nil {
@@ -228,6 +238,14 @@ func (e *Edge) validateAndReset(prefix string) error {
 		}
 	}
 	return nil
+}
+
+func (v *Vertex) FormatValues(record base.Record) string {
+	var cells []string
+	for _, tag := range v.Tags {
+		cells = append(cells, tag.FormatValues(record))
+	}
+	return strings.Join(cells, ",")
 }
 
 func (v *Vertex) String() string {
@@ -250,6 +268,18 @@ func (v *Vertex) validateAndReset(prefix string) error {
 	return nil
 }
 
+func (p *Prop) IsStringType() bool {
+	return strings.ToLower(p.Type) == "string"
+}
+
+func (p *Prop) FormatValue(record base.Record) string {
+	r := record[p.Index]
+	if p.IsStringType() {
+		return fmt.Sprintf("%q", r)
+	}
+	return r
+}
+
 func (p *Prop) String(prefix string) string {
 	if p.Ignore {
 		return base.LABEL_IGNORE
@@ -265,6 +295,16 @@ func (p *Prop) validateAndReset(prefix string) error {
 	} else {
 		return fmt.Errorf("Error property type of %s.type: %s", prefix, p.Type)
 	}
+}
+
+func (t *Tag) FormatValues(record base.Record) string {
+	var cells []string
+	for _, p := range t.Props {
+		if !p.Ignore {
+			cells = append(cells, p.FormatValue(record))
+		}
+	}
+	return strings.Join(cells, ",")
 }
 
 func (t *Tag) validateAndReset(prefix string) error {
