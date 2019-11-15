@@ -1,5 +1,7 @@
 # Nebula-importer
 
+![test](https://github.com/vesoft-inc/nebula-importer/actions?workflow=test)
+
 ## Introduction
 
 [Nebula Graph](https://github.com/vesoft-inc/nebula-docker-compose) csv importer with `go`. This tool reads local csv files and writes into Nebula storage.
