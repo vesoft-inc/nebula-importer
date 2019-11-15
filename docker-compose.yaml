@@ -1,0 +1,110 @@
+version: '3.4'
+services:
+  metad:
+    image: vesoft/nebula-metad:nightly
+    environment:
+      USER: root
+    command:
+      - --meta_server_addrs=172.28.1.1:45500
+      - --local_ip=172.28.1.1
+      - --ws_ip=172.28.1.1
+      - --port=45500
+      - --load_data_interval_secs=1
+    volumes:
+      - metadata:/usr/local/nebula/data/meta
+      - logsdata:/usr/local/nebula/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://172.28.1.1:11000/status"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    ports:
+      - 11000
+      - 11002
+    networks:
+      nebula-net:
+        ipv4_address: 172.28.1.1
+    restart: on-failure
+
+  storaged:
+    image: vesoft/nebula-storaged:nightly
+    environment:
+      USER: root
+    command:
+      - --meta_server_addrs=172.28.1.1:45500
+      - --local_ip=172.28.2.1
+      - --ws_ip=172.28.2.1
+      - --port=44500
+    volumes:
+      - storagedata:/usr/local/nebula/data/storage
+      - logsdata:/usr/local/nebula/logs
+    depends_on:
+      - metad
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://172.28.2.1:12000/status"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    ports:
+      - 12000
+      - 12002
+    networks:
+      nebula-net:
+        ipv4_address: 172.28.2.1
+    restart: on-failure
+
+  graphd:
+    image: vesoft/nebula-graphd:nightly
+    environment:
+      USER: root
+    command:
+      - --meta_server_addrs=172.28.1.1:45500,172.28.1.2:45500,172.28.1.3:45500
+      - --port=3699
+      - --ws_ip=172.28.3.1
+      - --load_data_interval_secs=1
+    volumes:
+      - logsdata:/usr/local/nebula/logs
+    depends_on:
+      - metad
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://172.28.3.1:13000/status"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    ports:
+      - 3699
+      - 13000
+      - 13002
+    networks:
+      nebula-net:
+        ipv4_address: 172.28.3.1
+    restart: on-failure
+
+  importer:
+    image: vesoft/nebula-console:nightly
+    volumes:
+      - .:/usr/local/nebula/importer:ro
+    entrypoint:
+      - ./importer/scripts/bootstrap.sh
+      - "172.28.3.1"
+      - "3699"
+    depends_on:
+      - graphd
+    networks:
+      nebula-net:
+        ipv4_address: 172.28.4.1
+
+networks:
+  nebula-net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  storagedata:
+  metadata:
+  logsdata:

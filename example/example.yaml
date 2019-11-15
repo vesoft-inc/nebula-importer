@@ -1,18 +1,18 @@
 version: v1rc1
 description: example
 clientSettings:
-  concurrency: 4 # number of graph clients
-  channelBufferSize: 128
+  concurrency: 2 # number of graph clients
+  channelBufferSize: 1
   space: test
   connection:
     user: user
     password: password
-    address: 127.0.0.1:3699
+    address: 172.28.3.1:3699
 logPath: ./err/test.log
 files:
-  - path: ./edge.csv
-    failDataPath: ./err/edge.csv
-    batchSize: 100
+  - path: ./choose.csv
+    failDataPath: ./err/choose.csv
+    batchSize: 2
     type: csv
     csv:
       withHeader: false
@@ -20,14 +20,14 @@ files:
     schema:
       type: edge
       edge:
-        name: edge_name
-        withRanking: true
+        name: choose
+        withRanking: false
         props:
-          - name: prop_name
-            type: string
-  - path: ./vertex.csv
-    failDataPath: ./err/vertex.csv
-    batchSize: 100
+          - name: grade
+            type: int
+  - path: ./course.csv
+    failDataPath: ./err/course.csv
+    batchSize: 2
     type: csv
     csv:
       withHeader: false
@@ -36,16 +36,47 @@ files:
       type: vertex
       vertex:
         tags:
-          - name: tag1
+          - name: course
             props:
-              - name: prop1
+              - name: name
+                type: string
+              - name: credits
                 type: int
-                ignore: true
-              - name: prop2
-                type: timestamp
-          - name: tag2
+          - name: building
             props:
-              - name: prop3
-                type: double
-              - name: prop4
+              - name: name
+                type: string
+  - path: ./follow.csv
+    failDataPath: ./err/follow.csv
+    batchSize: 2
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: follow
+        withRanking: false
+        props:
+          - name: likeness
+            type: double
+  - path: ./student.csv
+    failDataPath: ./err/student.csv
+    batchSize: 2
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: vertex
+      vertex:
+        tags:
+          - name: student
+            props:
+              - name: name
+                type: string
+              - name: age
+                type: int
+              - name: gender
                 type: string
