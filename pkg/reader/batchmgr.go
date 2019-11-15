@@ -220,20 +220,7 @@ func (m *BatchMgr) makeVertexInsertStmt(data []base.Data) string {
 	for i := 0; i < batchSize; i++ {
 		builder.WriteString(fmt.Sprintf(" %s: (", data[i].Record[0]))
 		for j, tag := range m.Schema.Vertex.Tags {
-			for k, prop := range tag.Props {
-				if prop.Ignore {
-					continue
-				}
-				r := data[i].Record[prop.Index]
-				if strings.ToLower(prop.Type) == "string" {
-					builder.WriteString(fmt.Sprintf("%q", r))
-				} else {
-					builder.WriteString(r)
-				}
-				if !(j == len(m.Schema.Vertex.Tags)-1 && k == len(tag.Props)-1) {
-					builder.WriteString(",")
-				}
-			}
+			builder.WriteString(m.fillPropsValues(tag.Props, data[i].Record, j == len(m.Schema.Vertex.Tags)-1))
 		}
 		builder.WriteString(")")
 		if i < batchSize-1 {
@@ -282,26 +269,30 @@ func (m *BatchMgr) makeEdgeInsertStmt(batch []base.Data) string {
 			// TODO: Validate rank is integer
 			rank = fmt.Sprintf("@%s", batch[i].Record[2])
 		}
-		builder.WriteString(fmt.Sprintf("%s->%s%s: (", batch[i].Record[0], batch[i].Record[1], rank))
-		for j, prop := range m.Schema.Edge.Props {
-			if prop.Ignore {
-				continue
-			}
-			r := batch[i].Record[prop.Index]
-			if strings.ToLower(prop.Type) == "string" {
-				builder.WriteString(fmt.Sprintf("%q", r))
-			} else {
-				builder.WriteString(r)
-			}
-			if j < len(m.Schema.Edge.Props)-1 {
-				builder.WriteString(",")
-			}
-		}
-		builder.WriteString(")")
+		builder.WriteString(fmt.Sprintf("%s->%s%s: (%s)", batch[i].Record[0], batch[i].Record[1], rank, m.fillPropsValues(m.Schema.Edge.Props, batch[i].Record, true)))
 		if i < batchSize-1 {
 			builder.WriteString(",")
 		} else {
 			builder.WriteString(";")
+		}
+	}
+	return builder.String()
+}
+
+func (m *BatchMgr) fillPropsValues(props []config.Prop, record base.Record, exitCondition bool) string {
+	var builder strings.Builder
+	for k, prop := range props {
+		if prop.Ignore {
+			continue
+		}
+		r := record[prop.Index]
+		if strings.ToLower(prop.Type) == "string" {
+			builder.WriteString(fmt.Sprintf("%q", r))
+		} else {
+			builder.WriteString(r)
+		}
+		if !(exitCondition && k == len(props)-1) {
+			builder.WriteString(",")
 		}
 	}
 	return builder.String()
