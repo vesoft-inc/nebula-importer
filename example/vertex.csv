@@ -1,6 +1,6 @@
-10231,1,1.0,15726364,first_col_is_vertex_id
+10231,1,1.0,15726364,first_col_is_vertex_id_(vid)
 30111,3,3.0,15728888,"first line
 second line"
-202,2,2.0,15726666,second
+202,2,2.0,15726666,second_col_is_property
 5212193,2,2.0,15726666,"1
 2	\3"
