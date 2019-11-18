@@ -63,17 +63,16 @@ func (r *FileReader) Read() error {
 
 		lineNum++
 
-		if err == nil {
-			if data.Type == base.HEADER {
-				r.BatchMgr.InitSchema(data.Record)
-			} else {
-				err = r.BatchMgr.Add(data)
-			}
-		}
-
 		if err != nil {
 			logger.Log.Printf("Fail to read line %d, error: %s", lineNum, err.Error())
 			numErrorLines++
+			continue
+		}
+
+		if data.Type == base.HEADER {
+			r.BatchMgr.InitSchema(data.Record)
+		} else {
+			r.BatchMgr.Add(data)
 		}
 	}
 

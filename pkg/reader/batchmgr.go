@@ -2,7 +2,7 @@ package reader
 
 import (
 	"fmt"
-	"strconv"
+	"hash/fnv"
 	"strings"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
@@ -155,24 +155,16 @@ func (bm *BatchMgr) parseProperty(r string) (columnName, columnType string) {
 	}
 }
 
-func (bm *BatchMgr) Add(data base.Data) error {
-	if batchIdx, err := getBatchId(data.Record[0], len(bm.Batches)); err != nil {
-		return err
-	} else {
-		bm.Batches[batchIdx].Add(data)
-		return nil
-	}
+func (bm *BatchMgr) Add(data base.Data) {
+	batchIdx := getBatchId(data.Record[0], len(bm.Batches))
+	bm.Batches[batchIdx].Add(data)
 }
 
-func getBatchId(idStr string, numChans int) (uint, error) {
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	if id < 0 {
-		id = -id
-	}
-	return uint(id % int64(numChans)), nil
+var h = fnv.New32a()
+
+func getBatchId(idStr string, numChans int) uint32 {
+	h.Write([]byte(idStr))
+	return h.Sum32() / uint32(numChans)
 }
 
 func makeStmt(batch []base.Data, f func([]base.Data) string) string {

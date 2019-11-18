@@ -28,7 +28,7 @@ type NebulaClientSettings struct {
 type Prop struct {
 	Name   string `yaml:"name"`
 	Type   string `yaml:"type"`
-	Ignore bool   `yaml:"ignore"`
+	Ignore bool
 	Index  int
 }
 

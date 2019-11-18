@@ -21,7 +21,7 @@ func (r *CSVReader) InitReader(file *os.File) {
 	r.reader = csv.NewReader(bufio.NewReader(file))
 }
 
-var re = regexp.MustCompile(`^[+-]?\d+$`)
+var re = regexp.MustCompile(`^([+-]?\d+|hash\("(.+)"\)|uuid\("(.+)"\))$`)
 
 func (r *CSVReader) ReadLine() (base.Data, error) {
 	line, err := r.reader.Read()
