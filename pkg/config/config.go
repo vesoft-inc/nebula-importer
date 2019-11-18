@@ -133,7 +133,7 @@ func (n *NebulaClientSettings) validateAndReset() error {
 	}
 	if n.Concurrency <= 0 {
 		log.Printf("Invalide client concurrency: %d in clientSettings.concurrency, reset to default 40", n.Concurrency)
-		n.Concurrency = 40
+		n.Concurrency = 10
 	}
 
 	if n.ChannelBufferSize <= 0 {
