@@ -77,6 +77,8 @@ logPath: ./err/test.log
 
 #### 数据
 
+一个数据文件中只能存放一种顶点或者边，不同schema的顶点或者边数据需要放置在不同的文件中。
+
 ```yaml
 files:
   - path: ./student.csv
@@ -161,109 +163,101 @@ files:
 - `withRanking`: 指定该边是否又 `rank` 值，用来区分同类型的 edge 的不同边。
 - `props` 描述同上述顶点，同样需要注意跟数据文件中的排列顺序。
 
-## Header
+## CSV Header
 
-在 CSV 文件中，可以在第一行指定每一列的名称即数据类型。
+在 CSV 文件中，可以在第一行指定每一列的名称和数据类型。
 
 ### 没有header 的数据格式
 
-如果在上述配置中的 `files.withHeader` 配置为 `false`，那么 CSV 文件中
+如果在上述配置中的 `withHeader` 配置为 `false`，那么 CSV 文件中只含有数据，对于顶点和边的数据示例如下：
 
-#### Vertex
-#### Edge
+#### 顶点
 
-### Configuration Properties
-## CSV Data Example
-
-There will be two csv data formats supported in the future. But now please use the first format which has no header line in your csv data file.
-
-### Without Header Line
-
-#### Vertex
-
-In vertex csv data file, first column could be a label(+/-) or the vid. Vertex VID column is the first column if the label option `csv.withLabel` configured `false`.
-Then property values are behind VID and the order of these values must be same as `props` in configuration.
+example 中 course 顶点的部分数据：
 
 ```csv
-1,2,this is a property string
-2,4,yet another property string
+101,Math,3,No5
+102,English,6,No11
 ```
 
-with label:
-
-- `+`: Insert
-- `-`: Delete
-
-In labeled `-` row, only need the vid which you want to delete.
-
-```csv
-+,1,2,this is a property string
--,1
-+,2,4,yet anthor property string
-```
+上述中的第一列为顶点的 `:VID`，后面的三个属性值，分别对应配置文件中的 `vertex.tags.props` 的顺序：course.name, course.credits 和 building.name。
 
 #### Edge
 
-Edge csv data file format is like the vertex description. But difference with above vertex vid is source vertex vid, destination vertex vid and edge ranking.
-
-Without label column, `src_vid`, `dst_vid` and `ranking` always are first three columns in csv data file.
+example 中 choose 边的部分数据：
 
 ```csv
-1,2,0,first property value
-1,3,2,prop value
+200,101,5
+200,102,3
 ```
 
-Ranking column is not required, you must not give it if you don't need it.
+上述中的前两列的数据分别为 `:SRC_VID` 和 `:DST_VID`，最后一列对应 choose.likeness 属性值。
+如何上述边中含有 rank 值，请在第三列放置 rank 的值。
+
+### 含有header 的数据格式
+
+如果配置文件中 `csv.withHeader` 设置为 `true`，那么对应的数据文件中的第一行即为 header 的描述。
+其中每一列的格式为 `<tag_name/edge_name>.<prop_name>:<prop_type>`：
+
+- `<tag_name/edge_name>` 表示 TAG 或者 EDGE 的名字，
+- `<prop_name>` 表示属性名字
+- `<prop_type>` 表示属性类型，即上述中的 `bool`、`int`、`float`、`double`、`string` 和 `timestamp`。如果不设置默认为 `string`。
+
+在上述的 `<prop_type>` 中有如下几个关键词含有特殊语义：
+
+- `:VID` 表示顶点的 VID
+- `:SRC_VID` 表示边的起点的 VID
+- `:DST_VID` 表示边的终点的 VID
+- `:RANK` 表示边的 rank 值
+- `:IGNORE` 表示忽略这一列
+- `:LABEL` 表示插入/删除 `+/-` 的标记列
+
+数据文件含有 header，那么配置中的 tags/edge 下的 props 会被自动忽略，按照数据文件中的 header 属性设置插入数据。
+
+#### 顶点
+
+example 中 course 顶点的示例：
 
 ```csv
-1,2,first property value
-1,3,prop value
+:LABEL,:VID,course.name,building.name:string,:IGNORE,course.credits:int
++,"hash(""Math"")",Math,No5,1,3
++,"uuid(""English"")",English,"No11 B\",2,6
 ```
 
-with label:
+因为 VERTEX 可以含有多个不同的 TAG，所以在指定对应的 column 的header时要加上 TAG 的name。
+
+在 `:VID` 这列除了常见的整数值，还可以使用 `hash` 和 `uuid` 两个 UDF来自动产生顶点的VID。需要注意的是在 CSV文件中字符串的转义处理，如示例中的 `"hash(""Math"")"` 存储的是 `hash("Math")` 字符串。
+
+上述中除了 `:LABEL` 这列（可选）之外，其他的列都可按任意顺序排列，对于已经存在的 CSV 文件而言，通过设置header便能灵活的选取自己需要的列来导入。
+
+#### 边
+
+example 中 follow 边的示例：
 
 ```csv
-+,1,2,0,first property value
-+,1,3,2,prop value
+:DST_VID,follow.likeness:double,:SRC_VID,:RANK
+201,92.5,200,0
+200,85.6,201,1
 ```
 
-### With Header Line
+上例中分别在第0 列和第2 列上指定为follow边的起点和终点的VID数据，最后一列为边的 rank 值。
 
-#### Format
+## Label
 
-`<type.field_name>:<field_type>`, `field_type` default type is `string`.
+为了表示数据文件中的一行数据是进行插入还是删除操作，引入两个label（+/-）符号。
 
-#### Edge
+- `+` 表示插入
+- `-` 表示删除
 
-```csv
-:SRC_VID,:DST_VID,:RANK,prop1,prop2
-...
-```
+这两个符号单独一列存储。具体对应的示例如上述中带header 的vertex所示。
 
-`:SRC_VID` and `:DST_VID` represent edge source and destination vertex id. `:RANK` column is value of edge ranking.
+## 使用
 
-#### Vertex
+### 源码
 
-```csv
-:VID,tag1.prop1:string,tag2.prop2:int,tag1.prop3:string,tag2.prop4:int
-...
-```
+Nebula Importer 使用 1.13 版本的 golang 编译，所以首选确保你的系统中安装来上述的golang 运行环境。安装和配置教程[参考文档](docs/golang-install.md)。
 
-`:VID` column represent the global unique vertex id.
-
-#### Skipping columns
-
-```csv
-:VID,name,:IGNORE,age:int
-```
-
-## Usage
-
-### From Sources
-
-This tool depends on golang 1.13, so make sure you have install `go` first.
-
-Use `git` to clone this project to your local directory and execute the `cmd/importer.go` with `config` parameter.
+使用 `git` 克隆该仓库到本地，进入 `nebula-importer/cmd` 目录，直接执行即可。
 
 ``` shell
 $ git clone https://github.com/vesoft-inc/nebula-importer.git
@@ -273,7 +267,7 @@ $ go run importer.go --config /path/to/yaml/config/file
 
 ### Docker
 
-With docker, we can easily to import our local data to nebula without `golang` runtime environment.
+使用 docker 可以不必安装 golang 环境在本地。直接拉取Nebula Importer 的镜像来导入，唯一麻烦的就是将本地配置和CSV数据文件挂载到容器中，如下所示：
 
 ```shell
 $ docker run --rm -ti \
@@ -283,10 +277,6 @@ $ docker run --rm -ti \
     vesoft/nebula-importer
     --config {your-config-file}
 ```
-
-### Log
-
-All logs info will output to your `logPath` file in configuration.
 
 ## TODO
 

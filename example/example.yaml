@@ -81,7 +81,7 @@ files:
       type: edge
       edge:
         name: follow
-        withRanking: false
+        withRanking: true
   - path: ./student.csv
     failDataPath: ./err/student.csv
     batchSize: 2
