@@ -163,6 +163,8 @@ files:
 - `withRanking`: 指定该边是否又 `rank` 值，用来区分同类型的 edge 的不同边。
 - `props` 描述同上述顶点，同样需要注意跟数据文件中的排列顺序。
 
+所有配置的选型解释见[表格](docs/configuration-reference.md)。
+
 ## CSV Header
 
 在 CSV 文件中，可以在第一行指定每一列的名称和数据类型。
@@ -182,7 +184,7 @@ example 中 course 顶点的部分数据：
 
 上述中的第一列为顶点的 `:VID`，后面的三个属性值，分别对应配置文件中的 `vertex.tags.props` 的顺序：course.name, course.credits 和 building.name。
 
-#### Edge
+#### 边
 
 example 中 choose 边的部分数据：
 
