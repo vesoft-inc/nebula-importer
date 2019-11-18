@@ -83,6 +83,7 @@ type ClientRequest struct {
 }
 
 const (
+	LABEL_LABEL   = ":LABEL"
 	LABEL_VID     = ":VID"
 	LABEL_SRC_VID = ":SRC_VID"
 	LABEL_DST_VID = ":DST_VID"

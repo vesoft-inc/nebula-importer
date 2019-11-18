@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
-	"regexp"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
@@ -21,8 +20,6 @@ func (r *CSVReader) InitReader(file *os.File) {
 	r.reader = csv.NewReader(bufio.NewReader(file))
 }
 
-var re = regexp.MustCompile(`^([+-]?\d+|hash\("(.+)"\)|uuid\("(.+)"\))$`)
-
 func (r *CSVReader) ReadLine() (base.Data, error) {
 	line, err := r.reader.Read()
 
@@ -33,16 +30,11 @@ func (r *CSVReader) ReadLine() (base.Data, error) {
 	r.lineNum++
 
 	if r.CSVConfig.WithHeader && r.lineNum == 1 {
-		return base.HeaderData(line), nil
-	}
-
-	var vidIdx int = 0
-	if r.CSVConfig.WithLabel {
-		vidIdx = 1
-	}
-
-	if len(line) <= vidIdx || !re.MatchString(line[vidIdx]) {
-		return base.Data{}, fmt.Errorf("Invalid record(%d): %v", r.lineNum, line)
+		if r.CSVConfig.WithLabel {
+			return base.HeaderData(line[1:]), nil
+		} else {
+			return base.HeaderData(line), nil
+		}
 	}
 
 	if r.CSVConfig.WithLabel {

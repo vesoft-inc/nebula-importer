@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -32,10 +33,17 @@ type Prop struct {
 	Index  int
 }
 
+type VID struct {
+	Index int
+}
+
 type Edge struct {
 	Name        string `yaml:"name"`
 	WithRanking bool   `yaml:"withRanking"`
 	Props       []Prop `yaml:"props"`
+	SrcVID      VID
+	DstVID      VID
+	Rank        VID
 }
 
 type Tag struct {
@@ -44,6 +52,7 @@ type Tag struct {
 }
 
 type Vertex struct {
+	VID  VID
 	Tags []Tag `yaml:"tags"`
 }
 
@@ -213,7 +222,11 @@ func (e *Edge) FormatValues(record base.Record) string {
 			cells = append(cells, prop.FormatValue(record))
 		}
 	}
-	return strings.Join(cells, ",")
+	rank := ""
+	if e.WithRanking {
+		rank = fmt.Sprintf("@%s", record[e.Rank.Index])
+	}
+	return fmt.Sprintf(" %s->%s%s:(%s) ", record[e.SrcVID.Index], record[e.DstVID.Index], rank, strings.Join(cells, ","))
 }
 
 func (e *Edge) String() string {
@@ -245,7 +258,7 @@ func (v *Vertex) FormatValues(record base.Record) string {
 	for _, tag := range v.Tags {
 		cells = append(cells, tag.FormatValues(record))
 	}
-	return strings.Join(cells, ",")
+	return fmt.Sprintf(" %s: (%s)", record[v.VID.Index], strings.Join(cells, ","))
 }
 
 func (v *Vertex) String() string {
@@ -273,6 +286,9 @@ func (p *Prop) IsStringType() bool {
 }
 
 func (p *Prop) FormatValue(record base.Record) string {
+	if p.Index >= len(record) {
+		logger.Log.Fatalf("Prop index %d out range %d of record(%v)", p.Index, len(record), record)
+	}
 	r := record[p.Index]
 	if p.IsStringType() {
 		return fmt.Sprintf("%q", r)

@@ -3,6 +3,7 @@ package reader
 import (
 	"fmt"
 	"hash/fnv"
+	"regexp"
 	"strings"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
@@ -11,15 +12,17 @@ import (
 )
 
 type BatchMgr struct {
-	Schema           config.Schema
-	Batches          []*Batch
-	InsertStmtPrefix string
+	Schema            config.Schema
+	Batches           []*Batch
+	InsertStmtPrefix  string
+	initializedSchema bool
 }
 
 func NewBatchMgr(schema config.Schema, batchSize int, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) *BatchMgr {
 	bm := BatchMgr{
-		Schema:  schema,
-		Batches: make([]*Batch, len(clientRequestChs)),
+		Schema:            schema,
+		Batches:           make([]*Batch, len(clientRequestChs)),
+		initializedSchema: false,
 	}
 
 	if schema.IsVertex() {
@@ -27,8 +30,6 @@ func NewBatchMgr(schema config.Schema, batchSize int, clientRequestChs []chan ba
 	} else {
 		bm.Schema.Edge.Props = nil
 	}
-
-	bm.InitSchema(strings.Split(schema.String(), ","))
 
 	for i := range bm.Batches {
 		bm.Batches[i] = NewBatch(&bm, batchSize, clientRequestChs[i], errCh)
@@ -43,12 +44,22 @@ func (bm *BatchMgr) Done() {
 }
 
 func (bm *BatchMgr) InitSchema(header base.Record) {
+	if bm.initializedSchema {
+		logger.Log.Println("Batch manager schema has been initialized!")
+		return
+	}
+	bm.initializedSchema = true
 	for i, h := range header {
 		switch strings.ToUpper(h) {
+		case base.LABEL_LABEL:
 		case base.LABEL_VID:
+			bm.Schema.Vertex.VID.Index = i
 		case base.LABEL_SRC_VID:
+			bm.Schema.Edge.SrcVID.Index = i
 		case base.LABEL_DST_VID:
+			bm.Schema.Edge.DstVID.Index = i
 		case base.LABEL_RANK:
+			bm.Schema.Edge.Rank.Index = i
 		case base.LABEL_IGNORE:
 		default:
 			if bm.Schema.IsVertex() {
@@ -75,6 +86,7 @@ func (bm *BatchMgr) addVertexTags(r string, i int) {
 		Index:  i,
 		Ignore: prop == "",
 	})
+	logger.Log.Printf("header: %s, props : %v", r, tag.Props)
 }
 
 func (bm *BatchMgr) addEdgeProps(r string, i int) {
@@ -155,16 +167,28 @@ func (bm *BatchMgr) parseProperty(r string) (columnName, columnType string) {
 	}
 }
 
-func (bm *BatchMgr) Add(data base.Data) {
-	batchIdx := getBatchId(data.Record[0], len(bm.Batches))
+var re = regexp.MustCompile(`^([+-]?\d+|hash\("(.+)"\)|uuid\("(.+)"\))$`)
+
+func (bm *BatchMgr) Add(data base.Data) error {
+	var vid string
+	if bm.Schema.IsVertex() {
+		vid = data.Record[bm.Schema.Vertex.VID.Index]
+	} else {
+		vid = data.Record[bm.Schema.Edge.SrcVID.Index]
+	}
+	if !re.MatchString(vid) {
+		return fmt.Errorf("Invalid vid format: %s", vid)
+	}
+	batchIdx := getBatchId(vid, len(bm.Batches))
 	bm.Batches[batchIdx].Add(data)
+	return nil
 }
 
 var h = fnv.New32a()
 
 func getBatchId(idStr string, numChans int) uint32 {
 	h.Write([]byte(idStr))
-	return h.Sum32() / uint32(numChans)
+	return h.Sum32() % uint32(numChans)
 }
 
 func makeStmt(batch []base.Data, f func([]base.Data) string) string {
@@ -210,7 +234,7 @@ func (m *BatchMgr) makeVertexInsertStmt(data []base.Data) string {
 	builder.WriteString(m.InsertStmtPrefix)
 	batchSize := len(data)
 	for i := 0; i < batchSize; i++ {
-		builder.WriteString(fmt.Sprintf(" %s: (%s)", data[i].Record[0], m.Schema.Vertex.FormatValues(data[i].Record)))
+		builder.WriteString(m.Schema.Vertex.FormatValues(data[i].Record))
 		if i < batchSize-1 {
 			builder.WriteString(",")
 		} else {
@@ -225,7 +249,7 @@ func (m *BatchMgr) makeVertexDeleteStmt(data []base.Data) string {
 	var builder strings.Builder
 	for _, d := range data {
 		// TODO: delete vertex in batch
-		builder.WriteString(fmt.Sprintf("DELETE VERTEX %s;", d.Record[0]))
+		builder.WriteString(fmt.Sprintf("DELETE VERTEX %s;", d.Record[m.Schema.Vertex.VID.Index]))
 	}
 	return builder.String()
 }
@@ -252,12 +276,7 @@ func (m *BatchMgr) makeEdgeInsertStmt(batch []base.Data) string {
 	builder.WriteString(m.InsertStmtPrefix)
 	batchSize := len(batch)
 	for i := 0; i < batchSize; i++ {
-		rank := ""
-		if m.Schema.Edge.WithRanking {
-			// TODO: Validate rank is integer
-			rank = fmt.Sprintf("@%s", batch[i].Record[2])
-		}
-		builder.WriteString(fmt.Sprintf("%s->%s%s: (%s)", batch[i].Record[0], batch[i].Record[1], rank, m.Schema.Edge.FormatValues(batch[i].Record)))
+		builder.WriteString(m.Schema.Edge.FormatValues(batch[i].Record))
 		if i < batchSize-1 {
 			builder.WriteString(",")
 		} else {

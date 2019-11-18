@@ -48,7 +48,7 @@ func (w *Handler) Init(file config.File, concurrency int) (chan base.ErrData, er
 				}
 			} else {
 				dataWriter.Write(rawErr.Data)
-				logger.Log.Println(rawErr.Error)
+				logger.Log.Println(rawErr.Error.Error())
 				w.statsCh <- base.NewFailureStats(len(rawErr.Data))
 			}
 		}

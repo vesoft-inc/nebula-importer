@@ -34,6 +34,9 @@ func New(file config.File, clientRequestChs []chan base.ClientRequest, errCh cha
 			File:       file,
 		}
 		reader.BatchMgr = NewBatchMgr(file.Schema, file.BatchSize, clientRequestChs, errCh)
+		if !file.CSV.WithHeader {
+			reader.BatchMgr.InitSchema(strings.Split(file.Schema.String(), ","))
+		}
 		return &reader, nil
 	default:
 		return nil, fmt.Errorf("Wrong file type: %s", file.Type)
@@ -63,16 +66,17 @@ func (r *FileReader) Read() error {
 
 		lineNum++
 
+		if err == nil {
+			if data.Type == base.HEADER {
+				r.BatchMgr.InitSchema(data.Record)
+			} else {
+				err = r.BatchMgr.Add(data)
+			}
+		}
+
 		if err != nil {
 			logger.Log.Printf("Fail to read line %d, error: %s", lineNum, err.Error())
 			numErrorLines++
-			continue
-		}
-
-		if data.Type == base.HEADER {
-			r.BatchMgr.InitSchema(data.Record)
-		} else {
-			r.BatchMgr.Add(data)
 		}
 	}
 

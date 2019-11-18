@@ -46,6 +46,15 @@ files:
             props:
               - name: name
                 type: string
+  - path: ./course-with-header.csv
+    failDataPath: ./err/course-with-header.csv
+    batchSize: 2
+    type: csv
+    csv:
+      withHeader: true
+      withLabel: true
+    schema:
+      type: vertex
   - path: ./follow.csv
     failDataPath: ./err/follow.csv
     batchSize: 2
@@ -61,6 +70,18 @@ files:
         props:
           - name: likeness
             type: double
+  - path: ./follow-with-header.csv
+    failDataPath: ./err/follow-with-header.csv
+    batchSize: 2
+    type: csv
+    csv:
+      withHeader: true
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: follow
+        withRanking: false
   - path: ./student.csv
     failDataPath: ./err/student.csv
     batchSize: 2
