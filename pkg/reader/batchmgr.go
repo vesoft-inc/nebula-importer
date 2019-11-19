@@ -86,7 +86,6 @@ func (bm *BatchMgr) addVertexTags(r string, i int) {
 		Index:  i,
 		Ignore: prop == "",
 	})
-	logger.Log.Printf("header: %s, props : %v", r, tag.Props)
 }
 
 func (bm *BatchMgr) addEdgeProps(r string, i int) {
