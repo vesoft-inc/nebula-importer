@@ -73,10 +73,6 @@ clientSettings:
 - `logPath`: **可选**。指定导入过程中的错误等日志信息输出的文件路径，默认输出到 `/tmp/nebula-importer.log` 中。
 - `files`: **必填**。数组类型，用来配置不同的数据文件。
 
-#### 数据文件
-
-一个数据文件中只能存放一种顶点或者边，不同 schema 的顶点或者边数据需要放置在不同的文件中。
-
 ```yaml
 files:
   - path: ./student.csv
@@ -87,6 +83,10 @@ files:
       withHeader: false
       withLabel: false
 ```
+
+#### 数据文件
+
+一个数据文件中只能存放一种顶点或者边，不同 schema 的顶点或者边数据需要放置在不同的文件中。
 
 ##### `path`
 
