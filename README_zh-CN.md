@@ -74,6 +74,7 @@ clientSettings:
 - `files`: **必填**。数组类型，用来配置不同的数据文件。
 
 ```yaml
+logPath: ./err/test.log
 files:
   - path: ./student.csv
     failDataPath: ./err/student.csv
