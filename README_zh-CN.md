@@ -1,6 +1,6 @@
 # Nebula-importer
 
-![test](https://github.com/vesoft-inc/nebula-importer/actions?workflow=test)
+[en](README.md) | ![test](https://github.com/vesoft-inc/nebula-importer/actions?workflow=test)
 
 ## 介绍
 
@@ -207,7 +207,7 @@ example 中 choose 边的部分数据：
 - `:IGNORE` 表示忽略这一列
 - `:LABEL` 表示插入/删除 `+/-` 的标记列
 
-数据文件含有 header，那么配置中的 tags/edge 下的 props 会被自动忽略，按照数据文件中的 header 属性设置插入数据。
+数据文件含有 header，那么配置文件中的 tags/edge 下的 props 会被自动忽略，按照数据文件中的 header 属性设置插入数据。
 
 #### 顶点
 
@@ -235,7 +235,7 @@ example 中 follow 边的示例：
 200,85.6,201,1
 ```
 
-上例中分别在第 0 列和第 2 列上指定为 follow 边的起点和终点的 VID 数据，最后一列为边的 rank 值。
+上例中分别在第 0 列和第 2 列上指定为 follow 边的起点和终点的 VID 数据，最后一列为边的 rank 值。这些列的排列顺序同上述顶点一样，亦可自由排列，不过这仅限于带 header 的数据文件。
 
 ## Label
 
@@ -252,7 +252,7 @@ example 中 follow 边的示例：
 
 ### 源码
 
-Nebula Importer 使用 >1.13 版本的 golang 编译，所以首选确保你的系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
+Nebula Importer 使用 **>=1.13** 版本的 golang 编译，所以首选确保你在系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
 
 使用 `git` 克隆该仓库到本地，进入 `nebula-importer/cmd` 目录，直接执行即可。
 
