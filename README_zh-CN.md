@@ -313,7 +313,7 @@ $ docker run --rm -ti \
 - `{your-config-file}`：替换成本地 YAML 配置文件的绝对路径，
 - `{your-csv-data-dir}`：替换成本地 CSV 数据文件的绝对路径。
 
-> 注意：`{your-csv-data-dir}` 需要同 YAML 配置中的 `files.path` 保持一致。
+> 注意：通常建议在 files.path 中使用相对路径。但如果在 `files.path` 中使用本地绝对路径，则需要小心检查这个路径映射到 Docker 中的对应路径。
 
 ## TODO
 
