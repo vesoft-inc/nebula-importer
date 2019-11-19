@@ -5,7 +5,7 @@
   </div>
 </div>
 
-![test](https://github.com/vesoft-inc/nebula-importer/workflows/test/badge.svg)
+[![test](https://github.com/vesoft-inc/nebula-importer/workflows/test/badge.svg)](https://github.com/vesoft-inc/nebula-importer/actions?workflow=test)
 
 ## Introduction
 
