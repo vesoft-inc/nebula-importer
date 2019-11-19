@@ -272,22 +272,20 @@ example 中 follow 边的示例：
 
 可以看到，例子中，边的起点为 `:SRC_VID` （在第4列），边的终点为 `:DST_VID` （在第1列），边上的属性为 `follow.likeness:double`（在第2列），边的rank 字段对应`:RANK`（在第5列，如果不指定导入 `:RANK` 则系统默认为 0）。
 
-## Label
-
-为了表示数据文件中的一行数据是进行插入还是删除操作，引入两个 label（+/-）符号。
+##### Label （可选）
 
 - `+` 表示插入
 - `-` 表示删除
 
+边 csv 文件 header 中也可以指定 label，和顶点原理相同。
 
+## 通过源码编译方式或者 Docker 方式使用本工具
 
-具体对应的示例如上述中带 header 的 vertex所示。
+在完成 YAML 配置文件和（待导入） csv 数据文件准备后，就可以使用本工具向 Nebula 批量写入。
 
-## 使用
+### 源码编译方式
 
-### 源码
-
-Nebula Importer 使用 **>=1.13** 版本的 golang 编译，所以首选确保你在系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
+Nebula Importer 使用 **>=1.13** 版本的 golang 编译，所以首选确保在系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
 
 使用 `git` 克隆该仓库到本地，进入 `nebula-importer/cmd` 目录，直接执行即可。
 
@@ -299,9 +297,9 @@ $ go run importer.go --config /path/to/yaml/config/file
 
 其中 `--config` 用来传入 YAML 配置文件的路径。
 
-### Docker
+### Docker 方式
 
-使用 docker 可以不必在本地安装 golang 环境。直接拉取 Nebula Importer 的[镜像](https://hub.docker.com/r/vesoft/nebula-importer "nebula importer docker image")来导入，唯一要做的就是将本地配置文件和 CSV 数据文件挂载到容器中，如下所示：
+使用 Docker 可以不必在本地安装 golang 环境。直接拉取 Nebula Importer 的[镜像](https://hub.docker.com/r/vesoft/nebula-importer "nebula importer docker image")来导入。唯一要做的就是将本地配置文件和 CSV 数据文件挂载到容器中，如下所示：
 
 ```shell
 $ docker run --rm -ti \
@@ -312,10 +310,10 @@ $ docker run --rm -ti \
     --config {your-config-file}
 ```
 
-- `{your-config-file}`：替换成你的本地配置文件的绝对路径，
-- `{your-csv-data-dir}`：替换成你的本地 CSV 数据文件的绝对路径。
+- `{your-config-file}`：替换成本地 YAML 配置文件的绝对路径，
+- `{your-csv-data-dir}`：替换成本地 CSV 数据文件的绝对路径。
 
-> 注意：`{your-csv-data-dir}` 需要同你的 YAML 配置中的 `files.path` 保持一致。
+> 注意：`{your-csv-data-dir}` 需要同 YAML 配置中的 `files.path` 保持一致。
 
 ## TODO
 
