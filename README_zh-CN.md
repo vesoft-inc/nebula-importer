@@ -56,7 +56,7 @@ clientSettings:
 
 #### `clientSettings.channelBufferSize`
 
-**可选**。表示每个 Nebula Graph Client 对应的 channel 的 buffer 大小，适当的 buffer 可以缓解繁忙的 client 阻塞文件 Reader 的情况，提高并发度。
+**可选**。表示每个 Nebula Graph Client 对应的缓存队列 (channel) 的 buffer 大小，默认为 128。
 
 #### `clientSettings.space`
 
