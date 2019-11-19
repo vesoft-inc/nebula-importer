@@ -226,7 +226,7 @@ example 中 course 顶点的示例：
 
 因为 VERTEX 可以含有多个不同的 TAG，所以在指定对应的 column 的 header 时要加上 TAG 的 name。
 
-在 `:VID` 这列除了常见的整数值，还可以使用 `hash` 和 `uuid` 两个 UDF 来自动产生顶点的 VID。需要注意的是在 CSV 文件中字符串的转义处理，如示例中的 `"hash(""Math"")"` 存储的是 `hash("Math")` 字符串。
+在 `:VID` 这列除了常见的整数值，还可以使用 `hash` 和 `uuid` 两个 built-in 函数来自动产生顶点的 VID。需要注意的是在 CSV 文件中字符串的转义处理，如示例中的 `"hash(""Math"")"` 存储的是 `hash("Math")` 字符串。
 
 上述中除了 `:LABEL` 这列（可选）之外，其他的列都可按任意顺序排列，对于已经存在的 CSV 文件而言，通过设置 header 便能灵活的选取自己需要的列来导入。
 
