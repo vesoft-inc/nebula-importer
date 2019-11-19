@@ -115,8 +115,6 @@ files:
 - 当指定 `type: vertex` 时，需要在 `vertex` 字段中继续描述，
 - 当指定 `type: edge` 时，需要在 `edge` 字段中继续描述。
 
-###### `schema.vertex`
-
 ```yaml
     schema:
       type: vertex
@@ -131,6 +129,8 @@ files:
               - name: gender
                 type: string
 ```
+
+###### `schema.vertex`
 
 **必填**。描述插入顶点的 schema 信息，比如 tags。由于一个 VERTEX 可以含有多个 TAG，所以不同的 TAG 在 `schema.vertex.tags` 数组中给出。
 
