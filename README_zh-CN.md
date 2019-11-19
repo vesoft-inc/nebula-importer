@@ -41,7 +41,7 @@ description: example
 
 ```yaml
 clientSettings:
-  concurrency: 4
+  concurrency: 10
   channelBufferSize: 128
   space: test
   connection:
