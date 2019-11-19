@@ -1,6 +1,6 @@
 # Nebula-importer
 
-[en](README.md) | ![test](https://github.com/vesoft-inc/nebula-importer/actions?workflow=test)
+[en](README.md) | ![test](https://github.com/vesoft-inc/nebula-importer/workflows/test/badge.svg)
 
 ## 介绍
 
