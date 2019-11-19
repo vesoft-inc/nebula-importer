@@ -60,7 +60,7 @@ clientSettings:
 
 #### `clientSettings.space`
 
-**必填**。指定所有的数据文件将要导入到哪个 `space`。
+**必填**。指定所有的数据文件将要导入到哪个 `space`。请不要同时向多个 space 批量导入数据，这样反而性能更低。
 
 #### `clientSettings.connection`
 
