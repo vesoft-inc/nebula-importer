@@ -81,7 +81,7 @@ clientSettings:
 files:
   - path: ./student.csv
     failDataPath: ./err/student.csv
-    batchSize: 2
+    batchSize: 128
     type: csv
     csv:
       withHeader: false
