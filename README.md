@@ -1,5 +1,7 @@
 # Nebula-importer
 
+![test](https://github.com/vesoft-inc/nebula-importer/actions?workflow=test)
+
 ## Introduction
 
 [Nebula Graph](https://github.com/vesoft-inc/nebula-docker-compose) csv importer with `go`. This tool reads local csv files and writes into Nebula storage.
@@ -59,7 +61,6 @@ files:
             props:
               - name: prop1
                 type: int
-                ignore: true
               - name: prop2
                 type: timestamp
           - name: tag2
@@ -101,14 +102,12 @@ As for this example, nebula-importer will import two **csv** data files `edge.cs
 | files[0].schema.edge.props                     | Properties of the edge                                                    | -              |
 | files[0].schema.edge.props[0].name             | Property name                                                             | ""             |
 | files[0].schema.edge.props[0].type             | Property type                                                             | ""             |
-| files[0].schema.edge.props[0].ignore           | Whether to ignore this property                                           | false          |
 | files[0].schema.vertex                         | Vertex options                                                            | -              |
 | files[0].schema.vertex.tags                    | Vertex tags options                                                       | -              |
 | files[0].schema.vertex.tags[0].name            | Vertex tag name                                                           | ""             |
 | files[0].schema.vertex.tags[0].props           | Vertex tag's properties                                                   | -              |
 | files[0].schema.vertex.tags[0].props[0].name   | Vertex tag's property name                                                | ""             |
 | files[0].schema.vertex.tags[0].props[0].type   | Vertex tag's property type                                                | ""             |
-| files[0].schema.vertex.tags[0].props[0].ignore | Whether to ignore this vertex tag's property                              | false          |
 | files[0].failDataPath                          | Failed data file path                                                     | ""             |
 
 ## CSV Data Example

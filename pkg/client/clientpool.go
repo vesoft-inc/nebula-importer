@@ -84,7 +84,7 @@ func (p *ClientPool) startWorker(i int) {
 			break
 		}
 
-		if data.Stmt == "FILEDONE" {
+		if data.Stmt == base.STAT_FILEDONE {
 			data.ErrCh <- base.ErrData{Error: nil}
 			continue
 		}
@@ -101,7 +101,7 @@ func (p *ClientPool) startWorker(i int) {
 				Data:  data.Data,
 			}
 		} else {
-			timeInMs := time.Since(now).Microseconds()
+			timeInMs := time.Since(now).Nanoseconds() / 1e3
 			p.statsCh <- base.NewSuccessStats(int64(resp.GetLatencyInUs()), timeInMs, len(data.Data))
 		}
 	}

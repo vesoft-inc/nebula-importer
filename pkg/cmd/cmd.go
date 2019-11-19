@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/client"
@@ -50,6 +51,10 @@ func Run(conf string) error {
 	}
 
 	<-statsMgr.DoneCh
+
+	if statsMgr.NumFailed > 0 {
+		return fmt.Errorf("Total %d lines fail to insert to nebula", statsMgr.NumFailed)
+	}
 
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -28,13 +29,21 @@ type NebulaClientSettings struct {
 type Prop struct {
 	Name   string `yaml:"name"`
 	Type   string `yaml:"type"`
-	Ignore bool   `yaml:"ignore"`
+	Ignore bool
+	Index  int
+}
+
+type VID struct {
+	Index int
 }
 
 type Edge struct {
 	Name        string `yaml:"name"`
 	WithRanking bool   `yaml:"withRanking"`
 	Props       []Prop `yaml:"props"`
+	SrcVID      VID
+	DstVID      VID
+	Rank        VID
 }
 
 type Tag struct {
@@ -43,6 +52,7 @@ type Tag struct {
 }
 
 type Vertex struct {
+	VID  VID
 	Tags []Tag `yaml:"tags"`
 }
 
@@ -123,7 +133,7 @@ func (n *NebulaClientSettings) validateAndReset() error {
 	}
 	if n.Concurrency <= 0 {
 		log.Printf("Invalide client concurrency: %d in clientSettings.concurrency, reset to default 40", n.Concurrency)
-		n.Concurrency = 40
+		n.Concurrency = 10
 	}
 
 	if n.ChannelBufferSize <= 0 {
@@ -180,6 +190,18 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
 }
 
+func (s *Schema) IsVertex() bool {
+	return strings.ToUpper(s.Type) == "VERTEX"
+}
+
+func (s *Schema) String() string {
+	if s.IsVertex() {
+		return s.Vertex.String()
+	} else {
+		return s.Edge.String()
+	}
+}
+
 func (s *Schema) validateAndReset(prefix string) error {
 	var err error = nil
 	switch strings.ToLower(s.Type) {
@@ -193,9 +215,35 @@ func (s *Schema) validateAndReset(prefix string) error {
 	return err
 }
 
+func (e *Edge) FormatValues(record base.Record) string {
+	var cells []string
+	for _, prop := range e.Props {
+		if !prop.Ignore {
+			cells = append(cells, prop.FormatValue(record))
+		}
+	}
+	rank := ""
+	if e.WithRanking {
+		rank = fmt.Sprintf("@%s", record[e.Rank.Index])
+	}
+	return fmt.Sprintf(" %s->%s%s:(%s) ", record[e.SrcVID.Index], record[e.DstVID.Index], rank, strings.Join(cells, ","))
+}
+
+func (e *Edge) String() string {
+	var cells []string
+	cells = append(cells, base.LABEL_SRC_VID, base.LABEL_DST_VID)
+	if e.WithRanking {
+		cells = append(cells, base.LABEL_RANK)
+	}
+	for _, prop := range e.Props {
+		cells = append(cells, prop.String(e.Name))
+	}
+	return strings.Join(cells, ",")
+}
+
 func (e *Edge) validateAndReset(prefix string) error {
 	if e.Name == "" {
-		fmt.Errorf("Please configure edge name in: %s.name", prefix)
+		return fmt.Errorf("Please configure edge name in: %s.name", prefix)
 	}
 	for i := range e.Props {
 		if err := e.Props[i].validateAndReset(fmt.Sprintf("%s.prop[%d]", prefix, i)); err != nil {
@@ -203,6 +251,25 @@ func (e *Edge) validateAndReset(prefix string) error {
 		}
 	}
 	return nil
+}
+
+func (v *Vertex) FormatValues(record base.Record) string {
+	var cells []string
+	for _, tag := range v.Tags {
+		cells = append(cells, tag.FormatValues(record))
+	}
+	return fmt.Sprintf(" %s: (%s)", record[v.VID.Index], strings.Join(cells, ","))
+}
+
+func (v *Vertex) String() string {
+	var cells []string
+	cells = append(cells, base.LABEL_VID)
+	for _, tag := range v.Tags {
+		for _, prop := range tag.Props {
+			cells = append(cells, prop.String(tag.Name))
+		}
+	}
+	return strings.Join(cells, ",")
 }
 
 func (v *Vertex) validateAndReset(prefix string) error {
@@ -214,20 +281,46 @@ func (v *Vertex) validateAndReset(prefix string) error {
 	return nil
 }
 
+func (p *Prop) IsStringType() bool {
+	return strings.ToLower(p.Type) == "string"
+}
+
+func (p *Prop) FormatValue(record base.Record) string {
+	if p.Index >= len(record) {
+		logger.Log.Fatalf("Prop index %d out range %d of record(%v)", p.Index, len(record), record)
+	}
+	r := record[p.Index]
+	if p.IsStringType() {
+		return fmt.Sprintf("%q", r)
+	}
+	return r
+}
+
+func (p *Prop) String(prefix string) string {
+	if p.Ignore {
+		return base.LABEL_IGNORE
+	} else {
+		return fmt.Sprintf("%s.%s:%s", prefix, p.Name, p.Type)
+	}
+}
+
 func (p *Prop) validateAndReset(prefix string) error {
 	p.Type = strings.ToLower(p.Type)
-	var err error = nil
-	switch p.Type {
-	case "string":
-	case "int":
-	case "float":
-	case "double":
-	case "bool":
-	case "timestamp":
-	default:
-		err = fmt.Errorf("Error property type of %s.type: %s", prefix, p.Type)
+	if base.IsValidType(p.Type) {
+		return nil
+	} else {
+		return fmt.Errorf("Error property type of %s.type: %s", prefix, p.Type)
 	}
-	return err
+}
+
+func (t *Tag) FormatValues(record base.Record) string {
+	var cells []string
+	for _, p := range t.Props {
+		if !p.Ignore {
+			cells = append(cells, p.FormatValue(record))
+		}
+	}
+	return strings.Join(cells, ",")
 }
 
 func (t *Tag) validateAndReset(prefix string) error {

@@ -11,10 +11,10 @@ import (
 type StatsMgr struct {
 	StatsCh      chan base.Stats
 	DoneCh       chan bool
+	NumFailed    int64
 	totalCount   int64
 	totalBatches int64
 	totalLatency int64
-	numFailed    int64
 	totalReqTime int64
 }
 
@@ -22,10 +22,10 @@ func NewStatsMgr(numReadingFiles int) *StatsMgr {
 	m := StatsMgr{
 		StatsCh:      make(chan base.Stats),
 		DoneCh:       make(chan bool),
+		NumFailed:    0,
 		totalCount:   0,
 		totalLatency: 0,
 		totalBatches: 0,
-		numFailed:    0,
 		totalReqTime: 0.0,
 	}
 	go m.startWorker(numReadingFiles)
@@ -47,7 +47,7 @@ func (s *StatsMgr) updateStat(stat base.Stats) {
 func (s *StatsMgr) updateFailed(stat base.Stats) {
 	s.totalBatches++
 	s.totalCount += int64(stat.BatchSize)
-	s.numFailed += int64(stat.BatchSize)
+	s.NumFailed += int64(stat.BatchSize)
 }
 
 func (s *StatsMgr) print(prefix string, now time.Time) {
@@ -59,7 +59,7 @@ func (s *StatsMgr) print(prefix string, now time.Time) {
 	avgReq := s.totalReqTime / s.totalBatches
 	qps := float64(s.totalCount) / secs
 	logger.Log.Printf("%s: Time(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%dus), QPS(%.2f/s)",
-		prefix, secs, s.totalCount, s.numFailed, avgLatency, avgReq, qps)
+		prefix, secs, s.totalCount, s.NumFailed, avgLatency, avgReq, qps)
 }
 
 func (s *StatsMgr) startWorker(numReadingFiles int) {

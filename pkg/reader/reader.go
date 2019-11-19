@@ -28,15 +28,15 @@ type FileReader struct {
 func New(file config.File, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) (*FileReader, error) {
 	switch strings.ToLower(file.Type) {
 	case "csv":
-		r := csv.CSVReader{
-			Path:      file.Path,
-			CSVConfig: file.CSV,
-		}
+		r := csv.CSVReader{CSVConfig: file.CSV}
 		reader := FileReader{
 			DataReader: &r,
 			File:       file,
 		}
 		reader.BatchMgr = NewBatchMgr(file.Schema, file.BatchSize, clientRequestChs, errCh)
+		if !file.CSV.WithHeader {
+			reader.BatchMgr.InitSchema(strings.Split(file.Schema.String(), ","))
+		}
 		return &reader, nil
 	default:
 		return nil, fmt.Errorf("Wrong file type: %s", file.Type)
@@ -54,20 +54,24 @@ func (r *FileReader) Read() error {
 
 	lineNum, numErrorLines := 0, 0
 
-	logger.Log.Printf("Start to read CSV data file: %s", r.File.Path)
+	logger.Log.Printf("Start to read file: %s", r.File.Path)
 
 	for {
 		data, err := r.DataReader.ReadLine()
 		if err == io.EOF {
 			r.BatchMgr.Done()
-			logger.Log.Printf("Total lines of file(%s) is: %d, error lines: %d", r.File.Path, lineNum, numErrorLines)
+			logger.Log.Printf("Total lines of file(%s) is: %d, error lines: %d, schema: <%s>", r.File.Path, lineNum, numErrorLines, r.BatchMgr.Schema.String())
 			break
 		}
 
 		lineNum++
 
 		if err == nil {
-			err = r.BatchMgr.Add(data)
+			if data.Type == base.HEADER {
+				r.BatchMgr.InitSchema(data.Record)
+			} else {
+				err = r.BatchMgr.Add(data)
+			}
 		}
 
 		if err != nil {
