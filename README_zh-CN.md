@@ -194,7 +194,7 @@ example 中 choose 边的部分数据：
 上述中的前两列的数据分别为 `:SRC_VID` 和 `:DST_VID`，最后一列对应 choose.likeness 属性值。
 如果上述边中含有 rank 值，请在第三列放置 rank 的值。
 
-### 含有header 的数据格式
+### 含有 header 的数据格式
 
 如果配置文件中 `csv.withHeader` 设置为 `true`，那么对应的数据文件中的第一行即为 header 的描述。
 其中每一列的格式为 `<tag_name/edge_name>.<prop_name>:<prop_type>`：
