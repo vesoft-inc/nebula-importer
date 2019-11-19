@@ -136,7 +136,7 @@ files:
 
 对于每一个 TAG，有以下两个属性:
 
-- `name`：TAG 的名字，
+- `name`：TAG 的名字
 - `props`：TAG 的属性字段数组，每个属性字段又由如下两个字段构成：
   - `name`: 属性名字，同 Nebula Graph 中创建的 TAG 的属性名字一致。
   - `type`: 属性类型，目前支持 `bool`，`int`，`float`，`double`，`timestamp` 和 `string` 几种类型。
@@ -181,7 +181,7 @@ example 中 course 顶点的样例数据：
 102,English,6,No11
 ```
 
-第一列为顶点的 `VID`。后面三列为属性值，分别按序对应配置文件中的course.name, course.credits 和 building.name （见 `vertex.tags.props`）。
+第一列为顶点的 `VID`。后面三列为属性值，分别按序对应配置文件中的course.name, course.credits 和 building.name（见 `vertex.tags.props`）。
 
 #### 边示例
 
@@ -200,8 +200,8 @@ example 中 choose 类型的边的样例数据：
 
 每一列的格式为 `<tag_name/edge_name>.<prop_name>:<prop_type>`：
 
-- `<tag_name/edge_name>` 表示 TAG 或者 EDGE 的名字，
-- `<prop_name>` 表示属性名字，
+- `<tag_name/edge_name>` 表示 TAG 或者 EDGE 的名字
+- `<prop_name>` 表示属性名字
 - `<prop_type>` 表示属性类型。可以是 `bool`、`int`、`float`、`double`、`string` 和 `timestamp`，不设置默认为 `string`。
 
 在上述的 `<prop_type>` 字段中有如下几个关键词含有特殊语义：
@@ -244,7 +244,7 @@ example 中 course 顶点的示例：
 "uuid(""English"")"
 ```
 
-在 `:VID` 这列除了常见的整数值(例如123)，还可以使用 `hash` 和 `uuid` 两个 built-in function 来自动计算生成顶点的 VID （例如hash("Math")）。
+在 `:VID` 这列除了常见的整数值(例如 123)，还可以使用 `hash` 和 `uuid` 两个 built-in function 来自动计算生成顶点的 VID （例如 hash("Math")）。
 
 > 需要注意的是在 CSV 文件中对双引号(")的转义处理。如 `hash("Math")` 要写成 `"hash(""Math"")"`。
 
@@ -289,7 +289,7 @@ Nebula Importer 使用 **>=1.13** 版本的 golang 编译，所以首选确保�
 
 使用 `git` 克隆该仓库到本地，进入 `nebula-importer/cmd` 目录，直接执行即可。
 
-``` shell
+``` bash
 $ git clone https://github.com/vesoft-inc/nebula-importer.git
 $ cd nebula-importer/cmd
 $ go run importer.go --config /path/to/yaml/config/file
@@ -299,9 +299,9 @@ $ go run importer.go --config /path/to/yaml/config/file
 
 ### Docker 方式
 
-使用 Docker 可以不必在本地安装 golang 环境。直接拉取 Nebula Importer 的[镜像](https://hub.docker.com/r/vesoft/nebula-importer "nebula importer docker image")来导入。唯一要做的就是将本地配置文件和 CSV 数据文件挂载到容器中，如下所示：
+使用 Docker 可以不必在本地安装 golang 环境。直接拉取 Nebula Importer 的[镜像](https://hub.docker.com/r/vesoft/nebula-importer)来导入。唯一要做的就是将本地配置文件和 CSV 数据文件挂载到容器中，如下所示：
 
-```shell
+```bash
 $ docker run --rm -ti \
     --network=host \
     -v {your-config-file}:{your-config-file} \
@@ -310,8 +310,8 @@ $ docker run --rm -ti \
     --config {your-config-file}
 ```
 
-- `{your-config-file}`：替换成本地 YAML 配置文件的绝对路径，
-- `{your-csv-data-dir}`：替换成本地 CSV 数据文件的绝对路径。
+- `{your-config-file}`：替换成本地 YAML 配置文件的绝对路径
+- `{your-csv-data-dir}`：替换成本地 CSV 数据文件的绝对路径
 
 > 注意：通常建议在 files.path 中使用相对路径。但如果在 `files.path` 中使用本地绝对路径，则需要小心检查这个路径映射到 Docker 中的对应路径。
 
