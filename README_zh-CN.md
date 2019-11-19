@@ -1,12 +1,11 @@
 <div align="center">
   <h1>Nebula Importer</h1>
   <div>
-    <a href="https://github.com/vesoft-inc/nebula-importer/blob/master/README.md">en</a>
-  </div>
-  <div>
-    <img src="https://github.com/vesoft-inc/nebula-importer/workflows/test/badge.svg" />
+    <a href="https://github.com/vesoft-inc/nebula-importer/blob/master/README.md">EN</a>
   </div>
 </div>
+
+![test](https://github.com/vesoft-inc/nebula-importer/workflows/test/badge.svg)
 
 ## 介绍
 
