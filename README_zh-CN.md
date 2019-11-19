@@ -164,47 +164,47 @@ files:
 
 所有配置的选项解释见[表格](docs/configuration-reference.md)。
 
-## CSV Header
+## 关于 CSV Header
 
-针对 CSV 文件，除了在上述配置中描述每一列的 schema 信息，还可以在文件中的第一行指定对应的名称和数据类型格式。
+通常还可以在 csv 文件的第一行添加一些描述信息，以指定每列的类型。
 
 ### 没有 header 的数据格式
 
-如果在上述配置中的 `csv.withHeader` 配置为 `false`，那么 CSV 文件中只含有数据，对于顶点和边的数据示例如下：
+如果在上述配置中的 `csv.withHeader` 配置为 `false`，那么 CSV 文件中只含有数据（不含有第一行描述信息）。对于顶点和边的数据示例如下：
 
-#### 顶点
+#### 顶点示例
 
-example 中 course 顶点的部分数据：
+example 中 course 顶点的样例数据：
 
 ```csv
 101,Math,3,No5
 102,English,6,No11
 ```
 
-上述中的第一列为顶点的 `:VID`，后面的三个属性值，分别按序对应配置文件中的 `vertex.tags.props`：course.name, course.credits 和 building.name。
+第一列为顶点的 `VID`。后面三列为属性值，分别按序对应配置文件中的course.name, course.credits 和 building.name （见 `vertex.tags.props`）。
 
-#### 边
+#### 边示例
 
-example 中 choose 边的部分数据：
+example 中 choose 类型的边的样例数据：
 
 ```csv
 200,101,5
 200,102,3
 ```
 
-上述中的前两列的数据分别为 `:SRC_VID` 和 `:DST_VID`，最后一列对应 choose.likeness 属性值。
-如果上述边中含有 rank 值，请在第三列放置 rank 的值。
+前两列的数据分别为起点 VID 和终点 VID，第三列对应 choose.likeness 属性。（如果边中含有 rank 字段，请在第三列放置 rank 的值。之后的列依次放置各属性。）
 
 ### 含有 header 的数据格式
 
 如果配置文件中 `csv.withHeader` 设置为 `true`，那么对应的数据文件中的第一行即为 header 的描述。
-其中每一列的格式为 `<tag_name/edge_name>.<prop_name>:<prop_type>`：
+
+每一列的格式为 `<tag_name/edge_name>.<prop_name>:<prop_type>`：
 
 - `<tag_name/edge_name>` 表示 TAG 或者 EDGE 的名字，
 - `<prop_name>` 表示属性名字，
-- `<prop_type>` 表示属性类型，即上述中的 `bool`、`int`、`float`、`double`、`string` 和 `timestamp`。如果不设置默认为 `string`。
+- `<prop_type>` 表示属性类型。可以是 `bool`、`int`、`float`、`double`、`string` 和 `timestamp`，不设置默认为 `string`。
 
-在上述的 `<prop_type>` 中有如下几个关键词含有特殊语义：
+在上述的 `<prop_type>` 字段中有如下几个关键词含有特殊语义：
 
 - `:VID` 表示顶点的 VID
 - `:SRC_VID` 表示边的起点的 VID
@@ -213,9 +213,9 @@ example 中 choose 边的部分数据：
 - `:IGNORE` 表示忽略这一列
 - `:LABEL` 表示插入/删除 `+/-` 的标记列
 
-数据文件含有 header，那么配置文件中的 tags/edge 下的 props 会被自动忽略，按照数据文件中的 header 属性设置插入数据。
+> 如果 csv 文件中含有 header 描述信息，那么工具就按照会 header 来解析每行数据的 schema，并忽略 YAML 中的 `props`。
 
-#### 顶点
+#### 含有 header 的顶点 csv 文件示例
 
 example 中 course 顶点的示例：
 
@@ -225,13 +225,42 @@ example 中 course 顶点的示例：
 +,"uuid(""English"")",English,"No11 B\",2,6
 ```
 
-因为 VERTEX 可以含有多个不同的 TAG，所以在指定对应的 column 的 header 时要加上 TAG 的 name。
+##### LABEL (可选）
 
-在 `:VID` 这列除了常见的整数值，还可以使用 `hash` 和 `uuid` 两个 built-in 函数来自动产生顶点的 VID。需要注意的是在 CSV 文件中字符串的转义处理，如示例中的 `"hash(""Math"")"` 存储的是 `hash("Math")` 字符串。
+```csv
+:LABEL,
++,
+-,
+```
 
-上述中除了 `:LABEL` 这列（可选）之外，其他的列都可按任意顺序排列，对于已经存在的 CSV 文件而言，通过设置 header 便能灵活的选取自己需要的列来导入。
+表示该行为插入(+)或者删除(-)操作。
 
-#### 边
+##### :VID (必选）
+
+```csv
+:VID
+123,
+"hash(""Math"")",
+"uuid(""English"")"
+```
+
+在 `:VID` 这列除了常见的整数值(例如123)，还可以使用 `hash` 和 `uuid` 两个 built-in function 来自动计算生成顶点的 VID （例如hash("Math")）。
+
+> 需要注意的是在 CSV 文件中对双引号(")的转义处理。如 `hash("Math")` 要写成 `"hash(""Math"")"`。
+
+##### 其他属性
+
+```csv
+course.name,:IGNORE,course.credits:int
+Math,1,3
+English,2,6
+```
+
+可以指明 `:IGNORE` 表示忽略第二列不需要导入。此外，除了 `:LABEL` 这列之外，其他的列都可按任意顺序排列。这样对于一个比较大的 csv 文件，可以通过设置 header 来灵活的选取自己需要的列。
+
+> 因为 VERTEX 可以含有多个不同的 TAG，所以在指定列的 header 时要加上 TAG 名字（例如必须是 `course.credits`，不能简写为 `credits`）。
+
+#### 含有 header 的边 csv 文件示例
 
 example 中 follow 边的示例：
 
@@ -241,7 +270,7 @@ example 中 follow 边的示例：
 200,85.6,201,1
 ```
 
-上例中分别在第 0 列和第 2 列上指定为 follow 边的起点和终点的 VID 数据，最后一列为边的 rank 值。这些列的排列顺序同上述顶点一样，亦可自由排列，不过这仅限于带 header 的数据文件。
+可以看到，例子中，边的起点为 `:SRC_VID` （在第4列），边的终点为 `:DST_VID` （在第1列），边上的属性为 `follow.likeness:double`（在第2列），边的rank 字段对应`:RANK`（在第5列，如果不指定导入 `:RANK` 则系统默认为 0）。
 
 ## Label
 
@@ -250,7 +279,7 @@ example 中 follow 边的示例：
 - `+` 表示插入
 - `-` 表示删除
 
-这两个符号单独一列存储。
+
 
 具体对应的示例如上述中带 header 的 vertex所示。
 
