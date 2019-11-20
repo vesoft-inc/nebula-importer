@@ -57,7 +57,7 @@ clientSettings:
 The log and data file related configurations are:
 
 * `logPath`: **Optional**. Specifies log directory when importing data.
-* `files`: **Required**. A array type to configure different CSV files.
+* `files`: **Required**. An array type to configure different CSV files.
 
 ```yaml
 logPath: ./err/test.log
@@ -75,7 +75,7 @@ files:
 
 One CSV file can only store one type of vertex or edge. Vertices and edges of different schema should be stored in different files.
 
-* `path`: **Required**. Specifies the path where the CSV data file is stored. If a relative path is used, the directory and path of the current configuration file are spliced.
+* `path`: **Required**. Specifies the path where the CSV data file is stored. If a relative path is used, the path and directory of the current configuration file are spliced.
 * `failDataPath`: **Required**. Specifies the file to insert the failed data output so that the error data is appended later.
 * `batchSize`: **Optional**. Specifies the batch size of the inserted data, the default value is 128.
 * `type & csv`:  **Required**. Specifies the file type. Currently only CSV is supported. You can specify whether to include the header and the inserted and deleted labels in the CSV file.
