@@ -297,21 +297,21 @@ $ docker run --rm -ti \
 
 ## TODO
 
-* [X] Summary statistics of response
-* [X] Write error log and data
-* [X] Configure file
-* [X] Concurrent request to Graph server
-* [ ] Create space and tag/edge *utomatically
-* [ ] Configure retry option for Nebula *lient
-* [X] Support edge rank
-* [X] Support label for add/delete(+/-) *n first column
-* [X] Support column header in first line
-* [X] Support vid partition
-* [X] Support multi-tags insertion in *ertex
-* [X] Provide docker image and usage
-* [X] Make header adapt to props order *efined in schema of configure file
-* [X] Handle string column in nice way
-* [ ] Update concurrency and batch size *nline
-* [ ] Count duplicate vids
-* [X] Support VID generation automatically
-* [X] Output logs to file
+- [X] Summary statistics of response
+- [X] Write error log and data
+- [X] Configure file
+- [X] Concurrent request to Graph server
+- [ ] Create space and tag/edge automatically
+- [ ] Configure retry option for Nebula client
+- [X] Support edge rank
+- [X] Support label for add/delete(+/-) in first column
+- [X] Support column header in first line
+- [X] Support vid partition
+- [X] Support multi-tags insertion in vertex
+- [X] Provide docker image and usage
+- [X] Make header adapt to props order defined in schema of configure file
+- [X] Handle string column in nice way
+- [ ] Update concurrency and batch size online
+- [ ] Count duplicate vids
+- [X] Support VID generation automatically
+- [X] Output logs to file
