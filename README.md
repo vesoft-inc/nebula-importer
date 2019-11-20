@@ -9,7 +9,7 @@
 
 ## Introduction
 
-Nebula Importer is a CSV import tool for [Nebula Graph](https://github.com/vesoft-inc/nebula-docker-compose). CSV files can be stored on the database server.
+Nebula Importer is a CSV import tool for [Nebula Graph](https://github.com/vesoft-inc/nebula-docker-compose). It reads data from CSV files and inserts to Nebula.
 
 Before you start Nebula Importer, ensure:
 
