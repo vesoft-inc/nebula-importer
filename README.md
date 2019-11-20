@@ -16,16 +16,17 @@ Before you try Nebula Importer, make sure you have:
 * Deployed Nebula Graph
 * Created schema for the space to import data
 
-Currently, there are two ways to deploy Nebula:
+Currently, there are three ways to deploy Nebula:
 
 1. [nebula-docker-compose](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose")
 2. [rpm Package](https://github.com/vesoft-inc/nebula/tree/master/docs/manual-EN/3.build-develop-and-administration/3.deploy-and-administrations/deployment)
+3. [from source](https://github.com/vesoft-inc/nebula/blob/master/docs/manual-EN/3.build-develop-and-administration/1.build/1.build-source-code.md)
 
 > The easiest way to try Nebula Graph is using [`docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose).
 
 ## Prepare Configuration File
 
-Nebula-importer reads the CSV file to be imported and Nebula server data through the YAML configuration file.Here's an [example](example/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
+Nebula-importer reads the CSV file to be imported and Nebula server data through the YAML configuration file. Here's an [example](example/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
 
 ```yaml
 version: v1rc1
@@ -56,7 +57,7 @@ clientSettings:
 
 The log and data file related configurations are:
 
-* `logPath`: **Optional**. Specifies log directory when importing data.
+* `logPath`: **Optional**. Specifies log directory when importing data, default path is `/tmp/nebula-importer.log`.
 * `files`: **Required**. An array type to configure different CSV files.
 
 ```yaml
@@ -86,7 +87,7 @@ One CSV file can only store one type of vertex or edge. Vertices and edges of di
   * When type is specified as vertex, details should be described in vertex field.
   * When type is specified as edge, details should be described in edge field.
 
-`schema.vertex`
+#### `schema.vertex`
 
 ```yaml
     schema:
@@ -115,7 +116,7 @@ Each tag contains the following two properties:
 
 > Note: The order of properties in the above props must be the same as that of the corresponding data in the CSV data file.
 
-`schema.edge`
+#### `schema.edge`
 
 ```yaml
 schema:
@@ -131,8 +132,8 @@ schema:
 `schema.edge` is a **required** parameter that describes the schema information of the inserted edge. Each edge contains the following three properties:
 
 * `name`: The edge's name.
-* `ranking`: Specifies the `ranking` value of the given edge, used to tell different edges share the same edge type and vertices.
-* `prop`: Same as the above tag. Please be noted the property order here must be the same with that of the corresponding data in the CSV data file.
+* `withRanking`: Specifies the `rank` value of the given edge, used to tell different edges share the same edge type and vertices.
+* `props`: Same as the above tag. Please be noted the property order here must be the same with that of the corresponding data in the CSV data file.
 
 Details of all the configurations please refer to [Configuration Reference](docs/configuration-reference.md).
 
@@ -223,7 +224,7 @@ Indicates the column is inserting (+) or deleting (-) operation.
 "uuid(""English"")"
 ```
 
-In the `:VID` column, in addition to the common integer values ​​(such as 123), you can also use the two built-in functions `hash` and `uuid` to automatically calculate the VID of the generated vertex (for example, hash("Math")).
+In the `:VID` column, in addition to the common integer values (such as 123), you can also use the two built-in functions `hash` and `uuid` to automatically calculate the VID of the generated vertex (for example, hash("Math")).
 
 > Note that the double quotes (") are escaped in the CSV file. For example, `hash("Math")` should be written as `"hash(""Math"")"`.
 
@@ -256,8 +257,7 @@ In the preceding example, the source vertex of the edge is `:SRC_VID` (in column
 * `+` means inserting
 * `-` means deleting
 
-The same with vertex, you
-You can specify label in edge CSV file header the same way with vertex.
+You can also specify label in edge CSV file header the same way with vertex.
 
 ## Use This Importer Tool by Source Code or Docker
 
@@ -279,7 +279,7 @@ $ go run importer.go --config /path/to/yaml/config/file
 
 ### From Docker
 
-With Docker you don't have to install golang locally. Pull Nebula Importer's [Docker Image](https://hub.docker.com/r/vesoft/nebula-importer) to import. The only thing to do is to mount the local configuration file and the CSV data file into the container as follows:
+With Docker you don't have to install golang locally. Pull Nebula Importer's [Docker Image](https://hub.docker.com/r/vesoft/nebula-importer) to import. The only thing to do is to mount the local configuration file and the CSV data files into the container as follows:
 
 ```bash
 $ docker run --rm -ti \
@@ -293,7 +293,7 @@ $ docker run --rm -ti \
 * `{your-config-file}`: Replace with the absolute path of the local YAML configuration file
 * `{your-csv-data-dir}`: Replace with the absolute path of the local CSV data file.
 
-> Note: It is recommended to use relative paths in files.path. But if you use a local absolute path in `files.path`, you need to carefully check the path mapped to Docker with this path.
+> Note: It is recommended to use relative paths in `files.path`. But if you use a local absolute path, you need to carefully check the path mapped to Docker with this path.
 
 ## TODO
 
