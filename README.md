@@ -57,7 +57,7 @@ clientSettings:
 The log and data file related configurations are:
 
 * `logPath`: **Optional**. Specifies log directory when importing data.
-* `files`: **Required**. A array type to configure different CSV files.
+* `files`: **Required**. An array type to configure different CSV files.
 
 ```yaml
 logPath: ./err/test.log
@@ -75,7 +75,7 @@ files:
 
 One CSV file can only store one type of vertex or edge. Vertices and edges of different schema should be stored in different files.
 
-* `path`: **Required**. Specifies the path where the CSV data file is stored. If a relative path is used, the directory and path of the current configuration file are spliced.
+* `path`: **Required**. Specifies the path where the CSV data file is stored. If a relative path is used, the path and directory of the current configuration file are spliced.
 * `failDataPath`: **Required**. Specifies the file to insert the failed data output so that the error data is appended later.
 * `batchSize`: **Optional**. Specifies the batch size of the inserted data, the default value is 128.
 * `type & csv`:  **Required**. Specifies the file type. Currently only CSV is supported. You can specify whether to include the header and the inserted and deleted labels in the CSV file.
@@ -174,7 +174,7 @@ The first two columns indicate source vertex and dest vertex ID, the third is th
 
 There will be two csv data formats supported in the future. But now please use the first format which has no header line in your csv data file.
 
-### Without Header Line
+### With Header Line
 
 If the `csv.withHeader` is set to `true`, the first row of the CSV file is header.
 The format of each column is `<tag_name/edge_name>.<prop_name>:<prop_type>`:
@@ -265,7 +265,7 @@ After completing the configuration of the YAML file and the preparation of the (
 
 ### From Source code
 
-Nebula Importer is compiled with golang higher than **>=1.13**, so make sure that golang is installed on your system. The installation and configuration tutorial is referenced in [documentation] (docs/golang-install.md).
+Nebula Importer is compiled with golang higher than **>=1.13**, so make sure that golang is installed on your system. The installation and configuration tutorial is referenced in [documentation](docs/golang-install.md).
 
 Use `git` to clone the repository to local, go to the `nebula-importer/cmd` directory and execute the importer.
 
@@ -279,7 +279,7 @@ $ go run importer.go --config /path/to/yaml/config/file
 
 ### From Docker
 
-With Docker you don't have to install golang locally. Pull Nebula Importer's [Mirror](https://hub.docker.com/r/vesoft/nebula-importer) to import. The only thing to do is to mount the local configuration file and the CSV data file into the container as follows:
+With Docker you don't have to install golang locally. Pull Nebula Importer's [Docker Image](https://hub.docker.com/r/vesoft/nebula-importer) to import. The only thing to do is to mount the local configuration file and the CSV data file into the container as follows:
 
 ```bash
 $ docker run --rm -ti \
@@ -297,21 +297,21 @@ $ docker run --rm -ti \
 
 ## TODO
 
-* [X] Summary statistics of response
-* [X] Write error log and data
-* [X] Configure file
-* [X] Concurrent request to Graph server
-* [ ] Create space and tag/edge *utomatically
-* [ ] Configure retry option for Nebula *lient
-* [X] Support edge rank
-* [X] Support label for add/delete(+/-) *n first column
-* [X] Support column header in first line
-* [X] Support vid partition
-* [X] Support multi-tags insertion in *ertex
-* [X] Provide docker image and usage
-* [X] Make header adapt to props order *efined in schema of configure file
-* [X] Handle string column in nice way
-* [ ] Update concurrency and batch size *nline
-* [ ] Count duplicate vids
-* [X] Support VID generation automatically
-* [X] Output logs to file
+- [X] Summary statistics of response
+- [X] Write error log and data
+- [X] Configure file
+- [X] Concurrent request to Graph server
+- [ ] Create space and tag/edge automatically
+- [ ] Configure retry option for Nebula client
+- [X] Support edge rank
+- [X] Support label for add/delete(+/-) in first column
+- [X] Support column header in first line
+- [X] Support vid partition
+- [X] Support multi-tags insertion in vertex
+- [X] Provide docker image and usage
+- [X] Make header adapt to props order defined in schema of configure file
+- [X] Handle string column in nice way
+- [ ] Update concurrency and batch size online
+- [ ] Count duplicate vids
+- [X] Support VID generation automatically
+- [X] Output logs to file
