@@ -1,7 +1,7 @@
 <div align="center">
   <h1>Nebula Importer</h1>
   <div>
-    <a href="https://github.com/vesoft-inc/nebula-importer/blob/master/README-CN.md">中文</a>
+    <a href="https://github.com/vesoft-inc/nebula-importer/blob/master/README_zh-CN.md">中文</a>
   </div>
 </div>
 
@@ -174,7 +174,7 @@ The first two columns indicate source vertex and dest vertex ID, the third is th
 
 There will be two csv data formats supported in the future. But now please use the first format which has no header line in your csv data file.
 
-### Without Header Line
+### With Header Line
 
 If the `csv.withHeader` is set to `true`, the first row of the CSV file is header.
 The format of each column is `<tag_name/edge_name>.<prop_name>:<prop_type>`:
@@ -265,7 +265,7 @@ After completing the configuration of the YAML file and the preparation of the (
 
 ### From Source code
 
-Nebula Importer is compiled with golang higher than **>=1.13**, so make sure that golang is installed on your system. The installation and configuration tutorial is referenced in [documentation] (docs/golang-install.md).
+Nebula Importer is compiled with golang higher than **>=1.13**, so make sure that golang is installed on your system. The installation and configuration tutorial is referenced in [documentation](docs/golang-install.md).
 
 Use `git` to clone the repository to local, go to the `nebula-importer/cmd` directory and execute the importer.
 
@@ -279,7 +279,7 @@ $ go run importer.go --config /path/to/yaml/config/file
 
 ### From Docker
 
-With Docker you don't have to install golang locally. Pull Nebula Importer's [Mirror](https://hub.docker.com/r/vesoft/nebula-importer) to import. The only thing to do is to mount the local configuration file and the CSV data file into the container as follows:
+With Docker you don't have to install golang locally. Pull Nebula Importer's [Docker Image](https://hub.docker.com/r/vesoft/nebula-importer) to import. The only thing to do is to mount the local configuration file and the CSV data file into the container as follows:
 
 ```bash
 $ docker run --rm -ti \
