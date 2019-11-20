@@ -235,7 +235,7 @@ Math,1,3
 English,2,6
 ```
 
-`:IGNORE` is to specify that you want to ignore this row when importing data. All columns except the `:LABEL` column can be in any order. Thus, for a large CSV file, you can flexibly select the columns you need by setting the header.
+`:IGNORE` is to specify the row that you want to ignore when importing data. All columns except the `:LABEL` column can be in any order. Thus, for a large CSV file, you can flexibly select the columns you need by setting the header.
 
 > Because a VERTEX can contain multiple TAGs, the TAG name should be added to the header of the specified column (for example, it must be `course.credits`, rather than the abbreviated `credits`).
 
