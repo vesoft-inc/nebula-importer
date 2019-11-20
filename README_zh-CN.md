@@ -11,12 +11,13 @@
 
 Nebula Importer 是一款 [Nebula Graph](https://github.com/vesoft-inc/nebula) 的 CSV 文件导入工具, 其读取本地的 CSV 文件，然后写入到 Nebula Graph 图数据库中。
 
-在使用 Nebula Importer 之前，首先需要部署 Nebula Graph 的服务，并且在其中创建好对应的 `space`, `tag` 和 `edge` 元数据信息。目前有两种部署方式：
+在使用 Nebula Importer 之前，首先需要部署 Nebula Graph 的服务，并且在其中创建好对应的 `space`, `tag` 和 `edge` 元数据信息。目前有三种部署方式：
 
 1. [nebula-docker-compose](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose")
 2. [rpm 包安装](https://github.com/vesoft-inc/nebula/tree/master/docs/manual-EN/3.build-develop-and-administration/3.deploy-and-administrations/deployment)
+3. [源码编译安装](https://github.com/vesoft-inc/nebula/blob/master/docs/manual-EN/3.build-develop-and-administration/1.build/1.build-source-code.md)
 
-> 如果想在本地快速试用 Nebula Graph，推荐使用 `docker-compose` 在本地部署。
+> 如果想在本地快速试用 Nebula Graph，推荐使用 `docker-compose` 部署。
 
 ## 配置文件
 
@@ -192,7 +193,7 @@ example 中 choose 类型的边的样例数据：
 200,102,3
 ```
 
-前两列的数据分别为起点 VID 和终点 VID，第三列对应 choose.likeness 属性。（如果边中含有 rank 字段，请在第三列放置 rank 的值。之后的列依次放置各属性。）
+前两列的数据分别为起点 VID 和终点 VID，第三列对应 choose.likeness 属性（如果边中含有 rank 字段，请在第三列放置 rank 的值。之后的列依次放置各属性）。
 
 ### 含有 header 的数据格式
 
@@ -270,7 +271,7 @@ example 中 follow 边的示例：
 200,85.6,201,1
 ```
 
-可以看到，例子中，边的起点为 `:SRC_VID` （在第4列），边的终点为 `:DST_VID` （在第1列），边上的属性为 `follow.likeness:double`（在第2列），边的rank 字段对应`:RANK`（在第5列，如果不指定导入 `:RANK` 则系统默认为 0）。
+可以看到，例子中边的起点为 `:SRC_VID` （在第 4 列），边的终点为 `:DST_VID` （在第 1 列），边上的属性为 `follow.likeness:double`（在第 2 列），边的 rank 字段对应`:RANK`（在第 5 列，如果不指定导入 `:RANK` 则系统默认为 0）。
 
 ##### Label （可选）
 
@@ -285,7 +286,7 @@ example 中 follow 边的示例：
 
 ### 源码编译方式
 
-Nebula Importer 使用 **>=1.13** 版本的 golang 编译，所以首选确保在系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
+Nebula Importer 使用 **>=1.13** 版本的 golang 编译，所以首先确保在系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
 
 使用 `git` 克隆该仓库到本地，进入 `nebula-importer/cmd` 目录，直接执行即可。
 
@@ -314,24 +315,3 @@ $ docker run --rm -ti \
 - `{your-csv-data-dir}`：替换成本地 CSV 数据文件的绝对路径
 
 > 注意：通常建议在 files.path 中使用相对路径。但如果在 `files.path` 中使用本地绝对路径，则需要小心检查这个路径映射到 Docker 中的对应路径。
-
-## TODO
-
-- [X] Summary statistics of response
-- [X] Write error log and data
-- [X] Configure file
-- [X] Concurrent request to Graph server
-- [ ] Create space and tag/edge automatically
-- [ ] Configure retry option for Nebula client
-- [X] Support edge rank
-- [X] Support label for add/delete(+/-) in first column
-- [X] Support column header in first line
-- [X] Support vid partition
-- [X] Support multi-tags insertion in vertex
-- [X] Provide docker image and usage
-- [X] Make header adapt to props order defined in schema of configure file
-- [X] Handle string column in nice way
-- [ ] Update concurrency and batch size online
-- [ ] Count duplicate vids
-- [X] Support VID generation automatically
-- [X] Output logs to file
