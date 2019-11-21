@@ -9,11 +9,7 @@
 
 ## Introduction
 
-<<<<<<< HEAD
-Nebula Importer is a CSV import tool for [Nebula Graph](https://github.com/vesoft-inc/nebula). It can read and import data in local CSV files.
-=======
-Nebula Importer is a CSV import tool for [Nebula Graph](https://github.com/vesoft-inc/nebula-docker-compose). It reads data from CSV files and inserts to Nebula.
->>>>>>> 0a5f82e0ae2ce3b640f62a9f0ba65876e853cbd2
+Nebula Importer is a CSV import tool for [Nebula Graph](https://github.com/vesoft-inc/nebula-docker-compose). It reads data from CSV files and inserts it into Nebula.
 
 Before you start Nebula Importer, ensure:
 
@@ -30,11 +26,7 @@ Currently, there are three ways to deploy Nebula:
 
 ## Prepare Configuration File
 
-<<<<<<< HEAD
-Nebula-importer reads the CSV file to be imported and Nebula server data through the YAML configuration file. Here's an [example](example/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
-=======
 Nebula Importer reads the CSV file to be imported and Nebula server data through the YAML configuration file. Here's an [example](example/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
->>>>>>> 0a5f82e0ae2ce3b640f62a9f0ba65876e853cbd2
 
 ```yaml
 version: v1rc1
@@ -140,7 +132,7 @@ schema:
 `schema.edge` is a **required** parameter that describes the schema information of the inserted edge. Each edge contains the following three properties:
 
 * `name`: The edge's name.
-* `withRanking`: Specifies the `rank` value of the given edge, used to tell different edges share the same edge type and vertices.
+* `withRanking`: Specifies the `rank` value of the given edge, used to tell different edges to share the same edge type and vertices.
 * `props`: Same as the above tag. Please be noted the property order here must be the same with that of the corresponding data in the CSV data file.
 
 Details of all the configurations please refer to [Configuration Reference](docs/configuration-reference.md).
@@ -185,7 +177,7 @@ There will be two CSV data formats supported in the future. But now please use t
 
 ### With Header Line
 
-If the `csv.withHeader` is set to `true`, the first row of the CSV file is header.
+If the `csv.withHeader` is set to `true`, the first row of the CSV file is the header.
 The format of each column is `<tag_name/edge_name>.<prop_name>:<prop_type>`:
 
 * `<tag_name/edge_name>` is the name of the vertex or edge.
@@ -318,7 +310,7 @@ $ docker run --rm -ti \
 - [X] Support vid partition
 - [X] Support multi-tags insertion in vertex
 - [X] Provide docker image and usage
-- [X] Make header adapt to props order defined in the schema of configure file
+- [X] Make header adapt to props order defined in the schema of the configuration file
 - [X] Handle string column in an elegant way
 - [ ] Update concurrency and batch size online
 - [ ] Count duplicate vids
