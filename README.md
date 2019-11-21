@@ -9,7 +9,11 @@
 
 ## Introduction
 
+<<<<<<< HEAD
 Nebula Importer is a CSV import tool for [Nebula Graph](https://github.com/vesoft-inc/nebula). It can read and import data in local CSV files.
+=======
+Nebula Importer is a CSV import tool for [Nebula Graph](https://github.com/vesoft-inc/nebula-docker-compose). It reads data from CSV files and inserts to Nebula.
+>>>>>>> 0a5f82e0ae2ce3b640f62a9f0ba65876e853cbd2
 
 Before you start Nebula Importer, ensure:
 
@@ -26,7 +30,11 @@ Currently, there are three ways to deploy Nebula:
 
 ## Prepare Configuration File
 
+<<<<<<< HEAD
 Nebula-importer reads the CSV file to be imported and Nebula server data through the YAML configuration file. Here's an [example](example/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
+=======
+Nebula Importer reads the CSV file to be imported and Nebula server data through the YAML configuration file. Here's an [example](example/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
+>>>>>>> 0a5f82e0ae2ce3b640f62a9f0ba65876e853cbd2
 
 ```yaml
 version: v1rc1
@@ -236,7 +244,8 @@ Math,1,3
 English,2,6
 ```
 
-`:IGNORE` is to specify that you want to ignore this column when importing data. All columns except the `:LABEL` column can be in any order. Thus, for a large CSV file, you can flexibly select the columns you need by setting the header.
+
+`:IGNORE` is to specify the column that you want to ignore when importing data. All columns except the `:LABEL` column can be in any order. Thus, for a large CSV file, you can flexibly select the columns you need by setting the header.
 
 > Because a VERTEX can contain multiple TAGs, the TAG name should be added to the header of the specified column (for example, it must be `course.credits`, rather than the abbreviated `credits`).
 
@@ -257,7 +266,7 @@ In the preceding example, the source vertex of the edge is `:SRC_VID` (in column
 * `+` means inserting
 * `-` means deleting
 
-You can also specify label in edge CSV file header the same way with vertex.
+The same with vertex, you can specify label in edge CSV file header the same way with vertex.
 
 ## Use This Importer Tool by Source Code or Docker
 
