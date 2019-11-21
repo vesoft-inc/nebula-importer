@@ -9,7 +9,7 @@
 
 ## Introduction
 
-Nebula Importer is a CSV import tool for [Nebula Graph](https://github.com/vesoft-inc/nebula-docker-compose). It reads data from CSV files and inserts it into Nebula.
+Nebula Importer is a CSV import tool for [Nebula Graph](https://github.com/vesoft-inc/nebula). It reads data from CSV files and inserts it into Nebula.
 
 Before you start Nebula Importer, ensure:
 
@@ -236,7 +236,6 @@ Math,1,3
 English,2,6
 ```
 
-
 `:IGNORE` is to specify the column that you want to ignore when importing data. All columns except the `:LABEL` column can be in any order. Thus, for a large CSV file, you can flexibly select the columns you need by setting the header.
 
 > Because a VERTEX can contain multiple TAGs, the TAG name should be added to the header of the specified column (for example, it must be `course.credits`, rather than the abbreviated `credits`).
@@ -258,7 +257,7 @@ In the preceding example, the source vertex of the edge is `:SRC_VID` (in column
 * `+` means inserting
 * `-` means deleting
 
-The same with vertex, you can specify label in edge CSV file header the same way with vertex.
+The same with vertex, you can specify label in edge CSV file.
 
 ## Use This Importer Tool by Source Code or Docker
 
@@ -280,7 +279,7 @@ $ go run importer.go --config /path/to/yaml/config/file
 
 ### From Docker
 
-With Docker, you don't have to install golang locally. Pull Nebula Importer's [Docker Image](https://hub.docker.com/r/vesoft/nebula-importer) to import. The only thing to do is to mount the local configuration file and the CSV data file into the container as follows:
+With Docker, you don't have to install golang locally. Pull Nebula Importer's [Docker Image](https://hub.docker.com/r/vesoft/nebula-importer) to import. The only thing to do is to mount the local configuration file and the CSV data files into the container as follows:
 
 ```bash
 $ docker run --rm -ti \
