@@ -19,11 +19,11 @@ go build -o ../../nebula-importer
 popd
 
 until echo "quit" | ./bin/nebula -u user -p password --addr=$addr --port=$port &> /dev/null; do
-  >&2 echo "nebula graph is unavailable - sleeping"
-  sleep 1
+  echo "nebula graph is unavailable - sleeping"
+  sleep 2
 done
 
->&2 echo "nebula graph is up - executing command"
+echo "nebula graph is up - executing command"
 cat ./importer/examples/example.ngql | ./bin/nebula -u user -p password --addr=$addr --port=$port
 sleep 5
 ./nebula-importer --config ./importer/examples/example.yaml

@@ -58,7 +58,7 @@ func (s *StatsMgr) print(prefix string, now time.Time) {
 	avgLatency := s.totalLatency / s.totalBatches
 	avgReq := s.totalReqTime / s.totalBatches
 	rps := float64(s.totalCount) / secs
-	logger.Log.Printf("%s: Time(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%dus), Rows AVG(%.2f/s)",
+	logger.Infof("%s: Time(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%dus), Rows AVG(%.2f/s)",
 		prefix, secs, s.totalCount, s.NumFailed, avgLatency, avgReq, rps)
 }
 
@@ -86,7 +86,7 @@ func (s *StatsMgr) startWorker(numReadingFiles int) {
 					s.DoneCh <- true
 				}
 			default:
-				logger.Log.Fatalf("Error stats type: %s", stat.Type)
+				logger.Fatalf("Error stats type: %s", stat.Type)
 			}
 		}
 	}

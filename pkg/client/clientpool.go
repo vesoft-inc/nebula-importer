@@ -48,10 +48,10 @@ func (p *ClientPool) Close() {
 	for i := 0; i < p.concurrency; i++ {
 		if p.Conns[i] != nil {
 			if resp, err := p.Conns[i].Execute(stmt); err != nil {
-				logger.Log.Printf("Client %d fails to open compaction option when close connection, error: %s", i, err)
+				logger.Errorf("Client %d fails to open compaction option when close connection, error: %s", i, err)
 			} else {
 				if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-					logger.Log.Printf("Client %d fails to open compaction option when close connection, error code: %v, message: %s", i, resp.GetErrorCode(), resp.GetErrorMsg())
+					logger.Errorf("Client %d fails to open compaction option when close connection, error code: %v, message: %s", i, resp.GetErrorCode(), resp.GetErrorMsg())
 				}
 			}
 			p.Conns[i].Disconnect()

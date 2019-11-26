@@ -287,7 +287,7 @@ func (p *Prop) IsStringType() bool {
 
 func (p *Prop) FormatValue(record base.Record) string {
 	if p.Index >= len(record) {
-		logger.Log.Fatalf("Prop index %d out range %d of record(%v)", p.Index, len(record), record)
+		logger.Fatalf("Prop index %d out range %d of record(%v)", p.Index, len(record), record)
 	}
 	r := record[p.Index]
 	if p.IsStringType() {

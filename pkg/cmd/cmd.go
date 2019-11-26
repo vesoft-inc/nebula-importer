@@ -22,7 +22,7 @@ func Run(conf string) error {
 
 	now := time.Now()
 	defer func() {
-		logger.Log.Printf("Finish import data, consume time: %.2fs", time.Since(now).Seconds())
+		logger.Infof("Finish import data, consume time: %.2fs", time.Since(now).Seconds())
 	}()
 
 	statsMgr := stats.NewStatsMgr(len(yaml.Files))

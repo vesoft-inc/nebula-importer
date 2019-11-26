@@ -45,7 +45,7 @@ func (bm *BatchMgr) Done() {
 
 func (bm *BatchMgr) InitSchema(header base.Record) {
 	if bm.initializedSchema {
-		logger.Log.Println("Batch manager schema has been initialized!")
+		logger.Info("Batch manager schema has been initialized!")
 		return
 	}
 	bm.initializedSchema = true
@@ -192,7 +192,7 @@ func getBatchId(idStr string, numChans int) uint32 {
 
 func makeStmt(batch []base.Data, f func([]base.Data) string) string {
 	if len(batch) == 0 {
-		logger.Log.Fatal("Make stmt for empty batch")
+		logger.Fatal("Make stmt for empty batch")
 	}
 
 	if len(batch) == 1 {
@@ -223,7 +223,7 @@ func (m *BatchMgr) makeVertexBatchStmt(batch []base.Data) string {
 	case base.DELETE:
 		return m.makeVertexDeleteStmt(batch)
 	default:
-		logger.Log.Fatalf("Invalid data type: %s", batch[length-1].Type)
+		logger.Fatalf("Invalid data type: %s", batch[length-1].Type)
 		return ""
 	}
 }
@@ -263,9 +263,9 @@ func (m *BatchMgr) makeEdgeBatchStmt(batch []base.Data) string {
 	case base.INSERT:
 		return m.makeEdgeInsertStmt(batch)
 	case base.DELETE:
-		logger.Log.Fatal("Unsupported delete edge")
+		logger.Fatal("Unsupported delete edge")
 	default:
-		logger.Log.Fatalf("Invalid data type: %s", batch[length-1].Type)
+		logger.Fatalf("Invalid data type: %s", batch[length-1].Type)
 	}
 	return ""
 }
