@@ -91,8 +91,12 @@ func (p *ClientPool) startWorker(i int) {
 
 		now := time.Now()
 		resp, err := p.Conns[i].Execute(data.Stmt)
-		if err == nil && resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-			err = fmt.Errorf("Client %d fail to execute: %s, ErrMsg: %s, ErrCode: %v", i, data.Stmt, resp.GetErrorMsg(), resp.GetErrorCode())
+		if err != nil {
+			err = fmt.Errorf("Client %d fail to execute: %s, Error: %s", i, data.Stmt, err.Error())
+		} else {
+			if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
+				err = fmt.Errorf("Client %d fail to execute: %s, ErrMsg: %s, ErrCode: %v", i, data.Stmt, resp.GetErrorMsg(), resp.GetErrorCode())
+			}
 		}
 
 		if err != nil {

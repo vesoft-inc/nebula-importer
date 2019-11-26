@@ -57,9 +57,9 @@ func (s *StatsMgr) print(prefix string, now time.Time) {
 	secs := time.Since(now).Seconds()
 	avgLatency := s.totalLatency / s.totalBatches
 	avgReq := s.totalReqTime / s.totalBatches
-	qps := float64(s.totalCount) / secs
+	rps := float64(s.totalCount) / secs
 	logger.Log.Printf("%s: Time(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%dus), Rows AVG(%.2f/s)",
-		prefix, secs, s.totalCount, s.NumFailed, avgLatency, avgReq, qps)
+		prefix, secs, s.totalCount, s.NumFailed, avgLatency, avgReq, rps)
 }
 
 func (s *StatsMgr) startWorker(numReadingFiles int) {
