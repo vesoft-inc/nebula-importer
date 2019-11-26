@@ -28,7 +28,7 @@ Currently, there are three ways to deploy Nebula:
 
 ## Prepare Configuration File
 
-Nebula Importer reads the CSV file to be imported and Nebula server data through the YAML configuration file. Here's an [example](example/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
+Nebula Importer reads the CSV file to be imported and Nebula server data through the YAML configuration file. Here's an [example](examples/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
 
 ```yaml
 version: v1rc1

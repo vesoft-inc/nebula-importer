@@ -24,6 +24,6 @@ until echo "quit" | ./bin/nebula -u user -p password --addr=$addr --port=$port &
 done
 
 >&2 echo "nebula graph is up - executing command"
-cat ./importer/example/example.ngql | ./bin/nebula -u user -p password --addr=$addr --port=$port
+cat ./importer/examples/example.ngql | ./bin/nebula -u user -p password --addr=$addr --port=$port
 sleep 5
-./nebula-importer --config ./importer/example/example.yaml
+./nebula-importer --config ./importer/examples/example.yaml
