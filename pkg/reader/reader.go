@@ -54,13 +54,13 @@ func (r *FileReader) Read() error {
 
 	lineNum, numErrorLines := 0, 0
 
-	logger.Log.Printf("Start to read file: %s", r.File.Path)
+	logger.Infof("Start to read file: %s", r.File.Path)
 
 	for {
 		data, err := r.DataReader.ReadLine()
 		if err == io.EOF {
 			r.BatchMgr.Done()
-			logger.Log.Printf("Total lines of file(%s) is: %d, error lines: %d, schema: <%s>", r.File.Path, lineNum, numErrorLines, r.BatchMgr.Schema.String())
+			logger.Infof("Total lines of file(%s) is: %d, error lines: %d, schema: <%s>", r.File.Path, lineNum, numErrorLines, r.BatchMgr.Schema.String())
 			break
 		}
 
@@ -75,7 +75,7 @@ func (r *FileReader) Read() error {
 		}
 
 		if err != nil {
-			logger.Log.Printf("Fail to read line %d, error: %s", lineNum, err.Error())
+			logger.Errorf("Fail to read line %d, error: %s", lineNum, err.Error())
 			numErrorLines++
 		}
 	}

@@ -12,25 +12,41 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/stats"
 )
 
-func Run(conf string) error {
+type Runner struct {
+	err error
+}
+
+func (r *Runner) Error() error {
+	return r.err
+}
+
+func (r *Runner) Run(conf string) {
+	now := time.Now()
+	defer func() {
+		if re := recover(); re != nil {
+			r.err = fmt.Errorf("%v", re)
+		} else {
+			if r.err == nil {
+				logger.Infof("Finish import data, consume time: %.2fs", time.Since(now).Seconds())
+			}
+		}
+	}()
+
 	yaml, err := config.Parse(conf)
 	if err != nil {
-		return err
+		r.err = err
+		return
 	}
 
 	logger.Init(yaml.LogPath)
-
-	now := time.Now()
-	defer func() {
-		logger.Log.Printf("Finish import data, consume time: %.2fs", time.Since(now).Seconds())
-	}()
 
 	statsMgr := stats.NewStatsMgr(len(yaml.Files))
 	defer statsMgr.Close()
 
 	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
 	if err != nil {
-		return err
+		r.err = err
+		return
 	}
 	defer clientMgr.Close()
 
@@ -40,21 +56,23 @@ func Run(conf string) error {
 		// TODO: skip files with error
 		errCh, err := errHandler.Init(file, yaml.NebulaClientSettings.Concurrency)
 		if err != nil {
-			return err
+			r.err = err
+			return
 		}
 
-		if r, err := reader.New(file, clientMgr.GetRequestChans(), errCh); err != nil {
-			return err
+		if fr, err := reader.New(file, clientMgr.GetRequestChans(), errCh); err != nil {
+			r.err = err
+			return
 		} else {
-			go r.Read()
+			go fr.Read()
 		}
 	}
 
 	<-statsMgr.DoneCh
 
 	if statsMgr.NumFailed > 0 {
-		return fmt.Errorf("Total %d lines fail to insert to nebula", statsMgr.NumFailed)
+		r.err = fmt.Errorf("Total %d lines fail to insert to nebula", statsMgr.NumFailed)
+	} else {
+		r.err = nil
 	}
-
-	return nil
 }

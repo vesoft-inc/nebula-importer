@@ -48,14 +48,14 @@ func (w *Handler) Init(file config.File, concurrency int) (chan base.ErrData, er
 				}
 			} else {
 				dataWriter.Write(rawErr.Data)
-				logger.Log.Println(rawErr.Error.Error())
+				logger.Error(rawErr.Error.Error())
 				w.statsCh <- base.NewFailureStats(len(rawErr.Data))
 			}
 		}
 
 		dataWriter.Flush()
 		if dataWriter.Error() != nil {
-			logger.Log.Println(dataWriter.Error())
+			logger.Error(dataWriter.Error())
 		}
 		w.statsCh <- base.NewFileDoneStats(file.Path)
 	}()

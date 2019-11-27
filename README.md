@@ -21,14 +21,14 @@ Before you start Nebula Importer, ensure:
 Currently, there are three ways to deploy Nebula:
 
 1. [nebula-docker-compose](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose")
-2. [rpm Package](https://github.com/vesoft-inc/nebula/tree/master/docs/manual-EN/3.build-develop-and-administration/3.deploy-and-administrations/deployment)
+2. [rpm package](https://github.com/vesoft-inc/nebula/tree/master/docs/manual-EN/3.build-develop-and-administration/3.deploy-and-administrations/deployment)
 3. [from source](https://github.com/vesoft-inc/nebula/blob/master/docs/manual-EN/3.build-develop-and-administration/1.build/1.build-source-code.md)
 
 > The quickest way to deploy Nebula Graph is using [`docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose).
 
 ## Prepare Configuration File
 
-Nebula Importer reads the CSV file to be imported and Nebula server data through the YAML configuration file. Here's an [example](example/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
+Nebula Importer reads the CSV file to be imported and Nebula server data through the YAML configuration file. Here's an [example](examples/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
 
 ```yaml
 version: v1rc1

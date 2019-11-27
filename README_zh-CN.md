@@ -23,7 +23,7 @@ Nebula Importer 是一款 [Nebula Graph](https://github.com/vesoft-inc/nebula) �
 
 ## 配置文件
 
-Nebula Importer 通过 YAML 配置文件来描述要导入的文件信息、Nebula Graph 的 server 信息等。[这里](example/)有一个配置文件的参考样例和对应的数据文件格式。接下来逐一解释各个选项的含义：
+Nebula Importer 通过 YAML 配置文件来描述要导入的文件信息、Nebula Graph 的 server 信息等。[这里](examples/)有一个配置文件的参考样例和对应的数据文件格式。接下来逐一解释各个选项的含义：
 
 ```yaml
 version: v1rc1

@@ -11,7 +11,10 @@ var configuration = flag.String("config", "", "Specify importer configure file p
 func main() {
 	flag.Parse()
 
-	if err := cmd.Run(*configuration); err != nil {
-		panic(err)
+	runner := &cmd.Runner{}
+	runner.Run(*configuration)
+
+	if runner.Error() != nil {
+		panic(runner.Error())
 	}
 }
