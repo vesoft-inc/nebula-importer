@@ -11,24 +11,24 @@
 
 ## Introduction
 
-Nebula Importer is a CSV import tool for [Nebula Graph](https://github.com/vesoft-inc/nebula). It reads data from CSV files and inserts it into Nebula.
+Nebula Importer is a CSV import tool for [Nebula Graph](https://github.com/vesoft-inc/nebula). It reads data from CSV files and inserts it into **Nebula Graph**.
 
 Before you start Nebula Importer, ensure:
 
-* Nebula Graph is deployed
+* **Nebula Graph** is deployed
 * Schema is created
 
-Currently, there are three ways to deploy Nebula:
+Currently, there are three ways to deploy **Nebula Graph**:
 
 1. [nebula-docker-compose](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose")
 2. [rpm package](https://github.com/vesoft-inc/nebula/tree/master/docs/manual-EN/3.build-develop-and-administration/3.deploy-and-administrations/deployment)
 3. [from source](https://github.com/vesoft-inc/nebula/blob/master/docs/manual-EN/3.build-develop-and-administration/1.build/1.build-source-code.md)
 
-> The quickest way to deploy Nebula Graph is using [`docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose).
+> The quickest way to deploy **Nebula Graph** is using [`docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose).
 
 ## Prepare Configuration File
 
-Nebula Importer reads the CSV file to be imported and Nebula server data through the YAML configuration file. Here's an [example](examples/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
+Nebula Importer reads the CSV file to be imported and **Nebula Graph** server data through the YAML configuration file. Here's an [example](examples/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
 
 ```yaml
 version: v1rc1
@@ -37,7 +37,7 @@ description: example
 
 * `version` is a **required** parameter that indicates the configure file's version, the default version is `v2rc1`.
 * `description` is an **optional** parameter that describes the configure file.
-* `clientSettings` takes care of all the Nebula related configurations.
+* `clientSettings` takes care of all the **Nebula Graph** related configurations.
 
 ```yaml
 clientSettings:
@@ -50,10 +50,10 @@ clientSettings:
     address: 127.0.0.1:3699
 ```
 
-* `clientSettings.concurrency` is an optional parameter that shows the concurrency of Nebula Graph Client, i.e. the connection number of Nebula Graph Server, the default value is 10.
-* `clientSettings.channelBufferSize` is an optional parameter that shows the buffer size of the cache queue for each Nebula Graph Client, the default value is 128.
+* `clientSettings.concurrency` is an optional parameter that shows the concurrency of **Nebula Graph** Client, i.e. the connection number of **Nebula Graph** Server, the default value is 10.
+* `clientSettings.channelBufferSize` is an optional parameter that shows the buffer size of the cache queue for each **Nebula Graph** Client, the default value is 128.
 * `clientSettings.space` is a **required** parameter that specifies which `space` the data will be importing into. Do not import data to multiple spaces at one time for performance sake.
-* `clientSettings.connection` is a **required** parameter that contains the `user`, `password` and `address` information of Nebula Graph Server.
+* `clientSettings.connection` is a **required** parameter that contains the `user`, `password` and `address` information of **Nebula Graph** Server.
 
 ### Files
 
@@ -113,7 +113,7 @@ Each tag contains the following two properties:
 
 * `name`: The tag's name.
 * `prop`: The tag's properties. Each property contains the following two fields:
-  * `name`: The property name, the same with the tag property in Nebula Graph
+  * `name`: The property name, the same with the tag property in **Nebula Graph**
   * `type`: The property type, currently support `bool`, `int`, `float`, `double`, `timestamp` and `string`.
 
 > Note: The order of properties in the above props must be the same as that of the corresponding data in the CSV data file.
@@ -263,7 +263,7 @@ The same with vertex, you can specify label in edge CSV file.
 
 ## Use This Importer Tool by Source Code or Docker
 
-After completing the configuration of the YAML file and the preparation of the (to be imported) CSV data file, you can use this tool to batch write to Nebula.
+After completing the configuration of the YAML file and the preparation of the (to be imported) CSV data file, you can use this tool to batch write to **Nebula Graph**.
 
 ### From Source code
 
