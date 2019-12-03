@@ -11,19 +11,19 @@
 
 ## 介绍
 
-Nebula Importer 是一款 [Nebula Graph](https://github.com/vesoft-inc/nebula) 的 CSV 文件导入工具, 其读取本地的 CSV 文件，然后写入到 Nebula Graph 图数据库中。
+Nebula Importer 是一款 [Nebula Graph](https://github.com/vesoft-inc/nebula) 的 CSV 文件导入工具，其读取本地的 CSV 文件，然后写入到 Nebula Graph 图数据库中。
 
-在使用 Nebula Importer 之前，首先需要部署 Nebula Graph 的服务，并且在其中创建好对应的 `space`, `tag` 和 `edge` 元数据信息。目前有三种部署方式：
+在使用 Nebula Importer 之前，首先需要部署 **Nebula Graph** 的服务，并且在其中创建好对应的 `space`、`tag` 和 `edge` 元数据信息。目前有三种部署方式：
 
 1. [nebula-docker-compose](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose")
 2. [rpm 包安装](https://github.com/vesoft-inc/nebula/tree/master/docs/manual-EN/3.build-develop-and-administration/3.deploy-and-administrations/deployment)
 3. [源码编译安装](https://github.com/vesoft-inc/nebula/blob/master/docs/manual-EN/3.build-develop-and-administration/1.build/1.build-source-code.md)
 
-> 如果想在本地快速试用 Nebula Graph，推荐使用 `docker-compose` 部署。
+> 如果想在本地快速试用 **Nebula Graph**，推荐使用 `docker-compose` 部署。
 
 ## 配置文件
 
-Nebula Importer 通过 YAML 配置文件来描述要导入的文件信息、Nebula Graph 的 server 信息等。[这里](examples/)有一个配置文件的参考样例和对应的数据文件格式。接下来逐一解释各个选项的含义：
+Nebula Importer 通过 YAML 配置文件来描述要导入的文件信息、**Nebula Graph** 的 server 信息等。[这里](examples/)有一个配置文件的参考样例和对应的数据文件格式。接下来逐一解释各个选项的含义：
 
 ```yaml
 version: v1rc1
@@ -40,7 +40,7 @@ description: example
 
 ### `clientSettings`
 
-跟 Nebula Graph 服务端相关的配置均在该字段下配置。
+跟 **Nebula Graph** 服务端相关的配置均在该字段下配置。
 
 ```yaml
 clientSettings:
@@ -55,11 +55,11 @@ clientSettings:
 
 #### `clientSettings.concurrency`
 
-**可选**。表示 Nebula Graph Client 的并发度，即同 Nebula Graph Server 的连接数，默认为 10。
+**可选**。表示 **Nebula Graph** Client 的并发度，即同 **Nebula Graph** Server 的连接数，默认为 10。
 
 #### `clientSettings.channelBufferSize`
 
-**可选**。表示每个 Nebula Graph Client 对应的缓存队列 (channel) 的 buffer 大小，默认为 128。
+**可选**。表示每个 **Nebula Graph** Client 对应的缓存队列 (channel) 的 buffer 大小，默认为 128。
 
 #### `clientSettings.space`
 
@@ -67,7 +67,7 @@ clientSettings:
 
 #### `clientSettings.connection`
 
-**必填**。配置 Nebula Graph Server 的 `user`，`password` 和 `address` 信息。
+**必填**。配置 **Nebula Graph** Server 的 `user`，`password` 和 `address` 信息。
 
 ### 文件
 
@@ -141,8 +141,8 @@ files:
 
 - `name`：TAG 的名字
 - `props`：TAG 的属性字段数组，每个属性字段又由如下两个字段构成：
-  - `name`: 属性名字，同 Nebula Graph 中创建的 TAG 的属性名字一致。
-  - `type`: 属性类型，目前支持 `bool`，`int`，`float`，`double`，`timestamp` 和 `string` 几种类型。
+  - `name`: 属性名字，同 **Nebula Graph** 中创建的 TAG 的属性名字一致。
+  - `type`: 属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp` 和 `string` 几种类型。
 
 > 注意: 上述 props 中的属性描述**顺序**必须同数据文件中的对应数据排列顺序一致。
 
@@ -161,7 +161,7 @@ files:
 
 **必填**。描述插入边的 schema 信息。含有如下三个字段：
 
-- `name`：边的名字，同 Nebula Graph 中创建的 edge 名字一致。
+- `name`：边的名字，同 **Nebula Graph** 中创建的 edge 名字一致。
 - `withRanking`：指定该边是否有 `rank` 值，用来区分同顶点同类型的不同边。
 - `props`：描述同上述顶点，同样需要注意跟数据文件中列的排列顺序一致。
 
@@ -184,7 +184,7 @@ example 中 course 顶点的样例数据：
 102,English,6,No11
 ```
 
-第一列为顶点的 `VID`。后面三列为属性值，分别按序对应配置文件中的course.name, course.credits 和 building.name（见 `vertex.tags.props`）。
+第一列为顶点的 `VID`。后面三列为属性值，分别按序对应配置文件中的 course.name、course.credits 和 building.name（见 `vertex.tags.props`）。
 
 #### 边示例
 
@@ -273,7 +273,7 @@ example 中 follow 边的示例：
 200,85.6,201,1
 ```
 
-可以看到，例子中边的起点为 `:SRC_VID` （在第 4 列），边的终点为 `:DST_VID` （在第 1 列），边上的属性为 `follow.likeness:double`（在第 2 列），边的 rank 字段对应`:RANK`（在第 5 列，如果不指定导入 `:RANK` 则系统默认为 0）。
+可以看到，例子中边的起点为 `:SRC_VID` （在第 4 列），边的终点为 `:DST_VID`（在第 1 列），边上的属性为 `follow.likeness:double`（在第 2 列），边的 rank 字段对应`:RANK`（在第 5 列，如果不指定导入 `:RANK` 则系统默认为 0）。
 
 ##### Label （可选）
 
@@ -284,7 +284,7 @@ example 中 follow 边的示例：
 
 ## 通过源码编译方式或者 Docker 方式使用本工具
 
-在完成 YAML 配置文件和（待导入） csv 数据文件准备后，就可以使用本工具向 Nebula 批量写入。
+在完成 YAML 配置文件和（待导入） csv 数据文件准备后，就可以使用本工具向 **Nebula Graph** 批量写入。
 
 ### 源码编译方式
 
@@ -317,3 +317,25 @@ $ docker run --rm -ti \
 - `{your-csv-data-dir}`：替换成本地 CSV 数据文件的绝对路径
 
 > 注意：通常建议在 files.path 中使用相对路径。但如果在 `files.path` 中使用本地绝对路径，则需要小心检查这个路径映射到 Docker 中的对应路径。
+
+## TODO
+
+- [X] Summary statistics of response
+- [X] Write error log and data
+- [X] Configure file
+- [X] Concurrent request to Graph server
+- [ ] Create space and tag/edge automatically
+- [ ] Configure retry option for Nebula client
+- [X] Support edge rank
+- [X] Support label for add/delete(+/-) in first column
+- [X] Support column header in the first line
+- [X] Support vid partition
+- [X] Support multi-tags insertion in vertex
+- [X] Provide docker image and usage
+- [X] Make header adapt to props order defined in the schema of the configuration file
+- [X] Handle string column in an elegant way
+- [ ] Update concurrency and batch size online
+- [ ] Count duplicate vids
+- [X] Support VID generation automatically
+- [X] Output logs to file
+
