@@ -88,7 +88,7 @@ services:
     volumes:
       - .:/usr/local/nebula/importer:ro
     entrypoint:
-      - ./importer/scripts/bootstrap.sh
+      - ./importer/ci/bootstrap.sh
       - "172.28.3.1"
       - "3699"
     depends_on:
