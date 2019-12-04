@@ -5,7 +5,7 @@ import (
 	"time"
 
 	nebula "github.com/vesoft-inc/nebula-go"
-	"github.com/vesoft-inc/nebula-go/graph"
+	"github.com/vesoft-inc/nebula-go/nebula/graph"
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
