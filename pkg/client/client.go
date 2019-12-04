@@ -2,17 +2,15 @@ package client
 
 import (
 	nebula "github.com/vesoft-inc/nebula-go"
-
-	"github.com/vesoft-inc/nebula-importer/pkg/config"
 )
 
-func NewNebulaConnection(conn config.NebulaClientConnection) (*nebula.GraphClient, error) {
-	client, err := nebula.NewClient(conn.Address)
+func NewNebulaConnection(addr, user, password string) (*nebula.GraphClient, error) {
+	client, err := nebula.NewClient(addr)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = client.Connect(conn.User, conn.Password); err != nil {
+	if err = client.Connect(user, password); err != nil {
 		return nil, err
 	}
 	return client, nil

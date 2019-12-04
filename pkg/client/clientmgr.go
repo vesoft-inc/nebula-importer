@@ -25,7 +25,7 @@ func NewNebulaClientMgr(settings config.NebulaClientSettings, statsCh chan<- bas
 		mgr.pool = pool
 	}
 
-	logger.Infof("Create %d Nebula Graph clients", mgr.config.Concurrency)
+	logger.Infof("Create %d Nebula Graph clients", mgr.GetNumConnections())
 
 	return &mgr, nil
 }
@@ -36,4 +36,8 @@ func (m *NebulaClientMgr) Close() {
 
 func (m *NebulaClientMgr) GetRequestChans() []chan base.ClientRequest {
 	return m.pool.requestChs
+}
+
+func (m *NebulaClientMgr) GetNumConnections() int {
+	return len(m.pool.requestChs)
 }

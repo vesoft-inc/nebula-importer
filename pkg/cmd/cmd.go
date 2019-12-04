@@ -54,7 +54,7 @@ func (r *Runner) Run(conf string) {
 
 	for _, file := range yaml.Files {
 		// TODO: skip files with error
-		errCh, err := errHandler.Init(file, yaml.NebulaClientSettings.Concurrency)
+		errCh, err := errHandler.Init(file, clientMgr.GetNumConnections())
 		if err != nil {
 			r.err = err
 			return
