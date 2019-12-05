@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	nebula "github.com/vesoft-inc/nebula-go"
@@ -21,22 +22,24 @@ type ClientPool struct {
 
 func NewClientPool(settings config.NebulaClientSettings, statsCh chan<- base.Stats) (*ClientPool, error) {
 	pool := ClientPool{
-		concurrency: settings.Concurrency,
-		space:       settings.Space,
-		statsCh:     statsCh,
+		space:   settings.Space,
+		statsCh: statsCh,
 	}
-	pool.Conns = make([]*nebula.GraphClient, settings.Concurrency)
-	pool.requestChs = make([]chan base.ClientRequest, settings.Concurrency)
-	for i := 0; i < settings.Concurrency; i++ {
-		if conn, err := NewNebulaConnection(settings.Connection); err != nil {
-			return nil, err
-		} else {
-			pool.Conns[i] = conn
-			chanBufferSize := 128
-			if settings.ChannelBufferSize > 0 {
-				chanBufferSize = settings.ChannelBufferSize
+	addrs := strings.Split(settings.Connection.Address, ",")
+	pool.concurrency = settings.Concurrency * len(addrs)
+	pool.Conns = make([]*nebula.GraphClient, pool.concurrency)
+	pool.requestChs = make([]chan base.ClientRequest, pool.concurrency)
+
+	j := 0
+	for _, addr := range addrs {
+		for i := 0; i < settings.Concurrency; i++ {
+			if conn, err := NewNebulaConnection(strings.TrimSpace(addr), settings.Connection.User, settings.Connection.Password); err != nil {
+				return nil, err
+			} else {
+				pool.Conns[j] = conn
+				pool.requestChs[j] = make(chan base.ClientRequest, settings.ChannelBufferSize)
+				j++
 			}
-			pool.requestChs[i] = make(chan base.ClientRequest, chanBufferSize)
 		}
 	}
 
