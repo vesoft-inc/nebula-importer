@@ -19,22 +19,22 @@ type DataFileReader interface {
 
 // FIXME: private fields
 type FileReader struct {
-	File        config.File
+	File        *config.File
 	DataReader  DataFileReader
 	Concurrency int
 	BatchMgr    *BatchMgr
 }
 
-func New(file config.File, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) (*FileReader, error) {
-	switch strings.ToLower(file.Type) {
+func New(file *config.File, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) (*FileReader, error) {
+	switch strings.ToLower(*file.Type) {
 	case "csv":
 		r := csv.CSVReader{CSVConfig: file.CSV}
 		reader := FileReader{
 			DataReader: &r,
 			File:       file,
 		}
-		reader.BatchMgr = NewBatchMgr(file.Schema, file.BatchSize, clientRequestChs, errCh)
-		if !file.CSV.WithHeader {
+		reader.BatchMgr = NewBatchMgr(file.Schema, *file.BatchSize, clientRequestChs, errCh)
+		if !*file.CSV.WithHeader {
 			reader.BatchMgr.InitSchema(strings.Split(file.Schema.String(), ","))
 		}
 		return &reader, nil
@@ -44,7 +44,7 @@ func New(file config.File, clientRequestChs []chan base.ClientRequest, errCh cha
 }
 
 func (r *FileReader) Read() error {
-	file, err := os.Open(r.File.Path)
+	file, err := os.Open(*r.File.Path)
 	if err != nil {
 		return err
 	}
@@ -54,13 +54,13 @@ func (r *FileReader) Read() error {
 
 	lineNum, numErrorLines := 0, 0
 
-	logger.Infof("Start to read file: %s", r.File.Path)
+	logger.Infof("Start to read file: %s", *r.File.Path)
 
 	for {
 		data, err := r.DataReader.ReadLine()
 		if err == io.EOF {
 			r.BatchMgr.Done()
-			logger.Infof("Total lines of file(%s) is: %d, error lines: %d, schema: <%s>", r.File.Path, lineNum, numErrorLines, r.BatchMgr.Schema.String())
+			logger.Infof("Total lines of file(%s) is: %d, error lines: %d, schema: <%s>", *r.File.Path, lineNum, numErrorLines, r.BatchMgr.Schema.String())
 			break
 		}
 

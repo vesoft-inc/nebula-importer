@@ -38,7 +38,7 @@ func (r *Runner) Run(conf string) {
 		return
 	}
 
-	logger.Init(yaml.LogPath)
+	logger.Init(*yaml.LogPath)
 
 	statsMgr := stats.NewStatsMgr(len(yaml.Files))
 	defer statsMgr.Close()

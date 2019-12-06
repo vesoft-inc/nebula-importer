@@ -12,23 +12,37 @@ import (
 )
 
 type BatchMgr struct {
-	Schema            config.Schema
+	Schema            *config.Schema
 	Batches           []*Batch
 	InsertStmtPrefix  string
 	initializedSchema bool
 }
 
-func NewBatchMgr(schema config.Schema, batchSize int, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) *BatchMgr {
+func NewBatchMgr(schema *config.Schema, batchSize int, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) *BatchMgr {
 	bm := BatchMgr{
-		Schema:            schema,
+		Schema:            &config.Schema{},
 		Batches:           make([]*Batch, len(clientRequestChs)),
 		initializedSchema: false,
 	}
 
-	if schema.IsVertex() {
-		bm.Schema.Vertex.Tags = nil
+	bm.Schema.Type = schema.Type
+
+	if bm.Schema.IsVertex() {
+		index := 0
+		bm.Schema.Vertex = &config.Vertex{
+			VID:  &config.VID{Index: &index},
+			Tags: []*config.Tag{},
+		}
 	} else {
-		bm.Schema.Edge.Props = nil
+		srcIdx, dstIdx, rank := 0, 1, 2
+		bm.Schema.Edge = &config.Edge{
+			Name:        schema.Edge.Name,
+			WithRanking: schema.Edge.WithRanking,
+			SrcVID:      &config.VID{Index: &srcIdx},
+			DstVID:      &config.VID{Index: &dstIdx},
+			Rank:        &config.VID{Index: &rank},
+			Props:       []*config.Prop{},
+		}
 	}
 
 	for i := range bm.Batches {
@@ -53,13 +67,13 @@ func (bm *BatchMgr) InitSchema(header base.Record) {
 		switch strings.ToUpper(h) {
 		case base.LABEL_LABEL:
 		case base.LABEL_VID:
-			bm.Schema.Vertex.VID.Index = i
+			*bm.Schema.Vertex.VID.Index = i
 		case base.LABEL_SRC_VID:
-			bm.Schema.Edge.SrcVID.Index = i
+			*bm.Schema.Edge.SrcVID.Index = i
 		case base.LABEL_DST_VID:
-			bm.Schema.Edge.DstVID.Index = i
+			*bm.Schema.Edge.DstVID.Index = i
 		case base.LABEL_RANK:
-			bm.Schema.Edge.Rank.Index = i
+			*bm.Schema.Edge.Rank.Index = i
 		case base.LABEL_IGNORE:
 		default:
 			if bm.Schema.IsVertex() {
@@ -79,13 +93,15 @@ func (bm *BatchMgr) addVertexTags(r string, i int) {
 	if tagName == "" {
 		return
 	}
+	ignore := (prop == "")
 	tag := bm.getOrCreateVertexTagByName(tagName)
-	tag.Props = append(tag.Props, config.Prop{
-		Name:   prop,
-		Type:   columnType,
-		Index:  i,
-		Ignore: prop == "",
-	})
+	p := config.Prop{
+		Name:   &prop,
+		Type:   &columnType,
+		Index:  &i,
+		Ignore: &ignore,
+	}
+	tag.Props = append(tag.Props, &p)
 }
 
 func (bm *BatchMgr) addEdgeProps(r string, i int) {
@@ -95,12 +111,14 @@ func (bm *BatchMgr) addEdgeProps(r string, i int) {
 	if len(res) > 1 {
 		prop = res[1]
 	}
-	bm.Schema.Edge.Props = append(bm.Schema.Edge.Props, config.Prop{
-		Name:   prop,
-		Type:   columnType,
-		Index:  i,
-		Ignore: prop == "",
-	})
+	ignore := (prop == "")
+	p := config.Prop{
+		Name:   &prop,
+		Type:   &columnType,
+		Index:  &i,
+		Ignore: &ignore,
+	}
+	bm.Schema.Edge.Props = append(bm.Schema.Edge.Props, &p)
 }
 
 func (bm *BatchMgr) generateInsertStmtPrefix() {
@@ -108,24 +126,24 @@ func (bm *BatchMgr) generateInsertStmtPrefix() {
 	if bm.Schema.IsVertex() {
 		builder.WriteString("INSERT VERTEX ")
 		for i, tag := range bm.Schema.Vertex.Tags {
-			builder.WriteString(fmt.Sprintf("%s(%s)", tag.Name, bm.GeneratePropsString(tag.Props)))
+			builder.WriteString(fmt.Sprintf("%s(%s)", *tag.Name, bm.GeneratePropsString(tag.Props)))
 			if i < len(bm.Schema.Vertex.Tags)-1 {
 				builder.WriteString(",")
 			}
 		}
 		builder.WriteString(" VALUES ")
 	} else {
-		edge := &bm.Schema.Edge
-		builder.WriteString(fmt.Sprintf("INSERT EDGE %s(%s) VALUES ", edge.Name, bm.GeneratePropsString(edge.Props)))
+		edge := bm.Schema.Edge
+		builder.WriteString(fmt.Sprintf("INSERT EDGE %s(%s) VALUES ", *edge.Name, bm.GeneratePropsString(edge.Props)))
 	}
 	bm.InsertStmtPrefix = builder.String()
 }
 
-func (bm *BatchMgr) GeneratePropsString(props []config.Prop) string {
+func (bm *BatchMgr) GeneratePropsString(props []*config.Prop) string {
 	var builder strings.Builder
 	for i, prop := range props {
-		if !prop.Ignore {
-			builder.WriteString(prop.Name)
+		if !*prop.Ignore {
+			builder.WriteString(*prop.Name)
 			if i < len(props)-1 {
 				builder.WriteString(",")
 			}
@@ -136,14 +154,16 @@ func (bm *BatchMgr) GeneratePropsString(props []config.Prop) string {
 
 func (bm *BatchMgr) getOrCreateVertexTagByName(name string) *config.Tag {
 	for i := range bm.Schema.Vertex.Tags {
-		if strings.ToLower(bm.Schema.Vertex.Tags[i].Name) == strings.ToLower(name) {
-			return &bm.Schema.Vertex.Tags[i]
+		if strings.ToLower(*bm.Schema.Vertex.Tags[i].Name) == strings.ToLower(name) {
+			return bm.Schema.Vertex.Tags[i]
 		}
 	}
-	newTag := config.Tag{Name: name}
+	newTag := config.Tag{
+		Name: &name,
+	}
 	idx := len(bm.Schema.Vertex.Tags)
-	bm.Schema.Vertex.Tags = append(bm.Schema.Vertex.Tags, newTag)
-	return &bm.Schema.Vertex.Tags[idx]
+	bm.Schema.Vertex.Tags = append(bm.Schema.Vertex.Tags, &newTag)
+	return bm.Schema.Vertex.Tags[idx]
 }
 
 func (bm *BatchMgr) parseTag(s string) (tag, field string) {
@@ -171,9 +191,9 @@ var re = regexp.MustCompile(`^([+-]?\d+|hash\("(.+)"\)|uuid\("(.+)"\))$`)
 func (bm *BatchMgr) Add(data base.Data) error {
 	var vid string
 	if bm.Schema.IsVertex() {
-		vid = data.Record[bm.Schema.Vertex.VID.Index]
+		vid = data.Record[*bm.Schema.Vertex.VID.Index]
 	} else {
-		vid = data.Record[bm.Schema.Edge.SrcVID.Index]
+		vid = data.Record[*bm.Schema.Edge.SrcVID.Index]
 	}
 	if !re.MatchString(vid) {
 		return fmt.Errorf("Invalid vid format: %s", vid)
@@ -248,7 +268,7 @@ func (m *BatchMgr) makeVertexDeleteStmt(data []base.Data) string {
 	var builder strings.Builder
 	for _, d := range data {
 		// TODO: delete vertex in batch
-		builder.WriteString(fmt.Sprintf("DELETE VERTEX %s;", d.Record[m.Schema.Vertex.VID.Index]))
+		builder.WriteString(fmt.Sprintf("DELETE VERTEX %s;", d.Record[*m.Schema.Vertex.VID.Index]))
 	}
 	return builder.String()
 }

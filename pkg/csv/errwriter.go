@@ -11,10 +11,10 @@ import (
 
 type ErrWriter struct {
 	writer    *csv.Writer
-	csvConfig config.CSVConfig
+	csvConfig *config.CSVConfig
 }
 
-func NewErrDataWriter(config config.CSVConfig) *ErrWriter {
+func NewErrDataWriter(config *config.CSVConfig) *ErrWriter {
 	return &ErrWriter{
 		csvConfig: config,
 	}
@@ -33,7 +33,7 @@ func (w *ErrWriter) Write(data []base.Data) {
 		logger.Info("Empty error data")
 	}
 	for _, d := range data {
-		if w.csvConfig.WithLabel {
+		if *w.csvConfig.WithLabel {
 			var record []string
 			switch d.Type {
 			case base.INSERT:
