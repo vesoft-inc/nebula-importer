@@ -3,6 +3,8 @@ package config
 import (
 	"strings"
 	"testing"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 func TestYAMLParser(t *testing.T) {
@@ -25,4 +27,25 @@ func TestYAMLParser(t *testing.T) {
 			t.Fatal("Error schema type")
 		}
 	}
+}
+
+type testYAML struct {
+	Version *string `yaml:"version"`
+	Files   *[]struct {
+		Path *string `yaml:"path"`
+	} `yaml:"files"`
+}
+
+var yamlStr string = `
+version: beta
+files:
+  - path: ./file.csv
+`
+
+func TestTypePointer(t *testing.T) {
+	ty := testYAML{}
+	if err := yaml.Unmarshal([]byte(yamlStr), &ty); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("yaml: %v, %v", *ty.Version, *ty.Files)
 }
