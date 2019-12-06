@@ -47,7 +47,7 @@ clientSettings:
   connection:
     user: user
     password: password
-    address: 127.0.0.1:3699
+    address: 192.168.8.1:3699,192.168.8.2:3699
 ```
 
 * `clientSettings.concurrency` is an optional parameter that shows the concurrency of **Nebula Graph** Client, i.e. the connection number of **Nebula Graph** Server, the default value is 10.

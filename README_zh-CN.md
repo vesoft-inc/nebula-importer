@@ -50,7 +50,7 @@ clientSettings:
   connection:
     user: user
     password: password
-    address: 127.0.0.1:3699
+    address: 192.168.8.1:3699,192.168.8.2:3699
 ```
 
 #### `clientSettings.concurrency`
@@ -317,25 +317,3 @@ $ docker run --rm -ti \
 - `{your-csv-data-dir}`：替换成本地 CSV 数据文件的绝对路径
 
 > 注意：通常建议在 files.path 中使用相对路径。但如果在 `files.path` 中使用本地绝对路径，则需要小心检查这个路径映射到 Docker 中的对应路径。
-
-## TODO
-
-- [X] Summary statistics of response
-- [X] Write error log and data
-- [X] Configure file
-- [X] Concurrent request to Graph server
-- [ ] Create space and tag/edge automatically
-- [ ] Configure retry option for Nebula client
-- [X] Support edge rank
-- [X] Support label for add/delete(+/-) in first column
-- [X] Support column header in the first line
-- [X] Support vid partition
-- [X] Support multi-tags insertion in vertex
-- [X] Provide docker image and usage
-- [X] Make header adapt to props order defined in the schema of the configuration file
-- [X] Handle string column in an elegant way
-- [ ] Update concurrency and batch size online
-- [ ] Count duplicate vids
-- [X] Support VID generation automatically
-- [X] Output logs to file
-
