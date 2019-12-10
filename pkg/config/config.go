@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 	"strings"
 
@@ -14,74 +13,74 @@ import (
 )
 
 type NebulaClientConnection struct {
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	Address  string `yaml:"address"`
+	User     *string `yaml:"user"`
+	Password *string `yaml:"password"`
+	Address  *string `yaml:"address"`
 }
 
 type NebulaClientSettings struct {
-	Concurrency       int                    `yaml:"concurrency"`
-	ChannelBufferSize int                    `yaml:"channelBufferSize"`
-	Space             string                 `yaml:"space"`
-	Connection        NebulaClientConnection `yaml:"connection"`
+	Concurrency       *int                    `yaml:"concurrency"`
+	ChannelBufferSize *int                    `yaml:"channelBufferSize"`
+	Space             *string                 `yaml:"space"`
+	Connection        *NebulaClientConnection `yaml:"connection"`
 }
 
 type Prop struct {
-	Name   string `yaml:"name"`
-	Type   string `yaml:"type"`
-	Ignore bool
-	Index  int
+	Name   *string `yaml:"name"`
+	Type   *string `yaml:"type"`
+	Ignore *bool   `yaml:"ignore"`
+	Index  *int    `yaml:"index"`
 }
 
 type VID struct {
-	Index int
+	Index *int `yaml:"index"`
 }
 
 type Edge struct {
-	Name        string `yaml:"name"`
-	WithRanking bool   `yaml:"withRanking"`
-	Props       []Prop `yaml:"props"`
-	SrcVID      VID
-	DstVID      VID
-	Rank        VID
+	Name        *string `yaml:"name"`
+	WithRanking *bool   `yaml:"withRanking"`
+	Props       []*Prop `yaml:"props"`
+	SrcVID      *VID    `yaml:"srcVID"`
+	DstVID      *VID    `yaml:"dstVID"`
+	Rank        *VID    `yaml:"rank"`
 }
 
 type Tag struct {
-	Name  string `yaml:"name"`
-	Props []Prop `yaml:"props"`
+	Name  *string `yaml:"name"`
+	Props []*Prop `yaml:"props"`
 }
 
 type Vertex struct {
-	VID  VID
-	Tags []Tag `yaml:"tags"`
+	VID  *VID   `yaml:"vid"`
+	Tags []*Tag `yaml:"tags"`
 }
 
 type Schema struct {
-	Type   string `yaml:"type"`
-	Edge   Edge   `yaml:"edge"`
-	Vertex Vertex `yaml:"vertex"`
+	Type   *string `yaml:"type"`
+	Edge   *Edge   `yaml:"edge"`
+	Vertex *Vertex `yaml:"vertex"`
 }
 
 type CSVConfig struct {
-	WithHeader bool `yaml:"withHeader"`
-	WithLabel  bool `yaml:"withLabel"`
+	WithHeader *bool `yaml:"withHeader"`
+	WithLabel  *bool `yaml:"withLabel"`
 }
 
 type File struct {
-	Path         string    `yaml:"path"`
-	FailDataPath string    `yaml:"failDataPath"`
-	BatchSize    int       `yaml:"batchSize"`
-	Type         string    `yaml:"type"`
-	CSV          CSVConfig `yaml:"csv"`
-	Schema       Schema    `yaml:"schema"`
+	Path         *string    `yaml:"path"`
+	FailDataPath *string    `yaml:"failDataPath"`
+	BatchSize    *int       `yaml:"batchSize"`
+	Type         *string    `yaml:"type"`
+	CSV          *CSVConfig `yaml:"csv"`
+	Schema       *Schema    `yaml:"schema"`
 }
 
 type YAMLConfig struct {
-	Version              string               `yaml:"version"`
-	Description          string               `yaml:"description"`
-	NebulaClientSettings NebulaClientSettings `yaml:"clientSettings"`
-	LogPath              string               `yaml:"logPath"`
-	Files                []File               `yaml:"files"`
+	Version              *string               `yaml:"version"`
+	Description          *string               `yaml:"description"`
+	NebulaClientSettings *NebulaClientSettings `yaml:"clientSettings"`
+	LogPath              *string               `yaml:"logPath"`
+	Files                []*File               `yaml:"files"`
 }
 
 func Parse(filename string) (*YAMLConfig, error) {
@@ -106,16 +105,17 @@ func Parse(filename string) (*YAMLConfig, error) {
 }
 
 func (config *YAMLConfig) validateAndReset(dir string) error {
-	if err := config.NebulaClientSettings.validateAndReset(); err != nil {
+	if err := config.NebulaClientSettings.validateAndReset("clientSettings"); err != nil {
 		return err
 	}
 
-	if config.LogPath == "" {
-		config.LogPath = "/tmp/nebula-importer.log"
-		log.Printf("You have not configured the log file path in: logPath, reset to default path: %s", config.LogPath)
+	if config.LogPath == nil {
+		defaultPath := "/tmp/nebula-importer.log"
+		config.LogPath = &defaultPath
+		logger.Warnf("You have not configured the log file path in: logPath, reset to default path: %s", *config.LogPath)
 	}
 
-	if len(config.Files) == 0 {
+	if config.Files == nil {
 		return errors.New("There is no files in configuration")
 	}
 
@@ -127,71 +127,105 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 	return nil
 }
 
-func (n *NebulaClientSettings) validateAndReset() error {
-	if n.Space == "" {
-		return errors.New("Please configure the space name in: clientSettings.space")
-	}
-	if n.Concurrency <= 0 {
-		log.Printf("Invalide client concurrency: %d in clientSettings.concurrency, reset to default 40", n.Concurrency)
-		n.Concurrency = 10
+func (n *NebulaClientSettings) validateAndReset(prefix string) error {
+	if n.Space == nil {
+		return fmt.Errorf("Please configure the space name in: %s.space", prefix)
 	}
 
-	if n.ChannelBufferSize <= 0 {
-		log.Printf("Invalide client channel buffer size: %d in clientSettings.channelBufferSize, reset to default 128", n.ChannelBufferSize)
-		n.ChannelBufferSize = 128
+	if n.Concurrency == nil {
+		d := 10
+		n.Concurrency = &d
+		logger.Warnf("Invalide client concurrency in %s.concurrency, reset to %d", prefix, *n.Concurrency)
 	}
 
-	if n.Connection.Address == "" {
-		n.Connection.Address = "127.0.0.1:3699"
-		log.Printf("Client connection address: %s", n.Connection.Address)
+	if n.ChannelBufferSize == nil {
+		d := 128
+		n.ChannelBufferSize = &d
+		logger.Warnf("Invalide client channel buffer size in %s.channelBufferSize, reset to %d", prefix, *n.ChannelBufferSize)
 	}
 
-	if n.Connection.User == "" {
-		n.Connection.User = "user"
-		log.Printf("Client connection user: %s", n.Connection.User)
+	if n.Connection == nil {
+		return fmt.Errorf("Please configure the connection information in: %s.connection", prefix)
+	} else {
+		return n.Connection.validateAndReset(fmt.Sprintf("%s.connection", prefix))
+	}
+}
+
+func (c *NebulaClientConnection) validateAndReset(prefix string) error {
+	if c.Address == nil {
+		a := "127.0.0.1:3699"
+		c.Address = &a
+		logger.Warnf("%s.address: %s", prefix, *c.Address)
 	}
 
-	if n.Connection.Password == "" {
-		n.Connection.Password = "password"
-		log.Printf("Client connection password: %s", n.Connection.Password)
+	if c.User == nil {
+		u := "user"
+		c.User = &u
+		logger.Warnf("%s.user: %s", prefix, *c.User)
+	}
+
+	if c.Password == nil {
+		p := "password"
+		c.Password = &p
+		logger.Warnf("%s.password: %s", prefix, *c.Password)
 	}
 	return nil
 }
 
 func (f *File) validateAndReset(dir, prefix string) error {
-	if f.Path == "" {
+	if f.Path == nil {
 		return fmt.Errorf("Please configure file path in: %s.path", prefix)
 	}
-	if !base.FileExists(f.Path) {
-		path := filepath.Join(dir, f.Path)
+	if !base.FileExists(*f.Path) {
+		path := filepath.Join(dir, *f.Path)
 		if !base.FileExists(path) {
-			return fmt.Errorf("File(%s) doesn't exist", f.Path)
+			return fmt.Errorf("File(%s) doesn't exist", *f.Path)
 		} else {
-			f.Path = path
+			f.Path = &path
 		}
 	}
-	if f.FailDataPath == "" {
-		if d, err := filepath.Abs(filepath.Dir(f.Path)); err != nil {
+	if f.FailDataPath == nil {
+		if d, err := filepath.Abs(filepath.Dir(*f.Path)); err != nil {
 			return err
 		} else {
-			f.FailDataPath = filepath.Join(d, "err", filepath.Base(f.Path))
-			log.Printf("You have not configured the failed data output file path in: %s.failDataPath, reset to default path: %s", prefix, f.FailDataPath)
+			p := filepath.Join(d, "err", filepath.Base(*f.Path))
+			f.FailDataPath = &p
+			logger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to default path: %s", prefix, *f.FailDataPath)
 		}
 	}
-	if f.BatchSize <= 0 {
-		log.Printf("Invalide batch size: %d in file(%s), reset to default 128", f.BatchSize, f.Path)
-		f.BatchSize = 128
+	if f.BatchSize == nil {
+		b := 128
+		f.BatchSize = &b
+		logger.Infof("Invalide batch size in file(%s), reset to %d", *f.Path, *f.BatchSize)
 	}
-	if strings.ToLower(f.Type) != "csv" {
+	if strings.ToLower(*f.Type) != "csv" {
 		// TODO: Now only support csv import
-		return fmt.Errorf("Invalid file data type: %s, reset to csv", f.Type)
+		return fmt.Errorf("Invalid file data type: %s, reset to csv", *f.Type)
+	}
+
+	if f.CSV != nil {
+		f.CSV.validateAndReset(fmt.Sprintf("%s.csv", prefix))
 	}
 
 	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
 }
 
+func (c *CSVConfig) validateAndReset(prefix string) {
+	if c.WithHeader == nil {
+		h := false
+		c.WithHeader = &h
+		logger.Infof("%s.withHeader: %v", prefix, false)
+	}
+
+	if c.WithLabel == nil {
+		l := false
+		c.WithLabel = &l
+		logger.Infof("%s.withLabel: %v", prefix, false)
+	}
+}
+
 func (s *Schema) IsVertex() bool {
-	return strings.ToUpper(s.Type) == "VERTEX"
+	return strings.ToUpper(*s.Type) == "VERTEX"
 }
 
 func (s *Schema) String() string {
@@ -204,13 +238,17 @@ func (s *Schema) String() string {
 
 func (s *Schema) validateAndReset(prefix string) error {
 	var err error = nil
-	switch strings.ToLower(s.Type) {
+	switch strings.ToLower(*s.Type) {
 	case "edge":
-		err = s.Edge.validateAndReset(fmt.Sprintf("%s.edge", prefix))
+		if s.Edge != nil {
+			err = s.Edge.validateAndReset(fmt.Sprintf("%s.edge", prefix))
+		}
 	case "vertex":
-		err = s.Vertex.validateAndReset(fmt.Sprintf("%s.vertex", prefix))
+		if s.Vertex != nil {
+			err = s.Vertex.validateAndReset(fmt.Sprintf("%s.vertex", prefix))
+		}
 	default:
-		err = fmt.Errorf("Error schema type(%s) in %s.type only edge and vertex are supported", s.Type, prefix)
+		err = fmt.Errorf("Error schema type(%s) in %s.type only edge and vertex are supported", *s.Type, prefix)
 	}
 	return err
 }
@@ -218,31 +256,31 @@ func (s *Schema) validateAndReset(prefix string) error {
 func (e *Edge) FormatValues(record base.Record) string {
 	var cells []string
 	for _, prop := range e.Props {
-		if !prop.Ignore {
+		if prop.Ignore != nil && !*prop.Ignore {
 			cells = append(cells, prop.FormatValue(record))
 		}
 	}
 	rank := ""
-	if e.WithRanking {
-		rank = fmt.Sprintf("@%s", record[e.Rank.Index])
+	if e.WithRanking != nil && *e.WithRanking {
+		rank = fmt.Sprintf("@%s", record[*e.Rank.Index])
 	}
-	return fmt.Sprintf(" %s->%s%s:(%s) ", record[e.SrcVID.Index], record[e.DstVID.Index], rank, strings.Join(cells, ","))
+	return fmt.Sprintf(" %s->%s%s:(%s) ", record[*e.SrcVID.Index], record[*e.DstVID.Index], rank, strings.Join(cells, ","))
 }
 
 func (e *Edge) String() string {
 	var cells []string
 	cells = append(cells, base.LABEL_SRC_VID, base.LABEL_DST_VID)
-	if e.WithRanking {
+	if e.WithRanking != nil && *e.WithRanking {
 		cells = append(cells, base.LABEL_RANK)
 	}
 	for _, prop := range e.Props {
-		cells = append(cells, prop.String(e.Name))
+		cells = append(cells, prop.String(*e.Name))
 	}
 	return strings.Join(cells, ",")
 }
 
 func (e *Edge) validateAndReset(prefix string) error {
-	if e.Name == "" {
+	if e.Name == nil {
 		return fmt.Errorf("Please configure edge name in: %s.name", prefix)
 	}
 	for i := range e.Props {
@@ -258,7 +296,7 @@ func (v *Vertex) FormatValues(record base.Record) string {
 	for _, tag := range v.Tags {
 		cells = append(cells, tag.FormatValues(record))
 	}
-	return fmt.Sprintf(" %s: (%s)", record[v.VID.Index], strings.Join(cells, ","))
+	return fmt.Sprintf(" %s: (%s)", record[*v.VID.Index], strings.Join(cells, ","))
 }
 
 func (v *Vertex) String() string {
@@ -266,13 +304,16 @@ func (v *Vertex) String() string {
 	cells = append(cells, base.LABEL_VID)
 	for _, tag := range v.Tags {
 		for _, prop := range tag.Props {
-			cells = append(cells, prop.String(tag.Name))
+			cells = append(cells, prop.String(*tag.Name))
 		}
 	}
 	return strings.Join(cells, ",")
 }
 
 func (v *Vertex) validateAndReset(prefix string) error {
+	if v.Tags == nil {
+		return fmt.Errorf("Please configure %.tags", prefix)
+	}
 	for i := range v.Tags {
 		if err := v.Tags[i].validateAndReset(fmt.Sprintf("%s.tags[%d]", prefix, i)); err != nil {
 			return err
@@ -282,14 +323,14 @@ func (v *Vertex) validateAndReset(prefix string) error {
 }
 
 func (p *Prop) IsStringType() bool {
-	return strings.ToLower(p.Type) == "string"
+	return strings.ToLower(*p.Type) == "string"
 }
 
 func (p *Prop) FormatValue(record base.Record) string {
-	if p.Index >= len(record) {
+	if p.Index != nil && *p.Index >= len(record) {
 		logger.Fatalf("Prop index %d out range %d of record(%v)", p.Index, len(record), record)
 	}
-	r := record[p.Index]
+	r := record[*p.Index]
 	if p.IsStringType() {
 		return fmt.Sprintf("%q", r)
 	}
@@ -297,26 +338,26 @@ func (p *Prop) FormatValue(record base.Record) string {
 }
 
 func (p *Prop) String(prefix string) string {
-	if p.Ignore {
+	if p.Ignore != nil && *p.Ignore {
 		return base.LABEL_IGNORE
 	} else {
-		return fmt.Sprintf("%s.%s:%s", prefix, p.Name, p.Type)
+		return fmt.Sprintf("%s.%s:%s", prefix, *p.Name, *p.Type)
 	}
 }
 
 func (p *Prop) validateAndReset(prefix string) error {
-	p.Type = strings.ToLower(p.Type)
-	if base.IsValidType(p.Type) {
+	*p.Type = strings.ToLower(*p.Type)
+	if base.IsValidType(*p.Type) {
 		return nil
 	} else {
-		return fmt.Errorf("Error property type of %s.type: %s", prefix, p.Type)
+		return fmt.Errorf("Error property type of %s.type: %s", prefix, *p.Type)
 	}
 }
 
 func (t *Tag) FormatValues(record base.Record) string {
 	var cells []string
 	for _, p := range t.Props {
-		if !p.Ignore {
+		if p.Ignore != nil && !*p.Ignore {
 			cells = append(cells, p.FormatValue(record))
 		}
 	}
@@ -324,7 +365,7 @@ func (t *Tag) FormatValues(record base.Record) string {
 }
 
 func (t *Tag) validateAndReset(prefix string) error {
-	if t.Name == "" {
+	if t.Name == nil {
 		return fmt.Errorf("Please configure the vertex tag name in: %s.name", prefix)
 	}
 

@@ -22,16 +22,16 @@ func New(statsCh chan<- base.Stats) *Handler {
 	return &h
 }
 
-func (w *Handler) Init(file config.File, concurrency int) (chan base.ErrData, error) {
+func (w *Handler) Init(file *config.File, concurrency int) (chan base.ErrData, error) {
 	var dataWriter DataWriter
-	switch strings.ToLower(file.Type) {
+	switch strings.ToLower(*file.Type) {
 	case "csv":
 		dataWriter = csv.NewErrDataWriter(file.CSV)
 	default:
-		return nil, fmt.Errorf("Wrong file type: %s", file.Type)
+		return nil, fmt.Errorf("Wrong file type: %s", *file.Type)
 	}
 
-	dataFile := base.MustCreateFile(file.FailDataPath)
+	dataFile := base.MustCreateFile(*file.FailDataPath)
 	errCh := make(chan base.ErrData)
 
 	go func() {
@@ -57,7 +57,7 @@ func (w *Handler) Init(file config.File, concurrency int) (chan base.ErrData, er
 		if dataWriter.Error() != nil {
 			logger.Error(dataWriter.Error())
 		}
-		w.statsCh <- base.NewFileDoneStats(file.Path)
+		w.statsCh <- base.NewFileDoneStats(*file.Path)
 	}()
 
 	return errCh, nil

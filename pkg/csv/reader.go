@@ -11,7 +11,7 @@ import (
 )
 
 type CSVReader struct {
-	CSVConfig config.CSVConfig
+	CSVConfig *config.CSVConfig
 	reader    *csv.Reader
 	lineNum   uint64
 }
@@ -29,15 +29,15 @@ func (r *CSVReader) ReadLine() (base.Data, error) {
 
 	r.lineNum++
 
-	if r.CSVConfig.WithHeader && r.lineNum == 1 {
-		if r.CSVConfig.WithLabel {
+	if *r.CSVConfig.WithHeader && r.lineNum == 1 {
+		if *r.CSVConfig.WithLabel {
 			return base.HeaderData(line[1:]), nil
 		} else {
 			return base.HeaderData(line), nil
 		}
 	}
 
-	if r.CSVConfig.WithLabel {
+	if *r.CSVConfig.WithLabel {
 		switch line[0] {
 		case "+":
 			return base.InsertData(line[1:]), nil

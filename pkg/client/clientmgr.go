@@ -7,11 +7,11 @@ import (
 )
 
 type NebulaClientMgr struct {
-	config config.NebulaClientSettings
+	config *config.NebulaClientSettings
 	pool   *ClientPool
 }
 
-func NewNebulaClientMgr(settings config.NebulaClientSettings, statsCh chan<- base.Stats) (*NebulaClientMgr, error) {
+func NewNebulaClientMgr(settings *config.NebulaClientSettings, statsCh chan<- base.Stats) (*NebulaClientMgr, error) {
 	mgr := NebulaClientMgr{
 		config: settings,
 	}
