@@ -40,7 +40,7 @@ func NewBatchMgr(schema *config.Schema, batchSize int, clientRequestChs []chan b
 			WithRanking: schema.Edge.WithRanking,
 			SrcVID:      &config.VID{Index: &srcIdx},
 			DstVID:      &config.VID{Index: &dstIdx},
-			Rank:        &config.VID{Index: &rank},
+			Rank:        &config.Rank{Index: &rank},
 			Props:       []*config.Prop{},
 		}
 	}

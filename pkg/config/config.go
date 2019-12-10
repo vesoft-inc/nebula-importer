@@ -33,6 +33,11 @@ type Prop struct {
 }
 
 type VID struct {
+	Index    *int    `yaml:"index"`
+	Function *string `yaml:"function"`
+}
+
+type Rank struct {
 	Index *int `yaml:"index"`
 }
 
@@ -42,7 +47,7 @@ type Edge struct {
 	Props       []*Prop `yaml:"props"`
 	SrcVID      *VID    `yaml:"srcVID"`
 	DstVID      *VID    `yaml:"dstVID"`
-	Rank        *VID    `yaml:"rank"`
+	Rank        *Rank   `yaml:"rank"`
 }
 
 type Tag struct {
@@ -207,6 +212,9 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		f.CSV.validateAndReset(fmt.Sprintf("%s.csv", prefix))
 	}
 
+	if f.Schema == nil {
+		return fmt.Errorf("Please configure file schema: %s.schema", prefix)
+	}
 	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
 }
 
@@ -242,15 +250,37 @@ func (s *Schema) validateAndReset(prefix string) error {
 	case "edge":
 		if s.Edge != nil {
 			err = s.Edge.validateAndReset(fmt.Sprintf("%s.edge", prefix))
+		} else {
+			logger.Infof("%s.edge is nil", prefix)
 		}
 	case "vertex":
 		if s.Vertex != nil {
 			err = s.Vertex.validateAndReset(fmt.Sprintf("%s.vertex", prefix))
+		} else {
+			logger.Infof("%s.vertex is nil", prefix)
 		}
 	default:
 		err = fmt.Errorf("Error schema type(%s) in %s.type only edge and vertex are supported", *s.Type, prefix)
 	}
 	return err
+}
+
+func (v *VID) validateAndReset(prefix string, defaultVal int) error {
+	if v.Index == nil {
+		v.Index = &defaultVal
+		f := ""
+		v.Function = &f
+		logger.Infof("%s.index: %d, %s.function: %s", prefix, *v.Index, prefix, *v.Function)
+	}
+	return nil
+}
+
+func (r *Rank) validateAndReset(prefix string, defaultRank int) error {
+	if r.Index == nil {
+		r.Index = &defaultRank
+		logger.Infof("%s.index: %d", prefix, *r.Index)
+	}
+	return nil
 }
 
 func (e *Edge) FormatValues(record base.Record) string {
@@ -283,6 +313,15 @@ func (e *Edge) validateAndReset(prefix string) error {
 	if e.Name == nil {
 		return fmt.Errorf("Please configure edge name in: %s.name", prefix)
 	}
+	if e.SrcVID != nil {
+		e.SrcVID.validateAndReset(fmt.Sprintf("%s.srcVID", prefix), 0)
+	}
+	if e.DstVID != nil {
+		e.DstVID.validateAndReset(fmt.Sprintf("%s.dstVID", prefix), 1)
+	}
+	if e.Rank != nil {
+		e.Rank.validateAndReset(fmt.Sprintf("%s.rank", prefix), 2)
+	}
 	for i := range e.Props {
 		if err := e.Props[i].validateAndReset(fmt.Sprintf("%s.prop[%d]", prefix, i)); err != nil {
 			return err
@@ -313,6 +352,9 @@ func (v *Vertex) String() string {
 func (v *Vertex) validateAndReset(prefix string) error {
 	if v.Tags == nil {
 		return fmt.Errorf("Please configure %.tags", prefix)
+	}
+	if v.VID != nil {
+		v.VID.validateAndReset(fmt.Sprintf("%s.vid", prefix), 0)
 	}
 	for i := range v.Tags {
 		if err := v.Tags[i].validateAndReset(fmt.Sprintf("%s.tags[%d]", prefix, i)); err != nil {

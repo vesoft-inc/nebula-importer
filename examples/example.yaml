@@ -25,6 +25,7 @@ files:
         props:
           - name: grade
             type: int
+
   - path: ./course.csv
     failDataPath: ./err/course.csv
     batchSize: 2
@@ -46,6 +47,7 @@ files:
             props:
               - name: name
                 type: string
+
   - path: ./course-with-header.csv
     failDataPath: ./err/course-with-header.csv
     batchSize: 2
@@ -55,6 +57,7 @@ files:
       withLabel: true
     schema:
       type: vertex
+
   - path: ./follow.csv
     failDataPath: ./err/follow.csv
     batchSize: 2
@@ -70,6 +73,7 @@ files:
         props:
           - name: likeness
             type: double
+
   - path: ./follow-with-header.csv
     failDataPath: ./err/follow-with-header.csv
     batchSize: 2
@@ -82,6 +86,7 @@ files:
       edge:
         name: follow
         withRanking: true
+
   - path: ./student.csv
     failDataPath: ./err/student.csv
     batchSize: 2
@@ -101,3 +106,49 @@ files:
                 type: int
               - name: gender
                 type: string
+
+  - path: ./student.csv
+    failDataPath: ./err/student_index.csv
+    batchSize: 2
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          index: 0
+          function: hash
+        tags:
+          - name: student
+            props:
+              - name: name
+                type: string
+              - name: age
+                type: int
+              - name: gender
+                type: string
+
+  - path: ./follow.csv
+    failDataPath: ./err/follow_index.csv
+    batchSize: 2
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: follow
+        srcVID:
+          index: 0
+          function: hash
+        dstVID:
+          index: 1
+          function: uuid
+        rank:
+          index: 2
+        props:
+          - name: likeness
+            type: double
