@@ -69,7 +69,7 @@ files:
       type: edge
       edge:
         name: follow
-        withRanking: false
+        withRanking: true
         props:
           - name: likeness
             type: double
@@ -123,15 +123,17 @@ files:
         tags:
           - name: student
             props:
-              - name: name
-                type: string
               - name: age
                 type: int
+                index: 2
+              - name: name
+                type: string
+                index: 1
               - name: gender
                 type: string
 
-  - path: ./follow-with-rank.csv
-    failDataPath: ./err/follow-with-rank.csv
+  - path: ./follow.csv
+    failDataPath: ./err/follow_index.csv
     batchSize: 2
     type: csv
     csv:
@@ -145,11 +147,11 @@ files:
           index: 0
           function: hash
         dstVID:
-          index: 2
+          index: 1
           function: uuid
         rank:
-          index: 3
+          index: 2
         props:
           - name: likeness
             type: double
-            index: 1
+            index: 3
