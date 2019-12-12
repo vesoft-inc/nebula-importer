@@ -526,7 +526,7 @@ func (p *Prop) IsStringType() bool {
 
 func (p *Prop) FormatValue(record base.Record) (string, error) {
 	if p.Index != nil && *p.Index >= len(record) {
-		return "", fmt.Errorf("Prop index %d out range %d of record(%v)", p.Index, len(record), record)
+		return "", fmt.Errorf("Prop index %d out range %d of record(%v)", *p.Index, len(record), record)
 	}
 	r := record[*p.Index]
 	if p.IsStringType() {
