@@ -11,7 +11,7 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 )
 
-var logger *log.Logger
+var logger *log.Logger = log.New(os.Stdout, "", log.LstdFlags)
 
 func Init(path string) {
 	file := base.MustCreateFile(path)

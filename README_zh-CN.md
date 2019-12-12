@@ -26,7 +26,7 @@ Nebula Importer 是一款 [Nebula Graph](https://github.com/vesoft-inc/nebula) �
 Nebula Importer 通过 YAML 配置文件来描述要导入的文件信息、**Nebula Graph** 的 server 信息等。[这里](examples/)有一个配置文件的参考样例和对应的数据文件格式。接下来逐一解释各个选项的含义：
 
 ```yaml
-version: v1rc1
+version: v1rc2
 description: example
 ```
 
@@ -82,6 +82,7 @@ files:
   - path: ./student.csv
     failDataPath: ./err/student.csv
     batchSize: 128
+    limit: 10
     type: csv
     csv:
       withHeader: false
@@ -104,6 +105,10 @@ files:
 
 **可选**。批量插入数据的条数，默认 128。
 
+##### `limit`
+
+**可选**。限制读取文件的行数。
+
 ##### `type` & `csv`
 
 **必填**。指定文件的类型，目前只支持 CSV 文件导入。在 CSV 文件中可以指定是否含有文件头和插入、删除的标记。
@@ -120,50 +125,79 @@ files:
 
 ###### `schema.vertex`
 
+**必填**。描述插入顶点的 schema 信息，比如 tags。
+
 ```yaml
     schema:
       type: vertex
       vertex:
+        vid:
+          index: 1
+          function: hash
         tags:
           - name: student
             props:
-              - name: name
-                type: string
               - name: age
                 type: int
+                index: 2
+              - name: name
+                type: string
+                index: 1
               - name: gender
                 type: string
 ```
 
-**必填**。描述插入顶点的 schema 信息，比如 tags。由于一个 VERTEX 可以含有多个 TAG，所以不同的 TAG 在 `schema.vertex.tags` 数组中给出。
+####### `schema.vertex.vid`
+
+**可选**。描述顶点 VID 所在的列和使用的函数。
+
+- `index`: **可选**。在 CSV 文件中的列标，从 0 开始计数。默认值 0 。
+- `function`: **可选**。用来生成 VID 时的函数，有 `hash` 和 `uuid` 两种函数可选。
+
+####### `schema.vertex.tags`
+
+**可选**。由于一个 VERTEX 可以含有多个 TAG，所以不同的 TAG 在 `schema.vertex.tags` 数组中给出。
 
 对于每一个 TAG，有以下两个属性:
 
 - `name`：TAG 的名字
 - `props`：TAG 的属性字段数组，每个属性字段又由如下两个字段构成：
-  - `name`: 属性名字，同 **Nebula Graph** 中创建的 TAG 的属性名字一致。
-  - `type`: 属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp` 和 `string` 几种类型。
+  - `name`: **必填**。属性名字，同 **Nebula Graph** 中创建的 TAG 的属性名字一致。
+  - `type`: **必填**。属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp` 和 `string` 几种类型。
+  - `index`: **可选**。在 CSV 文件中的列标。
 
 > 注意: 上述 props 中的属性描述**顺序**必须同数据文件中的对应数据排列顺序一致。
 
 ###### `schema.edge`
+
+**必填**。描述插入边的 schema 信息。
 
 ```yaml
     schema:
       type: edge
       edge:
         name: choose
-        withRanking: false
+        srcVID:
+          index: 0
+          function: hash
+        dstVID:
+          index: 1
+          function: uuid
+        rank:
+          index: 2
         props:
           - name: grade
             type: int
+            index: 3
 ```
 
-**必填**。描述插入边的 schema 信息。含有如下三个字段：
+含有如下字段：
 
-- `name`：边的名字，同 **Nebula Graph** 中创建的 edge 名字一致。
-- `withRanking`：指定该边是否有 `rank` 值，用来区分同顶点同类型的不同边。
-- `props`：描述同上述顶点，同样需要注意跟数据文件中列的排列顺序一致。
+- `name`：**必填**。边的名字，同 **Nebula Graph** 中创建的 edge 名字一致。
+- `srcVID`: **可选**。边的起点信息，含有的 `index` 和 `function` 意义同上述 `vertex.vid`。
+- `dstVID`: **可选**。边的终点信息，含有的 `index` 和 `function` 意义同上述 `vertex.vid`。
+- `rank`: **可选**。边的终点信息，含有的 `index` 表示该值所在的列。
+- `props`：**必填**。描述同上述顶点，同样需要注意跟数据文件中列的排列顺序一致。
 
 所有配置的选项解释见[表格](docs/configuration-reference.md)。
 
