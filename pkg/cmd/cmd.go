@@ -52,7 +52,7 @@ func (r *Runner) Run(conf string) {
 
 	errHandler := errhandler.New(statsMgr.StatsCh)
 
-	for _, file := range yaml.Files {
+	for i, file := range yaml.Files {
 		// TODO: skip files with error
 		errCh, err := errHandler.Init(file, clientMgr.GetNumConnections())
 		if err != nil {
@@ -60,7 +60,7 @@ func (r *Runner) Run(conf string) {
 			return
 		}
 
-		if fr, err := reader.New(file, clientMgr.GetRequestChans(), errCh); err != nil {
+		if fr, err := reader.New(i, file, clientMgr.GetRequestChans(), errCh); err != nil {
 			r.err = err
 			return
 		} else {
