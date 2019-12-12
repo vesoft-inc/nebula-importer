@@ -118,7 +118,7 @@ files:
       type: vertex
       vertex:
         vid:
-          index: 0
+          index: 1
           function: hash
         tags:
           - name: student
