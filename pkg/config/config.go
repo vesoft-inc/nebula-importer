@@ -74,6 +74,7 @@ type File struct {
 	Path         *string    `yaml:"path"`
 	FailDataPath *string    `yaml:"failDataPath"`
 	BatchSize    *int       `yaml:"batchSize"`
+	Limit        *int       `yaml:"limit"`
 	Type         *string    `yaml:"type"`
 	CSV          *CSVConfig `yaml:"csv"`
 	Schema       *Schema    `yaml:"schema"`

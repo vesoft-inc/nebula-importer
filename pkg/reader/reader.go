@@ -59,8 +59,6 @@ func (r *FileReader) Read() error {
 	for {
 		data, err := r.DataReader.ReadLine()
 		if err == io.EOF {
-			r.BatchMgr.Done()
-			logger.Infof("Total lines of file(%s) is: %d, error lines: %d, schema: <%s>", *r.File.Path, lineNum, numErrorLines, r.BatchMgr.Schema.String())
 			break
 		}
 
@@ -78,7 +76,14 @@ func (r *FileReader) Read() error {
 			logger.Errorf("Fail to read line %d, error: %s", lineNum, err.Error())
 			numErrorLines++
 		}
+
+		if r.File.Limit != nil && *r.File.Limit > 0 && *r.File.Limit <= lineNum {
+			break
+		}
 	}
+
+	r.BatchMgr.Done()
+	logger.Infof("Total lines of file(%s) is: %d, error lines: %d, schema: <%s>", *r.File.Path, lineNum, numErrorLines, r.BatchMgr.Schema.String())
 
 	return nil
 }

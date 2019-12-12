@@ -82,6 +82,7 @@ files:
   - path: ./student.csv
     failDataPath: ./err/student.csv
     batchSize: 128
+    limit: 10
     type: csv
     csv:
       withHeader: false
@@ -103,6 +104,10 @@ files:
 ##### `batchSize`
 
 **可选**。批量插入数据的条数，默认 128。
+
+##### `limit`
+
+**可选**。限制读取文件的行数。
 
 ##### `type` & `csv`
 

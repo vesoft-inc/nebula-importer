@@ -15,6 +15,9 @@
 | logPath                                       | Path of log file                                                          | ""             |
 | files                                         | File list to be imported                                                  | -              |
 | files[0].path                                 | File path                                                                 | ""             |
+| files[0].failDataPath                         | Failed data file path                                                     | ""             |
+| files[0].batchSize                            | Size of each batch for inserting stmt construction                        | 128            |
+| files[0].limit                                | Limit rows to be read                                                     | NULL           |
 | files[0].type                                 | File type                                                                 | csv            |
 | files[0].csv                                  | CSV file options                                                          | -              |
 | files[0].csv.withHeader                       | Whether csv file has header                                               | false          |
@@ -41,4 +44,3 @@
 | files[0].schema.vertex.tags[0].props[0].name  | Vertex tag's property name                                                | ""             |
 | files[0].schema.vertex.tags[0].props[0].type  | Vertex tag's property type                                                | ""             |
 | files[0].schema.vertex.tags[0].props[0].index | Vertex tag's property index                                               |                |
-| files[0].failDataPath                         | Failed data file path                                                     | ""             |

@@ -135,6 +135,7 @@ files:
   - path: ./follow.csv
     failDataPath: ./err/follow_index.csv
     batchSize: 2
+    limit: 3
     type: csv
     csv:
       withHeader: false
