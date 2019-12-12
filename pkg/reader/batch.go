@@ -64,3 +64,10 @@ func (b *Batch) requestClient() {
 
 	b.currentIndex = 0
 }
+
+func (b *Batch) SendErrorData(d base.Data, err error) {
+	b.errCh <- base.ErrData{
+		Error: err,
+		Data:  []base.Data{d},
+	}
+}

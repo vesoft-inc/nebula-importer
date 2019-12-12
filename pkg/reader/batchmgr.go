@@ -198,7 +198,9 @@ func (bm *BatchMgr) Add(data base.Data) error {
 		vid = data.Record[*bm.Schema.Edge.SrcVID.Index]
 	}
 	if !re.MatchString(vid) {
-		return fmt.Errorf("Invalid vid format: %s", vid)
+		err := fmt.Errorf("Invalid vid format: %s", vid)
+		bm.Batches[0].SendErrorData(data, err)
+		return err
 	}
 	batchIdx := getBatchId(vid, len(bm.Batches))
 	bm.Batches[batchIdx].Add(data)
