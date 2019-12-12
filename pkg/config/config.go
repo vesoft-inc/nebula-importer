@@ -275,8 +275,7 @@ func (v *VID) ParseFunction(str string) {
 	i := strings.Index(str, "(")
 	j := strings.Index(str, ")")
 	if i < 0 && j < 0 {
-		function := ""
-		v.Function = &function
+		v.Function = nil
 	} else if i > 0 && j > i {
 		function := strings.ToLower(str[i+1 : j])
 		v.Function = &function
@@ -294,10 +293,7 @@ func (v *VID) String(vid string) string {
 }
 
 func (v *VID) checkFunction(prefix string) error {
-	if v.Function == nil {
-		function := ""
-		v.Function = &function
-	} else {
+	if v.Function != nil {
 		switch strings.ToLower(*v.Function) {
 		case "", "hash", "uuid":
 		default:
@@ -343,7 +339,20 @@ func (e *Edge) FormatValues(record base.Record) string {
 	if e.Rank != nil && e.Rank.Index != nil {
 		rank = fmt.Sprintf("@%s", record[*e.Rank.Index])
 	}
-	return fmt.Sprintf(" %s->%s%s:(%s) ", record[*e.SrcVID.Index], record[*e.DstVID.Index], rank, strings.Join(cells, ","))
+	var srcVID string
+	if e.SrcVID.Function != nil {
+		//TODO(yee): differentiate string and integer column type, find and compare src/dst vertex column with property
+		srcVID = fmt.Sprintf("%s(%q)", *e.SrcVID.Function, record[*e.SrcVID.Index])
+	} else {
+		srcVID = record[*e.SrcVID.Index]
+	}
+	var dstVID string
+	if e.DstVID.Function != nil {
+		dstVID = fmt.Sprintf("%s(%q)", *e.DstVID.Function, record[*e.DstVID.Index])
+	} else {
+		dstVID = record[*e.DstVID.Index]
+	}
+	return fmt.Sprintf(" %s->%s%s:(%s) ", srcVID, dstVID, rank, strings.Join(cells, ","))
 }
 
 func (e *Edge) maxIndex() int {
@@ -402,22 +411,16 @@ func (e *Edge) validateAndReset(prefix string) error {
 			return err
 		}
 	} else {
-		index, function := 0, ""
-		e.SrcVID = &VID{
-			Index:    &index,
-			Function: &function,
-		}
+		index := 0
+		e.SrcVID = &VID{Index: &index}
 	}
 	if e.DstVID != nil {
 		if err := e.DstVID.validateAndReset(fmt.Sprintf("%s.dstVID", prefix), 1); err != nil {
 			return err
 		}
 	} else {
-		index, function := 1, ""
-		e.DstVID = &VID{
-			Index:    &index,
-			Function: &function,
-		}
+		index := 1
+		e.DstVID = &VID{Index: &index}
 	}
 	start := 2
 	if e.Rank != nil {
@@ -449,7 +452,13 @@ func (v *Vertex) FormatValues(record base.Record) string {
 	for _, tag := range v.Tags {
 		cells = append(cells, tag.FormatValues(record))
 	}
-	return fmt.Sprintf(" %s: (%s)", record[*v.VID.Index], strings.Join(cells, ","))
+	var vid string
+	if v.VID.Function != nil {
+		vid = fmt.Sprintf("%s(%q)", *v.VID.Function, record[*v.VID.Index])
+	} else {
+		vid = record[*v.VID.Index]
+	}
+	return fmt.Sprintf(" %s: (%s)", vid, strings.Join(cells, ","))
 }
 
 func (v *Vertex) maxIndex() int {
@@ -500,11 +509,8 @@ func (v *Vertex) validateAndReset(prefix string) error {
 			return err
 		}
 	} else {
-		index, function := 0, ""
-		v.VID = &VID{
-			Index:    &index,
-			Function: &function,
-		}
+		index := 0
+		v.VID = &VID{Index: &index}
 	}
 	j := 1
 	for i := range v.Tags {

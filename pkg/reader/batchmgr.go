@@ -28,17 +28,17 @@ func NewBatchMgr(schema *config.Schema, batchSize int, clientRequestChs []chan b
 	bm.Schema.Type = schema.Type
 
 	if bm.Schema.IsVertex() {
-		index, function := 0, ""
+		index := 0
 		bm.Schema.Vertex = &config.Vertex{
-			VID:  &config.VID{Index: &index, Function: &function},
+			VID:  &config.VID{Index: &index},
 			Tags: []*config.Tag{},
 		}
 	} else {
-		srcIdx, dstIdx, function := 0, 1, ""
+		srcIdx, dstIdx := 0, 1
 		bm.Schema.Edge = &config.Edge{
 			Name:   schema.Edge.Name,
-			SrcVID: &config.VID{Index: &srcIdx, Function: &function},
-			DstVID: &config.VID{Index: &dstIdx, Function: &function},
+			SrcVID: &config.VID{Index: &srcIdx},
+			DstVID: &config.VID{Index: &dstIdx},
 			Rank:   nil,
 			Props:  []*config.Prop{},
 		}
