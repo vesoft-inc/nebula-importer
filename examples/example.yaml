@@ -130,8 +130,8 @@ files:
               - name: gender
                 type: string
 
-  - path: ./follow.csv
-    failDataPath: ./err/follow_index.csv
+  - path: ./follow-with-rank.csv
+    failDataPath: ./err/follow-with-rank.csv
     batchSize: 2
     type: csv
     csv:
@@ -145,10 +145,11 @@ files:
           index: 0
           function: hash
         dstVID:
-          index: 1
+          index: 2
           function: uuid
         rank:
-          index: 2
+          index: 3
         props:
           - name: likeness
             type: double
+            index: 1

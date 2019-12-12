@@ -28,20 +28,19 @@ func NewBatchMgr(schema *config.Schema, batchSize int, clientRequestChs []chan b
 	bm.Schema.Type = schema.Type
 
 	if bm.Schema.IsVertex() {
-		index := 0
+		index, function := 0, ""
 		bm.Schema.Vertex = &config.Vertex{
-			VID:  &config.VID{Index: &index},
+			VID:  &config.VID{Index: &index, Function: &function},
 			Tags: []*config.Tag{},
 		}
 	} else {
-		srcIdx, dstIdx, rank := 0, 1, 2
+		srcIdx, dstIdx, function := 0, 1, ""
 		bm.Schema.Edge = &config.Edge{
-			Name:        schema.Edge.Name,
-			WithRanking: schema.Edge.WithRanking,
-			SrcVID:      &config.VID{Index: &srcIdx},
-			DstVID:      &config.VID{Index: &dstIdx},
-			Rank:        &config.Rank{Index: &rank},
-			Props:       []*config.Prop{},
+			Name:   schema.Edge.Name,
+			SrcVID: &config.VID{Index: &srcIdx, Function: &function},
+			DstVID: &config.VID{Index: &dstIdx, Function: &function},
+			Rank:   nil,
+			Props:  []*config.Prop{},
 		}
 	}
 
@@ -64,17 +63,26 @@ func (bm *BatchMgr) InitSchema(header base.Record) {
 	}
 	bm.initializedSchema = true
 	for i, h := range header {
-		switch strings.ToUpper(h) {
-		case base.LABEL_LABEL:
-		case base.LABEL_VID:
+		switch c := strings.ToUpper(h); {
+		case c == base.LABEL_LABEL:
+			logger.Fatalf("Invalid schema: %v", header)
+		case strings.HasPrefix(c, base.LABEL_VID):
 			*bm.Schema.Vertex.VID.Index = i
-		case base.LABEL_SRC_VID:
+			bm.Schema.Vertex.VID.ParseFunction(c)
+		case strings.HasPrefix(c, base.LABEL_SRC_VID):
 			*bm.Schema.Edge.SrcVID.Index = i
-		case base.LABEL_DST_VID:
+			bm.Schema.Edge.SrcVID.ParseFunction(c)
+		case strings.HasPrefix(c, base.LABEL_DST_VID):
 			*bm.Schema.Edge.DstVID.Index = i
-		case base.LABEL_RANK:
-			*bm.Schema.Edge.Rank.Index = i
-		case base.LABEL_IGNORE:
+			bm.Schema.Edge.DstVID.ParseFunction(c)
+		case c == base.LABEL_RANK:
+			if bm.Schema.Edge.Rank == nil {
+				rank := i
+				bm.Schema.Edge.Rank = &config.Rank{Index: &rank}
+			} else {
+				*bm.Schema.Edge.Rank.Index = i
+			}
+		case c == base.LABEL_IGNORE:
 		default:
 			if bm.Schema.IsVertex() {
 				bm.addVertexTags(h, i)
@@ -93,13 +101,11 @@ func (bm *BatchMgr) addVertexTags(r string, i int) {
 	if tagName == "" {
 		return
 	}
-	ignore := (prop == "")
 	tag := bm.getOrCreateVertexTagByName(tagName)
 	p := config.Prop{
-		Name:   &prop,
-		Type:   &columnType,
-		Index:  &i,
-		Ignore: &ignore,
+		Name:  &prop,
+		Type:  &columnType,
+		Index: &i,
 	}
 	tag.Props = append(tag.Props, &p)
 }
@@ -111,12 +117,10 @@ func (bm *BatchMgr) addEdgeProps(r string, i int) {
 	if len(res) > 1 {
 		prop = res[1]
 	}
-	ignore := (prop == "")
 	p := config.Prop{
-		Name:   &prop,
-		Type:   &columnType,
-		Index:  &i,
-		Ignore: &ignore,
+		Name:  &prop,
+		Type:  &columnType,
+		Index: &i,
 	}
 	bm.Schema.Edge.Props = append(bm.Schema.Edge.Props, &p)
 }
@@ -142,11 +146,9 @@ func (bm *BatchMgr) generateInsertStmtPrefix() {
 func (bm *BatchMgr) GeneratePropsString(props []*config.Prop) string {
 	var builder strings.Builder
 	for i, prop := range props {
-		if !*prop.Ignore {
-			builder.WriteString(*prop.Name)
-			if i < len(props)-1 {
-				builder.WriteString(",")
-			}
+		builder.WriteString(*prop.Name)
+		if i < len(props)-1 {
+			builder.WriteString(",")
 		}
 	}
 	return builder.String()
