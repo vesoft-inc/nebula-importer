@@ -10,6 +10,7 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/pkg/reader"
 	"github.com/vesoft-inc/nebula-importer/pkg/stats"
+	"github.com/vesoft-inc/nebula-importer/pkg/web"
 )
 
 type Runner struct {
@@ -52,6 +53,8 @@ func (r *Runner) Run(conf string) {
 
 	errHandler := errhandler.New(statsMgr.StatsCh)
 
+	freaders := make([]*reader.FileReader, len(yaml.Files))
+
 	for i, file := range yaml.Files {
 		// TODO: skip files with error
 		errCh, err := errHandler.Init(file, clientMgr.GetNumConnections())
@@ -65,10 +68,24 @@ func (r *Runner) Run(conf string) {
 			return
 		} else {
 			go fr.Read()
+			freaders[i] = fr
 		}
 	}
 
+	go func() {
+		if web.StopCh != nil {
+			if s, ok := <-web.StopCh; ok && s {
+				for _, f := range freaders {
+					f.Stop()
+				}
+			}
+		}
+	}()
+
 	<-statsMgr.DoneCh
+	if web.ShutdownCh != nil {
+		web.ShutdownCh <- true
+	}
 
 	if statsMgr.NumFailed > 0 {
 		r.err = fmt.Errorf("Total %d lines fail to insert to nebula", statsMgr.NumFailed)
