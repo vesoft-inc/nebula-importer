@@ -117,6 +117,9 @@ func Parse(filename string) (*YAMLConfig, error) {
 }
 
 func (config *YAMLConfig) validateAndReset(dir string) error {
+	if config.NebulaClientSettings == nil {
+		return errors.New("please configure clientSettings")
+	}
 	if err := config.NebulaClientSettings.validateAndReset("clientSettings"); err != nil {
 		return err
 	}
