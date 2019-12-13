@@ -25,6 +25,7 @@ type FileReader struct {
 	DataReader  DataFileReader
 	Concurrency int
 	BatchMgr    *BatchMgr
+	StopFlag    bool
 }
 
 func New(fileIdx int, file *config.File, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) (*FileReader, error) {
@@ -36,6 +37,7 @@ func New(fileIdx int, file *config.File, clientRequestChs []chan base.ClientRequ
 			DataReader: &r,
 			File:       file,
 			WithHeader: *file.CSV.WithHeader,
+			StopFlag:   false,
 		}
 		reader.BatchMgr = NewBatchMgr(file.Schema, *file.BatchSize, clientRequestChs, errCh)
 		if !reader.WithHeader {
@@ -49,6 +51,10 @@ func New(fileIdx int, file *config.File, clientRequestChs []chan base.ClientRequ
 
 func (r *FileReader) startLog() {
 	logger.Infof("Start to read file(%d): %s, schema: < %s >", r.FileIdx, *r.File.Path, r.BatchMgr.Schema.String())
+}
+
+func (r *FileReader) Stop() {
+	r.StopFlag = true
 }
 
 func (r *FileReader) Read() error {
@@ -88,7 +94,7 @@ func (r *FileReader) Read() error {
 			numErrorLines++
 		}
 
-		if r.File.Limit != nil && *r.File.Limit > 0 && *r.File.Limit <= lineNum {
+		if r.StopFlag || (r.File.Limit != nil && *r.File.Limit > 0 && *r.File.Limit <= lineNum) {
 			break
 		}
 	}
