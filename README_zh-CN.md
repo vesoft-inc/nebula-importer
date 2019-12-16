@@ -21,6 +21,43 @@ Nebula Importer 是一款 [Nebula Graph](https://github.com/vesoft-inc/nebula) �
 
 > 如果想在本地快速试用 **Nebula Graph**，推荐使用 `docker-compose` 部署。
 
+## 通过源码编译方式或者 Docker 方式使用本工具
+
+在完成 YAML 配置文件和（待导入） csv 数据文件准备后，就可以使用本工具向 **Nebula Graph** 批量写入。
+
+### 源码编译方式
+
+Nebula Importer 使用 **>=1.13** 版本的 golang 编译，所以首先确保在系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
+
+使用 `git` 克隆该仓库到本地，进入 `nebula-importer/cmd` 目录，直接执行即可。
+
+``` bash
+$ git clone https://github.com/vesoft-inc/nebula-importer.git
+$ cd nebula-importer/cmd
+$ go build -mod vendor -o nebula-importer
+$ ./nebula-importer --config /path/to/yaml/config/file
+```
+
+其中 `--config` 用来传入 YAML 配置文件的路径。
+
+### Docker 方式
+
+使用 Docker 可以不必在本地安装 golang 环境。直接拉取 Nebula Importer 的[镜像](https://hub.docker.com/r/vesoft/nebula-importer)来导入。唯一要做的就是将本地配置文件和 CSV 数据文件挂载到容器中，如下所示：
+
+```bash
+$ docker run --rm -ti \
+    --network=host \
+    -v {your-config-file}:{your-config-file} \
+    -v {your-csv-data-dir}:{your-csv-data-dir} \
+    vesoft/nebula-importer
+    --config {your-config-file}
+```
+
+- `{your-config-file}`：替换成本地 YAML 配置文件的绝对路径
+- `{your-csv-data-dir}`：替换成本地 CSV 数据文件的绝对路径
+
+> 注意：通常建议在 files.path 中使用相对路径。但如果在 `files.path` 中使用本地绝对路径，则需要小心检查这个路径映射到 Docker 中的对应路径。
+
 ## 配置文件
 
 Nebula Importer 通过 YAML 配置文件来描述要导入的文件信息、**Nebula Graph** 的 server 信息等。[这里](examples/)有一个配置文件的参考样例和对应的数据文件格式。接下来逐一解释各个选项的含义：
@@ -320,39 +357,3 @@ example 中 follow 边的示例：
 - `-` 表示删除
 
 边 csv 文件 header 中也可以指定 label，和顶点原理相同。
-
-## 通过源码编译方式或者 Docker 方式使用本工具
-
-在完成 YAML 配置文件和（待导入） csv 数据文件准备后，就可以使用本工具向 **Nebula Graph** 批量写入。
-
-### 源码编译方式
-
-Nebula Importer 使用 **>=1.13** 版本的 golang 编译，所以首先确保在系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
-
-使用 `git` 克隆该仓库到本地，进入 `nebula-importer/cmd` 目录，直接执行即可。
-
-``` bash
-$ git clone https://github.com/vesoft-inc/nebula-importer.git
-$ cd nebula-importer/cmd
-$ go run importer.go --config /path/to/yaml/config/file
-```
-
-其中 `--config` 用来传入 YAML 配置文件的路径。
-
-### Docker 方式
-
-使用 Docker 可以不必在本地安装 golang 环境。直接拉取 Nebula Importer 的[镜像](https://hub.docker.com/r/vesoft/nebula-importer)来导入。唯一要做的就是将本地配置文件和 CSV 数据文件挂载到容器中，如下所示：
-
-```bash
-$ docker run --rm -ti \
-    --network=host \
-    -v {your-config-file}:{your-config-file} \
-    -v {your-csv-data-dir}:{your-csv-data-dir} \
-    vesoft/nebula-importer
-    --config {your-config-file}
-```
-
-- `{your-config-file}`：替换成本地 YAML 配置文件的绝对路径
-- `{your-csv-data-dir}`：替换成本地 CSV 数据文件的绝对路径
-
-> 注意：通常建议在 files.path 中使用相对路径。但如果在 `files.path` 中使用本地绝对路径，则需要小心检查这个路径映射到 Docker 中的对应路径。
