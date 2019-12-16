@@ -21,7 +21,7 @@ func (r *Runner) Error() error {
 	return r.err
 }
 
-func (r *Runner) Run(conf string) {
+func (r *Runner) Run(confPath string) {
 	now := time.Now()
 	defer func() {
 		if re := recover(); re != nil {
@@ -33,13 +33,21 @@ func (r *Runner) Run(conf string) {
 		}
 	}()
 
-	yaml, err := config.Parse(conf)
+	yaml, err := config.Parse(confPath)
 	if err != nil {
 		r.err = err
 		return
 	}
 
 	logger.Init(*yaml.LogPath)
+
+	var ws *web.WebServer
+	if yaml.HttpSettings != nil {
+		ws = &web.WebServer{
+			HttpSettings: yaml.HttpSettings,
+		}
+		ws.Start()
+	}
 
 	statsMgr := stats.NewStatsMgr(len(yaml.Files))
 	defer statsMgr.Close()
@@ -53,7 +61,7 @@ func (r *Runner) Run(conf string) {
 
 	errHandler := errhandler.New(statsMgr.StatsCh)
 
-	freaders := make([]*reader.FileReader, len(yaml.Files))
+	freaders := make([]interface{}, len(yaml.Files))
 
 	for i, file := range yaml.Files {
 		// TODO: skip files with error
@@ -72,19 +80,13 @@ func (r *Runner) Run(conf string) {
 		}
 	}
 
-	go func() {
-		if web.StopCh != nil {
-			if s, ok := <-web.StopCh; ok && s {
-				for _, f := range freaders {
-					f.Stop()
-				}
-			}
-		}
-	}()
+	if ws != nil {
+		go ws.Stop(freaders)
+	}
 
 	<-statsMgr.DoneCh
-	if web.ShutdownCh != nil {
-		web.ShutdownCh <- true
+	if ws != nil {
+		ws.Shutdown(statsMgr.NumFailed)
 	}
 
 	if statsMgr.NumFailed > 0 {
