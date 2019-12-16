@@ -80,12 +80,18 @@ type File struct {
 	Schema       *Schema    `yaml:"schema"`
 }
 
+type HttpSettings struct {
+	Port     *int    `yaml:"port"`
+	Callback *string `yaml:"callback"`
+}
+
 type YAMLConfig struct {
 	Version              *string               `yaml:"version"`
 	Description          *string               `yaml:"description"`
 	NebulaClientSettings *NebulaClientSettings `yaml:"clientSettings"`
 	LogPath              *string               `yaml:"logPath"`
 	Files                []*File               `yaml:"files"`
+	HttpSettings         *HttpSettings         `yaml:"httpSettings"`
 }
 
 var version string = "v1rc2"
@@ -139,6 +145,7 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
