@@ -47,12 +47,14 @@ func (w *WebServer) listenAndServe() {
 func (w *WebServer) waitForShutdown() {
 	<-w.shutdownCh
 	close(w.stopCh)
-	w.server.Shutdown(context.Background())
+	if err := w.server.Shutdown(context.Background()); err != nil {
+		logger.Error(err)
+	}
 	logger.Infof("Shutdown http server listened on %d", *w.HttpSettings.Port)
 }
 
 type body struct {
-	failedRows int64 `json:"failedRows"`
+	FailedRows int64 `json:"failedRows"`
 }
 
 func (w *WebServer) Shutdown(failedRows int64) {
