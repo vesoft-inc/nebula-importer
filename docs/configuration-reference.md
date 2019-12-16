@@ -18,6 +18,7 @@
 | files[0].failDataPath                         | Failed data file path                                                     | ""             |
 | files[0].batchSize                            | Size of each batch for inserting stmt construction                        | 128            |
 | files[0].limit                                | Limit rows to be read                                                     | NULL           |
+| files[0].inOrder                              | Whether to insert rows in order                                           | false          |
 | files[0].type                                 | File type                                                                 | csv            |
 | files[0].csv                                  | CSV file options                                                          | -              |
 | files[0].csv.withHeader                       | Whether csv file has header                                               | false          |

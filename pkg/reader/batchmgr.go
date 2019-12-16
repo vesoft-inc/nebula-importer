@@ -156,7 +156,7 @@ func (bm *BatchMgr) GeneratePropsString(props []*config.Prop) string {
 
 func (bm *BatchMgr) getOrCreateVertexTagByName(name string) *config.Tag {
 	for i := range bm.Schema.Vertex.Tags {
-		if strings.ToLower(*bm.Schema.Vertex.Tags[i].Name) == strings.ToLower(name) {
+		if strings.EqualFold(*bm.Schema.Vertex.Tags[i].Name, name) {
 			return bm.Schema.Vertex.Tags[i]
 		}
 	}
@@ -210,7 +210,10 @@ func (bm *BatchMgr) Add(data base.Data) error {
 var h = fnv.New32a()
 
 func getBatchId(idStr string, numChans int) uint32 {
-	h.Write([]byte(idStr))
+	_, err := h.Write([]byte(idStr))
+	if err != nil {
+		logger.Error(err)
+	}
 	return h.Sum32() % uint32(numChans)
 }
 

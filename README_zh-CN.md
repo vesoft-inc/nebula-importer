@@ -83,6 +83,7 @@ files:
     failDataPath: ./err/student.csv
     batchSize: 128
     limit: 10
+    inOrder: false
     type: csv
     csv:
       withHeader: false
@@ -108,6 +109,10 @@ files:
 ##### `limit`
 
 **可选**。限制读取文件的行数。
+
+##### `inOrder`
+
+**可选**。是否按序插入文件中的每一行。如果不指定，可以避免数据倾斜导致的导入速率的下降。
 
 ##### `type` & `csv`
 

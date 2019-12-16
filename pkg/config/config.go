@@ -75,6 +75,7 @@ type File struct {
 	FailDataPath *string    `yaml:"failDataPath"`
 	BatchSize    *int       `yaml:"batchSize"`
 	Limit        *int       `yaml:"limit"`
+	InOrder      *bool      `yaml:"inOrder"`
 	Type         *string    `yaml:"type"`
 	CSV          *CSVConfig `yaml:"csv"`
 	Schema       *Schema    `yaml:"schema"`
@@ -136,6 +137,12 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 		logger.Warnf("You have not configured the log file path in: logPath, reset to default path: %s", *config.LogPath)
 	}
 
+	if config.HttpSettings != nil {
+		if err := config.HttpSettings.validateAndReset("httpSettings"); err != nil {
+			return err
+		}
+	}
+
 	if config.Files == nil {
 		return errors.New("There is no files in configuration")
 	}
@@ -146,6 +153,13 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 		}
 	}
 
+	return nil
+}
+
+func (h *HttpSettings) validateAndReset(prefix string) error {
+	if h.Port == nil {
+		return fmt.Errorf("Please configure %s.port", prefix)
+	}
 	return nil
 }
 
@@ -219,6 +233,10 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		b := 128
 		f.BatchSize = &b
 		logger.Infof("Invalide batch size in file(%s), reset to %d", *f.Path, *f.BatchSize)
+	}
+	if f.InOrder == nil {
+		inOrder := false
+		f.InOrder = &inOrder
 	}
 	if strings.ToLower(*f.Type) != "csv" {
 		// TODO: Now only support csv import

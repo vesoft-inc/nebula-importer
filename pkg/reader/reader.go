@@ -85,7 +85,12 @@ func (r *FileReader) Read() error {
 				r.BatchMgr.InitSchema(data.Record)
 				r.startLog()
 			} else {
-				err = r.BatchMgr.Add(data)
+				if *r.File.InOrder {
+					err = r.BatchMgr.Add(data)
+				} else {
+					idx := lineNum % len(r.BatchMgr.Batches)
+					r.BatchMgr.Batches[idx].Add(data)
+				}
 			}
 		}
 
