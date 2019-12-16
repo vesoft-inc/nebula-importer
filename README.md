@@ -26,6 +26,43 @@ Currently, there are three ways to deploy **Nebula Graph**:
 
 > The quickest way to deploy **Nebula Graph** is using [`docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose).
 
+## Use This Importer Tool by Source Code or Docker
+
+After completing the configuration of the YAML file and the preparation of the (to be imported) CSV data file, you can use this tool to batch write to **Nebula Graph**.
+
+### From Source code
+
+Nebula Importer is compiled with golang higher than **>=1.13**, so make sure that golang is installed on your system. The installation and configuration tutorial is referenced [here](docs/golang-install.md).
+
+Use `git` to clone the repository to local, go to the `nebula-importer/cmd` directory and execute the importer.
+
+``` bash
+$ git clone https://github.com/vesoft-inc/nebula-importer.git
+$ cd nebula-importer/cmd
+$ go build -mod vendor -o nebula-importer
+$ ./nebula-importer --config /path/to/yaml/config/file
+```
+
+`--config` is used to pass in the path to the YAML configuration file.
+
+### From Docker
+
+With Docker, you don't have to install golang locally. Pull Nebula Importer's [Docker Image](https://hub.docker.com/r/vesoft/nebula-importer) to import. The only thing to do is to mount the local configuration file and the CSV data files into the container as follows:
+
+```bash
+$ docker run --rm -ti \
+    --network=host \
+    -v {your-config-file}:{your-config-file} \
+    -v {your-csv-data-dir}:{your-csv-data-dir} \
+    vesoft/nebula-importer
+    --config {your-config-file}
+```
+
+* `{your-config-file}`: Replace with the absolute path of the local YAML configuration file
+* `{your-csv-data-dir}`: Replace with the absolute path of the local CSV data file.
+
+> Note: It is recommended to use relative paths in `files.path`. But if you use a local absolute path, you need to carefully check the path mapped to Docker with this path.
+
 ## Prepare Configuration File
 
 Nebula Importer reads the CSV file to be imported and **Nebula Graph** server data through the YAML configuration file. Here's an [example](examples/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
@@ -260,42 +297,6 @@ In the preceding example, the source vertex of the edge is `:SRC_VID` (in column
 * `-` means deleting
 
 The same with vertex, you can specify label in edge CSV file.
-
-## Use This Importer Tool by Source Code or Docker
-
-After completing the configuration of the YAML file and the preparation of the (to be imported) CSV data file, you can use this tool to batch write to **Nebula Graph**.
-
-### From Source code
-
-Nebula Importer is compiled with golang higher than **>=1.13**, so make sure that golang is installed on your system. The installation and configuration tutorial is referenced [here](docs/golang-install.md).
-
-Use `git` to clone the repository to local, go to the `nebula-importer/cmd` directory and execute the importer.
-
-``` bash
-$ git clone https://github.com/vesoft-inc/nebula-importer.git
-$ cd nebula-importer/cmd
-$ go run importer.go --config /path/to/yaml/config/file
-```
-
-`--config` is used to pass in the path to the YAML configuration file.
-
-### From Docker
-
-With Docker, you don't have to install golang locally. Pull Nebula Importer's [Docker Image](https://hub.docker.com/r/vesoft/nebula-importer) to import. The only thing to do is to mount the local configuration file and the CSV data files into the container as follows:
-
-```bash
-$ docker run --rm -ti \
-    --network=host \
-    -v {your-config-file}:{your-config-file} \
-    -v {your-csv-data-dir}:{your-csv-data-dir} \
-    vesoft/nebula-importer
-    --config {your-config-file}
-```
-
-* `{your-config-file}`: Replace with the absolute path of the local YAML configuration file
-* `{your-csv-data-dir}`: Replace with the absolute path of the local CSV data file.
-
-> Note: It is recommended to use relative paths in `files.path`. But if you use a local absolute path, you need to carefully check the path mapped to Docker with this path.
 
 ## TODO
 

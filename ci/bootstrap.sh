@@ -9,13 +9,12 @@ curl -fsSL https://studygolang.com/dl/golang/go1.13.4.linux-amd64.tar.gz -o go1.
 tar zxf go1.13.4.linux-amd64.tar.gz -C /usr/local/
 
 export GOROOT=/usr/local/go
-export PATH=$PATH:$GOROOT/bin
 export GOPATH=/usr/local/nebula/
+export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 export GO111MODULE=on
-export GOPROXY=https://goproxy.cn
 
 pushd ./importer/cmd
-go build -o ../../nebula-importer
+go build -mod vendor -o ../../nebula-importer
 popd
 
 until echo "quit" | ./bin/nebula -u user -p password --addr=$addr --port=$port &> /dev/null; do

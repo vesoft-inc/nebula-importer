@@ -30,9 +30,10 @@ func (w *WebServer) Start() {
 		w.stopCh <- true
 	})
 
-	port := *w.HttpSettings.Port
-
-	w.server = &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: m}
+	w.server = &http.Server{
+		Addr:    fmt.Sprintf(":%d", *w.HttpSettings.Port),
+		Handler: m,
+	}
 
 	go w.listenAndServe()
 	go w.waitForShutdown()
@@ -47,17 +48,19 @@ func (w *WebServer) listenAndServe() {
 func (w *WebServer) waitForShutdown() {
 	<-w.shutdownCh
 	close(w.stopCh)
-	w.server.Shutdown(context.Background())
+	if err := w.server.Shutdown(context.Background()); err != nil {
+		logger.Error(err)
+	}
 	logger.Infof("Shutdown http server listened on %d", *w.HttpSettings.Port)
 }
 
 type body struct {
-	failedRows int64 `json:"failedRows"`
+	FailedRows int64 `json:"failedRows"`
 }
 
 func (w *WebServer) Shutdown(failedRows int64) {
 	if w.HttpSettings.Callback != nil {
-		body := body{failedRows: failedRows}
+		body := body{FailedRows: failedRows}
 		b, err := json.Marshal(body)
 		if err != nil {
 			logger.Error(err)

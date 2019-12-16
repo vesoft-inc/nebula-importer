@@ -28,3 +28,13 @@ export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 ```bash
 $ go version
 ```
+
+## 编译 nebula-importer
+
+首先进入 nebula-importer 的项目目录。然后执行如下的命令：
+
+```bash
+$ cd nebula-importer/cmd
+$ go build -mod vendor -o nebula-importer
+$ ./nebula-importer --help
+```
