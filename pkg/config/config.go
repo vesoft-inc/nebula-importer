@@ -136,6 +136,12 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 		logger.Warnf("You have not configured the log file path in: logPath, reset to default path: %s", *config.LogPath)
 	}
 
+	if config.HttpSettings != nil {
+		if err := config.HttpSettings.validateAndReset("httpSettings"); err != nil {
+			return err
+		}
+	}
+
 	if config.Files == nil {
 		return errors.New("There is no files in configuration")
 	}
@@ -146,6 +152,13 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 		}
 	}
 
+	return nil
+}
+
+func (h *HttpSettings) validateAndReset(prefix string) error {
+	if h.Port == nil {
+		return fmt.Errorf("Please configure %s.port", prefix)
+	}
 	return nil
 }
 

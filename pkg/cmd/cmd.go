@@ -75,7 +75,11 @@ func (r *Runner) Run(confPath string) {
 			r.err = err
 			return
 		} else {
-			go fr.Read()
+			go func() {
+				if err := fr.Read(); err != nil {
+					logger.Error(err)
+				}
+			}()
 			freaders[i] = fr
 		}
 	}
