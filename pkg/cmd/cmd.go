@@ -10,18 +10,19 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/pkg/reader"
 	"github.com/vesoft-inc/nebula-importer/pkg/stats"
-	"github.com/vesoft-inc/nebula-importer/pkg/web"
 )
 
 type Runner struct {
-	err error
+	err       error
+	Readers   []*reader.FileReader
+	NumFailed int64
 }
 
 func (r *Runner) Error() error {
 	return r.err
 }
 
-func (r *Runner) Run(confPath string) {
+func (r *Runner) Run(yaml *config.YAMLConfig) {
 	now := time.Now()
 	defer func() {
 		if re := recover(); re != nil {
@@ -33,21 +34,7 @@ func (r *Runner) Run(confPath string) {
 		}
 	}()
 
-	yaml, err := config.Parse(confPath)
-	if err != nil {
-		r.err = err
-		return
-	}
-
 	logger.Init(*yaml.LogPath)
-
-	var ws *web.WebServer
-	if yaml.HttpSettings != nil {
-		ws = &web.WebServer{
-			HttpSettings: yaml.HttpSettings,
-		}
-		ws.Start()
-	}
 
 	statsMgr := stats.NewStatsMgr(len(yaml.Files))
 	defer statsMgr.Close()
@@ -61,7 +48,7 @@ func (r *Runner) Run(confPath string) {
 
 	errHandler := errhandler.New(statsMgr.StatsCh)
 
-	freaders := make([]interface{}, len(yaml.Files))
+	freaders := make([]*reader.FileReader, len(yaml.Files))
 
 	for i, file := range yaml.Files {
 		// TODO: skip files with error
@@ -84,14 +71,12 @@ func (r *Runner) Run(confPath string) {
 		}
 	}
 
-	if ws != nil {
-		go ws.Stop(freaders)
-	}
+	r.Readers = freaders
 
 	<-statsMgr.DoneCh
-	if ws != nil {
-		ws.Shutdown(statsMgr.NumFailed)
-	}
+
+	r.Readers = nil
+	r.NumFailed = statsMgr.NumFailed
 
 	if statsMgr.NumFailed > 0 {
 		r.err = fmt.Errorf("Total %d lines fail to insert to nebula", statsMgr.NumFailed)
