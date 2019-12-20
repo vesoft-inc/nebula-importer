@@ -22,7 +22,7 @@ func (r *Runner) Error() error {
 	return r.err
 }
 
-func (r *Runner) Run(confPath string) {
+func (r *Runner) Run(yaml *config.YAMLConfig) {
 	now := time.Now()
 	defer func() {
 		if re := recover(); re != nil {
@@ -33,12 +33,6 @@ func (r *Runner) Run(confPath string) {
 			}
 		}
 	}()
-
-	yaml, err := config.Parse(confPath)
-	if err != nil {
-		r.err = err
-		return
-	}
 
 	logger.Init(*yaml.LogPath)
 

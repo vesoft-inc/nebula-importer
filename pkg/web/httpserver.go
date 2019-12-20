@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
@@ -16,6 +17,7 @@ type WebServer struct {
 	Callback string
 	runner   *cmd.Runner
 	server   *http.Server
+	mux      sync.Mutex
 }
 
 func (w *WebServer) Start() {
@@ -23,13 +25,21 @@ func (w *WebServer) Start() {
 
 	m.HandleFunc("/submit", func(resp http.ResponseWriter, req *http.Request) {
 		if req.Method == "POST" {
+			w.mux.Lock()
+			defer w.mux.Unlock()
 			w.submit(resp, req)
+		} else {
+			http.Error(resp, "Invalid http method", http.StatusBadRequest)
 		}
 	})
 
 	m.HandleFunc("/stop", func(resp http.ResponseWriter, req *http.Request) {
 		if req.Method == "PUT" {
+			w.mux.Lock()
+			defer w.mux.Unlock()
 			w.stop(resp, req)
+		} else {
+			http.Error(resp, "Invalid http method", http.StatusBadRequest)
 		}
 	})
 
@@ -86,17 +96,21 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 		logger.Error(msg)
 		http.Error(resp, msg, http.StatusTooManyRequests)
 	} else {
+		if req.Body == nil {
+			http.Error(resp, "nil request body", http.StatusBadRequest)
+			return
+		}
+		defer req.Body.Close()
+		var conf config.YAMLConfig
+		if err := json.NewDecoder(req.Body).Decode(&conf); err != nil {
+			http.Error(resp, err.Error(), http.StatusBadRequest)
+			return
+		}
 		w.runner = &cmd.Runner{}
 		go func() {
-			defer req.Body.Close()
-			var conf config.YAMLConfig
-			if err := json.NewDecoder(req.Body).Decode(&conf); err != nil {
-				http.Error(resp, err.Error(), http.StatusBadRequest)
-			} else {
-				w.runner.Run(conf)
-				w.callback(w.runner.NumFailed)
-				w.runner = nil
-			}
+			w.runner.Run(&conf)
+			w.callback(w.runner.NumFailed)
+			w.runner = nil
 		}()
 		resp.WriteHeader(http.StatusOK)
 		if _, err := fmt.Fprintln(resp, "OK"); err != nil {

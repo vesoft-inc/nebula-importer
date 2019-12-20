@@ -4,6 +4,7 @@ import (
 	"flag"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
+	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/web"
 )
 
@@ -27,8 +28,13 @@ func main() {
 			panic("please configure yaml file")
 		}
 
+		conf, err := config.Parse(*configuration)
+		if err != nil {
+			panic(err)
+		}
+
 		runner := &cmd.Runner{}
-		runner.Run(*configuration)
+		runner.Run(conf)
 
 		if runner.Error() != nil {
 			panic(runner.Error())
