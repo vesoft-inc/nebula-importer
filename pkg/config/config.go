@@ -143,7 +143,7 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 		}
 	}
 
-	if config.Files == nil {
+	if config.Files == nil || len(config.Files) == 0 {
 		return errors.New("There is no files in configuration")
 	}
 
