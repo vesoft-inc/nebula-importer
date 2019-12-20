@@ -81,18 +81,12 @@ type File struct {
 	Schema       *Schema    `yaml:"schema"`
 }
 
-type HttpSettings struct {
-	Port     *int    `yaml:"port"`
-	Callback *string `yaml:"callback"`
-}
-
 type YAMLConfig struct {
 	Version              *string               `yaml:"version"`
 	Description          *string               `yaml:"description"`
 	NebulaClientSettings *NebulaClientSettings `yaml:"clientSettings"`
 	LogPath              *string               `yaml:"logPath"`
 	Files                []*File               `yaml:"files"`
-	HttpSettings         *HttpSettings         `yaml:"httpSettings"`
 }
 
 var version string = "v1rc2"
@@ -137,12 +131,6 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 		logger.Warnf("You have not configured the log file path in: logPath, reset to default path: %s", *config.LogPath)
 	}
 
-	if config.HttpSettings != nil {
-		if err := config.HttpSettings.validateAndReset("httpSettings"); err != nil {
-			return err
-		}
-	}
-
 	if config.Files == nil || len(config.Files) == 0 {
 		return errors.New("There is no files in configuration")
 	}
@@ -153,13 +141,6 @@ func (config *YAMLConfig) validateAndReset(dir string) error {
 		}
 	}
 
-	return nil
-}
-
-func (h *HttpSettings) validateAndReset(prefix string) error {
-	if h.Port == nil {
-		return fmt.Errorf("Please configure %s.port", prefix)
-	}
 	return nil
 }
 

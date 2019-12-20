@@ -8,9 +8,6 @@ clientSettings:
     user: user
     password: password
     address: 172.28.3.1:3699,172.28.3.2:3699
-httpSettings:
-  port: 5699
-  callback: http://localhost:7699/callback
 logPath: ./err/test.log
 files:
   - path: ./choose.csv
