@@ -13,80 +13,80 @@ import (
 )
 
 type NebulaClientConnection struct {
-	User     *string `yaml:"user"`
-	Password *string `yaml:"password"`
-	Address  *string `yaml:"address"`
+	User     *string `json:"user" yaml:"user"`
+	Password *string `json:"password" yaml:"password"`
+	Address  *string `json:"address" yaml:"address"`
 }
 
 type NebulaClientSettings struct {
-	Concurrency       *int                    `yaml:"concurrency"`
-	ChannelBufferSize *int                    `yaml:"channelBufferSize"`
-	Space             *string                 `yaml:"space"`
-	Connection        *NebulaClientConnection `yaml:"connection"`
+	Concurrency       *int                    `json:"concurrency" yaml:"concurrency"`
+	ChannelBufferSize *int                    `json:"channelBufferSize" yaml:"channelBufferSize"`
+	Space             *string                 `json:"space" yaml:"space"`
+	Connection        *NebulaClientConnection `json:"connection" yaml:"connection"`
 }
 
 type Prop struct {
-	Name  *string `yaml:"name"`
-	Type  *string `yaml:"type"`
-	Index *int    `yaml:"index"`
+	Name  *string `json:"name" yaml:"name"`
+	Type  *string `json:"type" yaml:"type"`
+	Index *int    `json:"index" yaml:"index"`
 }
 
 type VID struct {
-	Index    *int    `yaml:"index"`
-	Function *string `yaml:"function"`
+	Index    *int    `json:"index" yaml:"index"`
+	Function *string `json:"function" yaml:"function"`
 }
 
 type Rank struct {
-	Index *int `yaml:"index"`
+	Index *int `json:"index" yaml:"index"`
 }
 
 type Edge struct {
-	Name        *string `yaml:"name"`
-	WithRanking *bool   `yaml:"withRanking"`
-	Props       []*Prop `yaml:"props"`
-	SrcVID      *VID    `yaml:"srcVID"`
-	DstVID      *VID    `yaml:"dstVID"`
-	Rank        *Rank   `yaml:"rank"`
+	Name        *string `json:"name" yaml:"name"`
+	WithRanking *bool   `json:"withRanking" yaml:"withRanking"`
+	Props       []*Prop `json:"props" yaml:"props"`
+	SrcVID      *VID    `json:"srcVID" yaml:"srcVID"`
+	DstVID      *VID    `json:"dstVID" yaml:"dstVID"`
+	Rank        *Rank   `json:"rank" yaml:"rank"`
 }
 
 type Tag struct {
-	Name  *string `yaml:"name"`
-	Props []*Prop `yaml:"props"`
+	Name  *string `json:"name" yaml:"name"`
+	Props []*Prop `json:"props" yaml:"props"`
 }
 
 type Vertex struct {
-	VID  *VID   `yaml:"vid"`
-	Tags []*Tag `yaml:"tags"`
+	VID  *VID   `json:"vid" yaml:"vid"`
+	Tags []*Tag `json:"tags" yaml:"tags"`
 }
 
 type Schema struct {
-	Type   *string `yaml:"type"`
-	Edge   *Edge   `yaml:"edge"`
-	Vertex *Vertex `yaml:"vertex"`
+	Type   *string `json:"type" yaml:"type"`
+	Edge   *Edge   `json:"edge" yaml:"edge"`
+	Vertex *Vertex `json:"vertex" yaml:"vertex"`
 }
 
 type CSVConfig struct {
-	WithHeader *bool `yaml:"withHeader"`
-	WithLabel  *bool `yaml:"withLabel"`
+	WithHeader *bool `json:"withHeader" yaml:"withHeader"`
+	WithLabel  *bool `json:"withLabel" yaml:"withLabel"`
 }
 
 type File struct {
-	Path         *string    `yaml:"path"`
-	FailDataPath *string    `yaml:"failDataPath"`
-	BatchSize    *int       `yaml:"batchSize"`
-	Limit        *int       `yaml:"limit"`
-	InOrder      *bool      `yaml:"inOrder"`
-	Type         *string    `yaml:"type"`
-	CSV          *CSVConfig `yaml:"csv"`
-	Schema       *Schema    `yaml:"schema"`
+	Path         *string    `json:"path" yaml:"path"`
+	FailDataPath *string    `json:"failDataPath" yaml:"failDataPath"`
+	BatchSize    *int       `json:"batchSize" yaml:"batchSize"`
+	Limit        *int       `json:"limit" yaml:"limit"`
+	InOrder      *bool      `json:"inOrder" yaml:"inOrder"`
+	Type         *string    `json:"type" yaml:"type"`
+	CSV          *CSVConfig `json:"csv" yaml:"csv"`
+	Schema       *Schema    `json:"schema" yaml:"schema"`
 }
 
 type YAMLConfig struct {
-	Version              *string               `yaml:"version"`
-	Description          *string               `yaml:"description"`
-	NebulaClientSettings *NebulaClientSettings `yaml:"clientSettings"`
-	LogPath              *string               `yaml:"logPath"`
-	Files                []*File               `yaml:"files"`
+	Version              *string               `json:"version" yaml:"version"`
+	Description          *string               `json:"description" yaml:"description"`
+	NebulaClientSettings *NebulaClientSettings `json:"clientSettings" yaml:"clientSettings"`
+	LogPath              *string               `json:"logPath" yaml:"logPath"`
+	Files                []*File               `json:"files" yaml:"files"`
 }
 
 var version string = "v1rc2"
