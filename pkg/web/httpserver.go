@@ -48,7 +48,8 @@ func (w *WebServer) Start() {
 		Handler: m,
 	}
 
-	go w.listenAndServe()
+	w.listenAndServe()
+	logger.Infof("Started http server on %d", w.Port)
 }
 
 func (w *WebServer) listenAndServe() {
