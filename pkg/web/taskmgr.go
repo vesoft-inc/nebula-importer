@@ -12,6 +12,12 @@ type taskMgr struct {
 	mux   sync.Mutex
 }
 
+func newTaskMgr() *taskMgr {
+	return &taskMgr{
+		tasks: make(map[uint64]*cmd.Runner),
+	}
+}
+
 func (m *taskMgr) put(k uint64, r *cmd.Runner) {
 	m.mux.Lock()
 	defer m.mux.Unlock()

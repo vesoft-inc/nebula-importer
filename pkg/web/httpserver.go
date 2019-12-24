@@ -16,7 +16,7 @@ type WebServer struct {
 	Port     int
 	Callback string
 	server   *http.Server
-	taskMgr  taskMgr
+	taskMgr  *taskMgr
 	mux      sync.Mutex
 }
 
@@ -32,12 +32,13 @@ func (w *WebServer) newTaskId() uint64 {
 
 func (w *WebServer) Start() {
 	m := http.NewServeMux()
+	w.taskMgr = newTaskMgr()
 
 	m.HandleFunc("/submit", func(resp http.ResponseWriter, req *http.Request) {
 		if req.Method == "POST" {
 			w.submit(resp, req)
 		} else {
-			http.Error(resp, "Invalid http method", http.StatusBadRequest)
+			w.badRequest(resp, "Invalid http method")
 		}
 	})
 
@@ -45,7 +46,7 @@ func (w *WebServer) Start() {
 		if req.Method == "PUT" {
 			w.stop(resp, req)
 		} else {
-			http.Error(resp, "Invalid http method", http.StatusBadRequest)
+			w.badRequest(resp, "Invalid http method")
 		}
 	})
 
@@ -64,10 +65,14 @@ func (w *WebServer) listenAndServe() {
 	}
 }
 
+type errResult struct {
+	ErrCode int    `json:"errCode"`
+	ErrMsg  string `json:"errMsg"`
+}
+
 type respBody struct {
-	ErrCode    int    `json:"errCode"`
-	ErrMsg     string `json:"errMsg"`
-	FailedRows int64  `json:"failedRows"`
+	errResult
+	FailedRows int64 `json:"failedRows"`
 }
 
 func (w *WebServer) callback(body *respBody) {
@@ -82,26 +87,27 @@ func (w *WebServer) callback(body *respBody) {
 }
 
 type task struct {
+	errResult
 	TaskId uint64 `json:"taskId"`
 }
 
 func (w *WebServer) stop(resp http.ResponseWriter, req *http.Request) {
 	if req.Body == nil {
-		http.Error(resp, "nil request body", http.StatusBadRequest)
+		w.badRequest(resp, "nil request body")
 		return
 	}
 	defer req.Body.Close()
 
 	var task task
 	if err := json.NewDecoder(req.Body).Decode(&task); err != nil {
-		http.Error(resp, err.Error(), http.StatusBadRequest)
+		w.badRequest(resp, err.Error())
 		return
 	}
 
 	runner := w.taskMgr.get(task.TaskId)
 	if runner != nil {
 		if runner.Readers == nil {
-			http.Error(resp, "Retry stop again", http.StatusBadRequest)
+			w.badRequest(resp, "Retry stop again")
 			return
 		}
 		for _, r := range runner.Readers {
@@ -114,16 +120,38 @@ func (w *WebServer) stop(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func (w *WebServer) badRequest(resp http.ResponseWriter, msg string) {
+	resp.WriteHeader(http.StatusOK)
+	t := errResult{
+		ErrCode: 1,
+		ErrMsg:  msg,
+	}
+
+	if b, err := json.Marshal(t); err != nil {
+		logger.Error(err)
+	} else {
+		resp.WriteHeader(http.StatusOK)
+		if _, err = resp.Write(b); err != nil {
+			logger.Error(err)
+		}
+	}
+}
+
 func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 	if req.Body == nil {
-		http.Error(resp, "nil request body", http.StatusBadRequest)
+		w.badRequest(resp, "nil request body")
 		return
 	}
 	defer req.Body.Close()
 
 	var conf config.YAMLConfig
 	if err := json.NewDecoder(req.Body).Decode(&conf); err != nil {
-		http.Error(resp, err.Error(), http.StatusBadRequest)
+		w.badRequest(resp, err.Error())
+		return
+	}
+
+	if err := conf.ValidateAndReset(""); err != nil {
+		w.badRequest(resp, err.Error())
 		return
 	}
 
@@ -132,28 +160,32 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 
 	go func(tid uint64) {
 		runner.Run(&conf)
+		body := respBody{}
 		if runner.Error() != nil {
 			logger.Error(runner.Error())
-			w.callback(&respBody{
-				ErrCode: 1,
-				ErrMsg:  runner.Error().Error(),
-			})
+
+			body.ErrCode = 1
+			body.ErrMsg = runner.Error().Error()
+			w.callback(&body)
 		} else {
-			w.callback(&respBody{
-				ErrCode:    0,
-				FailedRows: runner.NumFailed,
-			})
+			body.ErrCode = 0
+			body.FailedRows = runner.NumFailed
+			w.callback(&body)
 		}
 		w.taskMgr.del(tid)
 	}(tid)
 
 	w.taskMgr.put(tid, runner)
-
-	if b, err := json.Marshal(task{TaskId: tid}); err != nil {
-		logger.Error(err)
-		http.Error(resp, err.Error(), http.StatusInternalServerError)
+	t := task{
+		TaskId: tid,
+	}
+	t.ErrCode = 0
+	if b, err := json.Marshal(t); err != nil {
+		w.badRequest(resp, err.Error())
 	} else {
 		resp.WriteHeader(http.StatusOK)
-		resp.Write(b)
+		if _, err := resp.Write(b); err != nil {
+			logger.Error(err)
+		}
 	}
 }
