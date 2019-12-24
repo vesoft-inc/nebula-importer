@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -84,4 +85,23 @@ func TestJsonInYAML(t *testing.T) {
 			t.Fatalf("Error file %d path", i)
 		}
 	}
+}
+
+type Person struct {
+	Name string `json:"name"`
+}
+
+type Man struct {
+	Person
+	Age int `json:"age"`
+}
+
+func TestJsonTypeEmbeding(t *testing.T) {
+	man := Man{
+		Person: Person{Name: "zhangsan"},
+		Age:    18,
+	}
+	t.Logf("%v", man)
+	b, _ := json.Marshal(man)
+	t.Logf("%s", string(b))
 }

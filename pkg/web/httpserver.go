@@ -171,22 +171,29 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 
 	go func(tid string) {
 		runner.Run(&conf)
-		body := respBody{}
+		var body respBody
 		if runner.Error() != nil {
 			logger.Error(runner.Error())
-
-			body.ErrCode = 1
-			body.ErrMsg = runner.Error().Error()
+			body = respBody{
+				errResult: errResult{
+					ErrCode: 1,
+					ErrMsg:  runner.Error().Error(),
+				},
+			}
 		} else {
-			body.ErrCode = 0
-			body.FailedRows = runner.NumFailed
+			body = respBody{
+				errResult:  errResult{ErrCode: 0},
+				FailedRows: runner.NumFailed,
+			}
 		}
 		w.callback(&body)
 		w.taskMgr.del(tid)
 	}(tid)
 
-	t := task{TaskId: tid}
-	t.ErrCode = 0
+	t := task{
+		errResult: errResult{ErrCode: 0},
+		TaskId:    tid,
+	}
 	if b, err := json.Marshal(t); err != nil {
 		w.badRequest(resp, err.Error())
 	} else {
