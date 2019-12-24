@@ -167,6 +167,7 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 
 	runner := &cmd.Runner{}
 	tid := w.newTaskId()
+	w.taskMgr.put(tid, runner)
 
 	go func(tid string) {
 		runner.Run(&conf)
@@ -176,19 +177,15 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 
 			body.ErrCode = 1
 			body.ErrMsg = runner.Error().Error()
-			w.callback(&body)
 		} else {
 			body.ErrCode = 0
 			body.FailedRows = runner.NumFailed
-			w.callback(&body)
 		}
+		w.callback(&body)
 		w.taskMgr.del(tid)
 	}(tid)
 
-	w.taskMgr.put(tid, runner)
-	t := task{
-		TaskId: tid,
-	}
+	t := task{TaskId: tid}
 	t.ErrCode = 0
 	if b, err := json.Marshal(t); err != nil {
 		w.badRequest(resp, err.Error())
