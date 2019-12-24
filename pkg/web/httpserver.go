@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
@@ -22,12 +23,12 @@ type WebServer struct {
 
 var taskId uint64 = 0
 
-func (w *WebServer) newTaskId() uint64 {
+func (w *WebServer) newTaskId() string {
 	w.mux.Lock()
 	defer w.mux.Unlock()
 	tid := taskId
 	taskId++
-	return tid
+	return fmt.Sprintf("%d", tid)
 }
 
 func (w *WebServer) Start() {
@@ -88,7 +89,18 @@ func (w *WebServer) callback(body *respBody) {
 
 type task struct {
 	errResult
-	TaskId uint64 `json:"taskId"`
+	TaskId string `json:"taskId"`
+}
+
+func (w *WebServer) stopRunner(taskId string) {
+	runner := w.taskMgr.get(taskId)
+	if runner == nil {
+		return
+	}
+
+	for _, r := range runner.Readers {
+		r.Stop()
+	}
 }
 
 func (w *WebServer) stop(resp http.ResponseWriter, req *http.Request) {
@@ -104,16 +116,14 @@ func (w *WebServer) stop(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	runner := w.taskMgr.get(task.TaskId)
-	if runner != nil {
-		if runner.Readers == nil {
-			w.badRequest(resp, "Retry stop again")
-			return
+	if strings.ToLower(task.TaskId) == "all" {
+		for _, k := range w.taskMgr.keys() {
+			w.stopRunner(k)
 		}
-		for _, r := range runner.Readers {
-			r.Stop()
-		}
+	} else {
+		w.stopRunner(task.TaskId)
 	}
+
 	resp.WriteHeader(http.StatusOK)
 	if _, err := fmt.Fprintln(resp, "OK"); err != nil {
 		logger.Error(err)
@@ -158,7 +168,7 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 	runner := &cmd.Runner{}
 	tid := w.newTaskId()
 
-	go func(tid uint64) {
+	go func(tid string) {
 		runner.Run(&conf)
 		body := respBody{}
 		if runner.Error() != nil {

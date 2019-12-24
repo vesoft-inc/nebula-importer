@@ -8,23 +8,31 @@ import (
 )
 
 type taskMgr struct {
-	tasks map[uint64]*cmd.Runner
+	tasks map[string]*cmd.Runner
 	mux   sync.Mutex
 }
 
 func newTaskMgr() *taskMgr {
 	return &taskMgr{
-		tasks: make(map[uint64]*cmd.Runner),
+		tasks: make(map[string]*cmd.Runner),
 	}
 }
 
-func (m *taskMgr) put(k uint64, r *cmd.Runner) {
+func (m *taskMgr) keys() []string {
+	var keys []string
+	for k := range m.tasks {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func (m *taskMgr) put(k string, r *cmd.Runner) {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	m.tasks[k] = r
 }
 
-func (m *taskMgr) get(k uint64) *cmd.Runner {
+func (m *taskMgr) get(k string) *cmd.Runner {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	if v, ok := m.tasks[k]; !ok {
@@ -35,7 +43,7 @@ func (m *taskMgr) get(k uint64) *cmd.Runner {
 	}
 }
 
-func (m *taskMgr) del(k uint64) {
+func (m *taskMgr) del(k string) {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	delete(m.tasks, k)
