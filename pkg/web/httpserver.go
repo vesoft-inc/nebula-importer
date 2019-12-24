@@ -48,8 +48,8 @@ func (w *WebServer) Start() {
 		Handler: m,
 	}
 
+	logger.Infof("Starting http server on %d", w.Port)
 	w.listenAndServe()
-	logger.Infof("Started http server on %d", w.Port)
 }
 
 func (w *WebServer) listenAndServe() {
@@ -58,14 +58,14 @@ func (w *WebServer) listenAndServe() {
 	}
 }
 
-type body struct {
-	FailedRows int64 `json:"failedRows"`
+type respBody struct {
+	ErrCode    int    `json:"errCode"`
+	ErrMsg     string `json:"errMsg"`
+	FailedRows int64  `json:"failedRows"`
 }
 
-func (w *WebServer) callback(failedRows int64) {
-	body := body{FailedRows: failedRows}
-	b, err := json.Marshal(body)
-	if err != nil {
+func (w *WebServer) callback(body *respBody) {
+	if b, err := json.Marshal(*body); err != nil {
 		logger.Error(err)
 	} else {
 		_, err := http.Post(w.Callback, "application/json", bytes.NewBuffer(b))
@@ -110,7 +110,18 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 		w.runner = &cmd.Runner{}
 		go func() {
 			w.runner.Run(&conf)
-			w.callback(w.runner.NumFailed)
+			if w.runner.Error() != nil {
+				logger.Error(w.runner.Error())
+				w.callback(&respBody{
+					ErrCode: 1,
+					ErrMsg:  w.runner.Error().Error(),
+				})
+			} else {
+				w.callback(&respBody{
+					ErrCode:    0,
+					FailedRows: w.runner.NumFailed,
+				})
+			}
 			w.runner = nil
 		}()
 		resp.WriteHeader(http.StatusOK)
