@@ -39,7 +39,7 @@ func (w *WebServer) Start() {
 		if req.Method == "POST" {
 			w.submit(resp, req)
 		} else {
-			w.badRequest(resp, "Invalid http method")
+			w.badRequest(resp, "HTTP method must be POST")
 		}
 	})
 
@@ -47,7 +47,27 @@ func (w *WebServer) Start() {
 		if req.Method == "PUT" {
 			w.stop(resp, req)
 		} else {
-			w.badRequest(resp, "Invalid http method")
+			w.badRequest(resp, "HTTP method must be PUT")
+		}
+	})
+
+	m.HandleFunc("/tasks", func(resp http.ResponseWriter, req *http.Request) {
+		if req.Method == "GET" {
+			keys := w.taskMgr.keys()
+			var tasks struct {
+				Tasks []string `json:"tasks"`
+			}
+			tasks.Tasks = keys
+			if b, err := json.Marshal(tasks); err != nil {
+				w.badRequest(resp, err.Error())
+			} else {
+				resp.WriteHeader(http.StatusOK)
+				if _, err = resp.Write(b); err != nil {
+					logger.Error(err)
+				}
+			}
+		} else {
+			w.badRequest(resp, "HTTP method must be GET")
 		}
 	})
 
@@ -101,6 +121,8 @@ func (w *WebServer) stopRunner(taskId string) {
 	for _, r := range runner.Readers {
 		r.Stop()
 	}
+
+	logger.Infof("Task %s stopped.", taskId)
 }
 
 func (w *WebServer) stop(resp http.ResponseWriter, req *http.Request) {
