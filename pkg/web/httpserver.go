@@ -71,8 +71,13 @@ type errResult struct {
 	ErrMsg  string `json:"errMsg"`
 }
 
-type respBody struct {
+type task struct {
 	errResult
+	TaskId string `json:"taskId"`
+}
+
+type respBody struct {
+	task
 	FailedRows int64 `json:"failedRows"`
 }
 
@@ -85,11 +90,6 @@ func (w *WebServer) callback(body *respBody) {
 			logger.Error(err)
 		}
 	}
-}
-
-type task struct {
-	errResult
-	TaskId string `json:"taskId"`
 }
 
 func (w *WebServer) stopRunner(taskId string) {
@@ -168,6 +168,10 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 	runner := &cmd.Runner{}
 	tid := w.newTaskId()
 	w.taskMgr.put(tid, runner)
+	t := task{
+		errResult: errResult{ErrCode: 0},
+		TaskId:    tid,
+	}
 
 	go func(tid string) {
 		runner.Run(&conf)
@@ -175,14 +179,17 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 		if runner.Error() != nil {
 			logger.Error(runner.Error())
 			body = respBody{
-				errResult: errResult{
-					ErrCode: 1,
-					ErrMsg:  runner.Error().Error(),
+				task: task{
+					errResult: errResult{
+						ErrCode: 1,
+						ErrMsg:  runner.Error().Error(),
+					},
+					TaskId: tid,
 				},
 			}
 		} else {
 			body = respBody{
-				errResult:  errResult{ErrCode: 0},
+				task:       t,
 				FailedRows: runner.NumFailed,
 			}
 		}
@@ -190,10 +197,6 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 		w.taskMgr.del(tid)
 	}(tid)
 
-	t := task{
-		errResult: errResult{ErrCode: 0},
-		TaskId:    tid,
-	}
 	if b, err := json.Marshal(t); err != nil {
 		w.badRequest(resp, err.Error())
 	} else {
