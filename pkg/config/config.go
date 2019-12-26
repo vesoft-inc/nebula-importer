@@ -110,14 +110,14 @@ func Parse(filename string) (*YAMLConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = conf.validateAndReset(path); err != nil {
+	if err = conf.ValidateAndReset(path); err != nil {
 		return nil, err
 	}
 
 	return &conf, nil
 }
 
-func (config *YAMLConfig) validateAndReset(dir string) error {
+func (config *YAMLConfig) ValidateAndReset(dir string) error {
 	if config.NebulaClientSettings == nil {
 		return errors.New("please configure clientSettings")
 	}
