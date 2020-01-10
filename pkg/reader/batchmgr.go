@@ -62,32 +62,34 @@ func (bm *BatchMgr) InitSchema(header base.Record) {
 		return
 	}
 	bm.initializedSchema = true
-	for i, h := range header {
-		switch c := strings.ToUpper(h); {
-		case c == base.LABEL_LABEL:
-			logger.Fatalf("Invalid schema: %v", header)
-		case strings.HasPrefix(c, base.LABEL_VID):
-			*bm.Schema.Vertex.VID.Index = i
-			bm.Schema.Vertex.VID.ParseFunction(c)
-		case strings.HasPrefix(c, base.LABEL_SRC_VID):
-			*bm.Schema.Edge.SrcVID.Index = i
-			bm.Schema.Edge.SrcVID.ParseFunction(c)
-		case strings.HasPrefix(c, base.LABEL_DST_VID):
-			*bm.Schema.Edge.DstVID.Index = i
-			bm.Schema.Edge.DstVID.ParseFunction(c)
-		case c == base.LABEL_RANK:
-			if bm.Schema.Edge.Rank == nil {
-				rank := i
-				bm.Schema.Edge.Rank = &config.Rank{Index: &rank}
-			} else {
-				*bm.Schema.Edge.Rank.Index = i
-			}
-		case c == base.LABEL_IGNORE:
-		default:
-			if bm.Schema.IsVertex() {
-				bm.addVertexTags(h, i)
-			} else {
-				bm.addEdgeProps(h, i)
+	for i, hh := range header {
+		for _, h := range strings.Split(hh, "/") {
+			switch c := strings.ToUpper(h); {
+			case c == base.LABEL_LABEL:
+				logger.Fatalf("Invalid schema: %v", header)
+			case strings.HasPrefix(c, base.LABEL_VID):
+				*bm.Schema.Vertex.VID.Index = i
+				bm.Schema.Vertex.VID.ParseFunction(c)
+			case strings.HasPrefix(c, base.LABEL_SRC_VID):
+				*bm.Schema.Edge.SrcVID.Index = i
+				bm.Schema.Edge.SrcVID.ParseFunction(c)
+			case strings.HasPrefix(c, base.LABEL_DST_VID):
+				*bm.Schema.Edge.DstVID.Index = i
+				bm.Schema.Edge.DstVID.ParseFunction(c)
+			case c == base.LABEL_RANK:
+				if bm.Schema.Edge.Rank == nil {
+					rank := i
+					bm.Schema.Edge.Rank = &config.Rank{Index: &rank}
+				} else {
+					*bm.Schema.Edge.Rank.Index = i
+				}
+			case c == base.LABEL_IGNORE:
+			default:
+				if bm.Schema.IsVertex() {
+					bm.addVertexTags(h, i)
+				} else {
+					bm.addEdgeProps(h, i)
+				}
 			}
 		}
 	}

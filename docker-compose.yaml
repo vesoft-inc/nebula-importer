@@ -5,16 +5,15 @@ services:
     environment:
       USER: root
     command:
-      - --meta_server_addrs=172.28.1.1:45500
-      - --local_ip=172.28.1.1
-      - --ws_ip=172.28.1.1
+      - --meta_server_addrs=172.29.1.1:45500
+      - --local_ip=172.29.1.1
+      - --ws_ip=172.29.1.1
       - --port=45500
-      - --load_data_interval_secs=1
     volumes:
       - metadata:/usr/local/nebula/data/meta
       - logsdata:/usr/local/nebula/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://172.28.1.1:11000/status"]
+      test: ["CMD", "curl", "-f", "http://172.29.1.1:11000/status"]
       interval: 15s
       timeout: 10s
       retries: 3
@@ -24,7 +23,7 @@ services:
       - 11002
     networks:
       nebula-net:
-        ipv4_address: 172.28.1.1
+        ipv4_address: 172.29.1.1
     restart: on-failure
 
   storaged:
@@ -32,9 +31,9 @@ services:
     environment:
       USER: root
     command:
-      - --meta_server_addrs=172.28.1.1:45500
-      - --local_ip=172.28.2.1
-      - --ws_ip=172.28.2.1
+      - --meta_server_addrs=172.29.1.1:45500
+      - --local_ip=172.29.2.1
+      - --ws_ip=172.29.2.1
       - --port=44500
     volumes:
       - storagedata:/usr/local/nebula/data/storage
@@ -42,7 +41,7 @@ services:
     depends_on:
       - metad
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://172.28.2.1:12000/status"]
+      test: ["CMD", "curl", "-f", "http://172.29.2.1:12000/status"]
       interval: 15s
       timeout: 10s
       retries: 3
@@ -52,7 +51,7 @@ services:
       - 12002
     networks:
       nebula-net:
-        ipv4_address: 172.28.2.1
+        ipv4_address: 172.29.2.1
     restart: on-failure
 
   graphd1:
@@ -60,17 +59,16 @@ services:
     environment:
       USER: root
     command:
-      - --meta_server_addrs=172.28.1.1:45500
+      - --meta_server_addrs=172.29.1.1:45500
       - --port=3699
-      - --ws_ip=172.28.3.1
-      - --load_data_interval_secs=1
+      - --ws_ip=172.29.3.1
       - --log_dir=/usr/local/nebula/logs1
     volumes:
       - logsdata:/usr/local/nebula/logs1
     depends_on:
       - metad
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://172.28.3.1:13000/status"]
+      test: ["CMD", "curl", "-f", "http://172.29.3.1:13000/status"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -81,7 +79,7 @@ services:
       - 13002
     networks:
       nebula-net:
-        ipv4_address: 172.28.3.1
+        ipv4_address: 172.29.3.1
     restart: on-failure
 
   graphd2:
@@ -89,17 +87,16 @@ services:
     environment:
       USER: root
     command:
-      - --meta_server_addrs=172.28.1.1:45500
+      - --meta_server_addrs=172.29.1.1:45500
       - --port=3699
-      - --ws_ip=172.28.3.2
-      - --load_data_interval_secs=1
+      - --ws_ip=172.29.3.2
       - --log_dir=/usr/local/nebula/logs2
     volumes:
       - logsdata:/usr/local/nebula/logs2
     depends_on:
       - metad
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://172.28.3.2:13000/status"]
+      test: ["CMD", "curl", "-f", "http://172.29.3.2:13000/status"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -110,7 +107,7 @@ services:
       - 13002
     networks:
       nebula-net:
-        ipv4_address: 172.28.3.2
+        ipv4_address: 172.29.3.2
     restart: on-failure
 
   importer:
@@ -119,21 +116,21 @@ services:
       - .:/usr/local/nebula/importer:ro
     entrypoint:
       - ./importer/ci/bootstrap.sh
-      - "172.28.3.1"
+      - "172.29.3.1"
       - "3699"
     depends_on:
       - graphd1
       - graphd2
     networks:
       nebula-net:
-        ipv4_address: 172.28.4.1
+        ipv4_address: 172.29.4.1
 
 networks:
   nebula-net:
     ipam:
       driver: default
       config:
-        - subnet: 172.28.0.0/16
+        - subnet: 172.29.0.0/16
 
 volumes:
   storagedata:

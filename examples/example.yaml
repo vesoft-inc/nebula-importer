@@ -7,7 +7,7 @@ clientSettings:
   connection:
     user: user
     password: password
-    address: 172.28.3.1:3699,172.28.3.2:3699
+    address: 172.29.3.1:3699,172.29.3.2:3699
 logPath: ./err/test.log
 files:
   - path: ./choose.csv

@@ -388,20 +388,28 @@ func (e *Edge) maxIndex() int {
 	return maxIdx
 }
 
+func combine(cell, val string) string {
+	if len(cell) > 0 {
+		return fmt.Sprintf("%s/%s", cell, val)
+	} else {
+		return val
+	}
+}
+
 func (e *Edge) String() string {
 	cells := make([]string, e.maxIndex()+1)
 	if e.SrcVID != nil && e.SrcVID.Index != nil {
-		cells[*e.SrcVID.Index] = e.SrcVID.String(base.LABEL_SRC_VID)
+		cells[*e.SrcVID.Index] = combine(cells[*e.SrcVID.Index], e.SrcVID.String(base.LABEL_SRC_VID))
 	}
 	if e.DstVID != nil && e.DstVID.Index != nil {
-		cells[*e.DstVID.Index] = e.DstVID.String(base.LABEL_DST_VID)
+		cells[*e.DstVID.Index] = combine(cells[*e.DstVID.Index], e.DstVID.String(base.LABEL_DST_VID))
 	}
 	if e.Rank != nil && e.Rank.Index != nil {
-		cells[*e.Rank.Index] = base.LABEL_RANK
+		cells[*e.Rank.Index] = combine(cells[*e.Rank.Index], base.LABEL_RANK)
 	}
 	for _, prop := range e.Props {
 		if prop.Index != nil {
-			cells[*prop.Index] = prop.String(*e.Name)
+			cells[*prop.Index] = combine(cells[*prop.Index], prop.String(*e.Name))
 		}
 	}
 	for i := range cells {
@@ -497,7 +505,7 @@ func (v *Vertex) String() string {
 	for _, tag := range v.Tags {
 		for _, prop := range tag.Props {
 			if prop != nil && prop.Index != nil {
-				cells[*prop.Index] = prop.String(*tag.Name)
+				cells[*prop.Index] = combine(cells[*prop.Index], prop.String(*tag.Name))
 			}
 		}
 	}
