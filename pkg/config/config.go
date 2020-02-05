@@ -66,8 +66,9 @@ type Schema struct {
 }
 
 type CSVConfig struct {
-	WithHeader *bool `json:"withHeader" yaml:"withHeader"`
-	WithLabel  *bool `json:"withLabel" yaml:"withLabel"`
+	WithHeader *bool		`json:"withHeader" yaml:"withHeader"`
+	WithLabel  *bool		`json:"withLabel" yaml:"withLabel"`
+	CVSComma   *string	`json:"csvComma" yaml:"csvComma"`
 }
 
 type File struct {

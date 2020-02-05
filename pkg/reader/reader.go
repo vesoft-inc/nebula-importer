@@ -29,9 +29,16 @@ type FileReader struct {
 }
 
 func New(fileIdx int, file *config.File, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) (*FileReader, error) {
+	comma := ','
+	if file.CSV.CVSComma != nil {
+		csvComma := *file.CSV.CVSComma
+		if len(csvComma) != 0 {
+			comma = int32(csvComma[0])
+		}
+	}
 	switch strings.ToLower(*file.Type) {
 	case "csv":
-		r := csv.CSVReader{CSVConfig: file.CSV}
+		r := csv.CSVReader{CSVConfig: file.CSV, Comma: comma}
 		reader := FileReader{
 			FileIdx:    fileIdx,
 			DataReader: &r,

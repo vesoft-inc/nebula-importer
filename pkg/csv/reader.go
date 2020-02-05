@@ -14,10 +14,12 @@ type CSVReader struct {
 	CSVConfig *config.CSVConfig
 	reader    *csv.Reader
 	lineNum   uint64
+	Comma     rune
 }
 
 func (r *CSVReader) InitReader(file *os.File) {
 	r.reader = csv.NewReader(bufio.NewReader(file))
+	r.reader.Comma = r.Comma
 }
 
 func (r *CSVReader) ReadLine() (base.Data, error) {
