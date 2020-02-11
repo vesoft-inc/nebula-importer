@@ -125,6 +125,7 @@ files:
     csv:
       withHeader: false
       withLabel: false
+      delimiter: ","
 ```
 
 #### 数据文件
@@ -157,6 +158,7 @@ files:
 
 - `withHeader`: 默认是 `false`，文件头的格式在后面描述。
 - `withLabel`: 默认是 `false`，label 的格式也在后面描述。
+- `delimiter`: **可选**。指定 CSV 文件的分隔符，默认是 `","`。
 
 ##### `schema`
 

@@ -23,6 +23,7 @@
 | files[0].csv                                  | CSV file options                                                          | -              |
 | files[0].csv.withHeader                       | Whether csv file has header                                               | false          |
 | files[0].csv.withLabel                        | Whether csv file has `+/-` label to represent **delete/insert** operation | false          |
+| files[0].csv.delimiter                        | The delimiter of csv file to separate different columns                   | ","            |
 | files[0].schema                               | Schema definition for this file data                                      | -              |
 | files[0].schema.type                          | Schema type: vertex or edge                                               | vertex         |
 | files[0].schema.edge                          | Edge options                                                              | -              |

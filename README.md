@@ -109,6 +109,7 @@ files:
     csv:
       withHeader: false
       withLabel: false
+      delimiter: ","
 ```
 
 ### CSV Data Files
@@ -121,6 +122,7 @@ One CSV file can only store one type of vertex or edge. Vertices and edges of th
 * `type & csv`:  **Required**. Specifies the file type. Currently, only CSV is supported. You can specify whether to include the header and the inserted and deleted labels in the CSV file.
   * `withHeader`: The default value is false, the format of the header is described below.
   * `withLabel`: The default value is false, the format of the label is described below.
+  * `delimiter`: **Optional**. The delimiter to separate different columns, default value is `","`.
 
 * `schema`: **Required**. Describes the metadata information of the current data file. The schema.type has only two values: vertex and edge.
   * When type is specified as vertex, details should be described in the vertex field.
