@@ -159,3 +159,17 @@ files:
           - name: likeness
             type: double
             index: 3
+
+  - path: ./follow-delimiter.csv
+    failDataPath: ./err/follow-delimiter.csv
+    batchSize: 2
+    type: csv
+    csv:
+      withHeader: true
+      withLabel: false
+      delimiter: "|"
+    schema:
+      type: edge
+      edge:
+        name: follow
+        withRanking: true

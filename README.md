@@ -38,8 +38,8 @@ Use `git` to clone the repository to local, go to the `nebula-importer/cmd` dire
 
 ``` bash
 $ git clone https://github.com/vesoft-inc/nebula-importer.git
-$ cd nebula-importer/cmd
-$ go build -mod vendor -o nebula-importer
+$ cd nebula-importer
+$ make build
 $ ./nebula-importer --config /path/to/yaml/config/file
 ```
 
@@ -109,6 +109,7 @@ files:
     csv:
       withHeader: false
       withLabel: false
+      delimiter: ","
 ```
 
 ### CSV Data Files
@@ -121,6 +122,7 @@ One CSV file can only store one type of vertex or edge. Vertices and edges of th
 * `type & csv`:  **Required**. Specifies the file type. Currently, only CSV is supported. You can specify whether to include the header and the inserted and deleted labels in the CSV file.
   * `withHeader`: The default value is false, the format of the header is described below.
   * `withLabel`: The default value is false, the format of the label is described below.
+  * `delimiter`: **Optional**. The delimiter to separate different columns, default value is `","`.
 
 * `schema`: **Required**. Describes the metadata information of the current data file. The schema.type has only two values: vertex and edge.
   * When type is specified as vertex, details should be described in the vertex field.
@@ -129,19 +131,18 @@ One CSV file can only store one type of vertex or edge. Vertices and edges of th
 #### `schema.vertex`
 
 ```yaml
-    schema:
-      type: vertex
-      vertex:
-        tags:
-          - name: student
-            props:
-              - name: name
-                type: string
-              - name: age
-                type: int
-              - name: gender
-                type: string
-
+schema:
+  type: vertex
+  vertex:
+    tags:
+      - name: student
+        props:
+          - name: name
+            type: string
+          - name: age
+            type: int
+          - name: gender
+            type: string
 ```
 
 `schema.vertex` is a **required** parameter that describes the schema information such as tags of the inserted vertex. Since sometimes one vertex contains several tags, different tags should be given in the `schema.vertex.tags` array.
@@ -159,13 +160,13 @@ Each tag contains the following two properties:
 
 ```yaml
 schema:
-      type: edge
-      edge:
-        name: choose
-        withRanking: false
-        props:
-          - name: grade
-            type: int
+  type: edge
+  edge:
+    name: choose
+    withRanking: false
+    props:
+      - name: grade
+        type: int
 ```
 
 `schema.edge` is a **required** parameter that describes the schema information of the inserted edge. Each edge contains the following three properties:

@@ -33,8 +33,8 @@ Nebula Importer 使用 **>=1.13** 版本的 golang 编译，所以首先确保�
 
 ``` bash
 $ git clone https://github.com/vesoft-inc/nebula-importer.git
-$ cd nebula-importer/cmd
-$ go build -mod vendor -o nebula-importer
+$ cd nebula-importer
+$ make build
 $ ./nebula-importer --config /path/to/yaml/config/file
 ```
 
@@ -125,6 +125,7 @@ files:
     csv:
       withHeader: false
       withLabel: false
+      delimiter: ","
 ```
 
 #### 数据文件
@@ -157,6 +158,7 @@ files:
 
 - `withHeader`: 默认是 `false`，文件头的格式在后面描述。
 - `withLabel`: 默认是 `false`，label 的格式也在后面描述。
+- `delimiter`: **可选**。指定 CSV 文件的分隔符，默认是 `","`。
 
 ##### `schema`
 
@@ -170,23 +172,23 @@ files:
 **必填**。描述插入顶点的 schema 信息，比如 tags。
 
 ```yaml
-    schema:
-      type: vertex
-      vertex:
-        vid:
-          index: 1
-          function: hash
-        tags:
-          - name: student
-            props:
-              - name: age
-                type: int
-                index: 2
-              - name: name
-                type: string
-                index: 1
-              - name: gender
-                type: string
+schema:
+  type: vertex
+  vertex:
+    vid:
+      index: 1
+      function: hash
+    tags:
+      - name: student
+        props:
+          - name: age
+            type: int
+            index: 2
+          - name: name
+            type: string
+            index: 1
+          - name: gender
+            type: string
 ```
 
 ####### `schema.vertex.vid`
@@ -215,22 +217,22 @@ files:
 **必填**。描述插入边的 schema 信息。
 
 ```yaml
-    schema:
-      type: edge
-      edge:
-        name: choose
-        srcVID:
-          index: 0
-          function: hash
-        dstVID:
-          index: 1
-          function: uuid
-        rank:
-          index: 2
-        props:
-          - name: grade
-            type: int
-            index: 3
+schema:
+  type: edge
+  edge:
+    name: choose
+    srcVID:
+      index: 0
+      function: hash
+    dstVID:
+      index: 1
+      function: uuid
+    rank:
+      index: 2
+    props:
+      - name: grade
+        type: int
+        index: 3
 ```
 
 含有如下字段：
