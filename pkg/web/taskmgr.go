@@ -19,6 +19,8 @@ func newTaskMgr() *taskMgr {
 }
 
 func (m *taskMgr) keys() []string {
+	m.mux.Lock()
+	defer m.mux.Unlock()
 	var keys []string
 	for k := range m.tasks {
 		keys = append(keys, k)
