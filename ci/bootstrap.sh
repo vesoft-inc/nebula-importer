@@ -24,5 +24,5 @@ done
 
 echo "nebula graph is up - executing command"
 cat ./importer/examples/example.ngql | ./bin/nebula -u user -p password --addr=$addr --port=$port
-sleep 5
+sleep 8
 ./nebula-importer --config ./importer/examples/example.yaml

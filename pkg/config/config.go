@@ -66,8 +66,9 @@ type Schema struct {
 }
 
 type CSVConfig struct {
-	WithHeader *bool `json:"withHeader" yaml:"withHeader"`
-	WithLabel  *bool `json:"withLabel" yaml:"withLabel"`
+	WithHeader *bool   `json:"withHeader" yaml:"withHeader"`
+	WithLabel  *bool   `json:"withLabel" yaml:"withLabel"`
+	Delimiter  *string `json:"delimiter" yaml:"delimiter"`
 }
 
 type File struct {
@@ -225,7 +226,10 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	}
 
 	if f.CSV != nil {
-		f.CSV.validateAndReset(fmt.Sprintf("%s.csv", prefix))
+		err := f.CSV.validateAndReset(fmt.Sprintf("%s.csv", prefix))
+		if err != nil {
+			return err
+		}
 	}
 
 	if f.Schema == nil {
@@ -234,7 +238,7 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
 }
 
-func (c *CSVConfig) validateAndReset(prefix string) {
+func (c *CSVConfig) validateAndReset(prefix string) error {
 	if c.WithHeader == nil {
 		h := false
 		c.WithHeader = &h
@@ -246,6 +250,14 @@ func (c *CSVConfig) validateAndReset(prefix string) {
 		c.WithLabel = &l
 		logger.Infof("%s.withLabel: %v", prefix, false)
 	}
+
+	if c.Delimiter != nil {
+		if len(*c.Delimiter) == 0 {
+			return fmt.Errorf("%s.delimiter is empty string", prefix)
+		}
+	}
+
+	return nil
 }
 
 func (s *Schema) IsVertex() bool {
