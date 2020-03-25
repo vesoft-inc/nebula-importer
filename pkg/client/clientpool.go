@@ -47,7 +47,8 @@ func NewClientPool(settings *config.NebulaClientSettings, statsCh chan<- base.St
 }
 
 func (p *ClientPool) Close() {
-	stmt := "UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };"
+	stmt := `UPDATE CONFIGS storage:wal_ttl=86400;
+          UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };`
 	for i := 0; i < p.concurrency; i++ {
 		if p.Conns[i] != nil {
 			if resp, err := p.Conns[i].Execute(stmt); err != nil {
@@ -66,7 +67,7 @@ func (p *ClientPool) Close() {
 }
 
 func (p *ClientPool) Init() error {
-	stmt := fmt.Sprintf("USE %s; UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = true };", p.space)
+	stmt := fmt.Sprintf("USE %s; UPDATE CONFIGS storage:wal_ttl=3600; UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = true };", p.space)
 	for i := 0; i < p.concurrency; i++ {
 		if resp, err := p.Conns[i].Execute(stmt); err != nil {
 			return err
