@@ -47,7 +47,7 @@ func NewClientPool(settings *config.NebulaClientSettings, statsCh chan<- base.St
 }
 
 func (p *ClientPool) Close() {
-	stmt := "UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };"
+	stmt := "UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false }; SUBMIT JOB COMPACT;"
 	for i := 0; i < p.concurrency; i++ {
 		if p.Conns[i] != nil {
 			if resp, err := p.Conns[i].Execute(stmt); err != nil {
