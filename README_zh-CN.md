@@ -29,7 +29,7 @@ Nebula Importer 是一款 [Nebula Graph](https://github.com/vesoft-inc/nebula) �
 
 Nebula Importer 使用 **>=1.13** 版本的 golang 编译，所以首先确保在系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
 
-使用 `git` 克隆该仓库到本地，进入 `nebula-importer/cmd` 目录，直接执行即可。
+使用 `git` 克隆该仓库到本地，进入 `nebula-importer/` 目录，运行 `make build`。
 
 ``` bash
 $ git clone https://github.com/vesoft-inc/nebula-importer.git
@@ -81,6 +81,7 @@ description: example
 
 ```yaml
 clientSettings:
+  retry: 3
   concurrency: 10
   channelBufferSize: 128
   space: test
@@ -89,6 +90,10 @@ clientSettings:
     password: password
     address: 192.168.8.1:3699,192.168.8.2:3699
 ```
+
+#### `clientSettings.retry`
+
+**可选**。表示 **Nebula Graph** Client 的重试失败的 nGQL 请求次数，默认为 1。
 
 #### `clientSettings.concurrency`
 

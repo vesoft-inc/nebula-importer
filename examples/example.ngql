@@ -1,5 +1,5 @@
 DROP SPACE test;
-CREATE SPACE test(partition_num=1024, replica_factor=1);
+CREATE SPACE test(partition_num=10, replica_factor=1);
 USE test;
 CREATE TAG course(name string, credits int);
 CREATE TAG building(name string);

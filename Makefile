@@ -13,4 +13,5 @@ clean:
 	rm -rf nebula-importer;
 
 test:
-	docker-compose up --exit-code-from importer;
+	docker-compose up --exit-code-from importer; \
+	docker-compose down -v;

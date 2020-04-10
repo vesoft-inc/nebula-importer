@@ -5,6 +5,7 @@
 | version                                       | Configuration file version                                                | v1rc2          |
 | description                                   | Description of this configure file                                        | ""             |
 | clientSettings                                | Graph client settings                                                     | -              |
+| clientSettings.retrying                       | Number of graph clients retry to execute failed nGQL                      | 1              |
 | clientSettings.concurrency                    | Number of graph clients                                                   | 4              |
 | clientSettings.channelBufferSize              | Buffer size of client channels                                            | 128            |
 | clientSettings.space                          | Space name of all data to be inserted                                     | ""             |
