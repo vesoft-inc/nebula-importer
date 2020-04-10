@@ -104,6 +104,7 @@ func (p *ClientPool) startWorker(i int) {
 			if err == nil && resp.GetErrorCode() == graph.ErrorCode_SUCCEEDED {
 				break
 			}
+			time.Sleep(1 * time.Second)
 		}
 
 		if err != nil {
