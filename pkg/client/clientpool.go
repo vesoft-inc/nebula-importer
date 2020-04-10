@@ -13,6 +13,7 @@ import (
 )
 
 type ClientPool struct {
+	retry       int
 	concurrency int
 	space       string
 	statsCh     chan<- base.Stats
@@ -26,6 +27,7 @@ func NewClientPool(settings *config.NebulaClientSettings, statsCh chan<- base.St
 		statsCh: statsCh,
 	}
 	addrs := strings.Split(*settings.Connection.Address, ",")
+	pool.retry = *settings.Retry
 	pool.concurrency = (*settings.Concurrency) * len(addrs)
 	pool.Conns = make([]*nebula.GraphClient, pool.concurrency)
 	pool.requestChs = make([]chan base.ClientRequest, pool.concurrency)
@@ -94,7 +96,16 @@ func (p *ClientPool) startWorker(i int) {
 		}
 
 		now := time.Now()
-		resp, err := p.Conns[i].Execute(data.Stmt)
+
+		var err error = nil
+		var resp *graph.ExecutionResponse = nil
+		for retry = p.retry; retry > 0; retry-- {
+			resp, err = p.Conns[i].Execute(data.Stmt)
+			if err != nil || resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
+				continue
+			}
+		}
+
 		if err != nil {
 			err = fmt.Errorf("Client %d fail to execute: %s, Error: %s", i, data.Stmt, err.Error())
 		} else {

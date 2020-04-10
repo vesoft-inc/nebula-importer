@@ -19,6 +19,7 @@ type NebulaClientConnection struct {
 }
 
 type NebulaClientSettings struct {
+	Retry             *int                    `json:"retry" yaml:"concurrency"`
 	Concurrency       *int                    `json:"concurrency" yaml:"concurrency"`
 	ChannelBufferSize *int                    `json:"channelBufferSize" yaml:"channelBufferSize"`
 	Space             *string                 `json:"space" yaml:"space"`
@@ -150,16 +151,22 @@ func (n *NebulaClientSettings) validateAndReset(prefix string) error {
 		return fmt.Errorf("Please configure the space name in: %s.space", prefix)
 	}
 
+	if n.Retry == nil {
+		retry := 1
+		n.Retry = &retry
+		logger.Warnf("Invalid retry option in %s.retry, reset to %d ", prefix, *n.Retry)
+	}
+
 	if n.Concurrency == nil {
 		d := 10
 		n.Concurrency = &d
-		logger.Warnf("Invalide client concurrency in %s.concurrency, reset to %d", prefix, *n.Concurrency)
+		logger.Warnf("Invalid client concurrency in %s.concurrency, reset to %d", prefix, *n.Concurrency)
 	}
 
 	if n.ChannelBufferSize == nil {
 		d := 128
 		n.ChannelBufferSize = &d
-		logger.Warnf("Invalide client channel buffer size in %s.channelBufferSize, reset to %d", prefix, *n.ChannelBufferSize)
+		logger.Warnf("Invalid client channel buffer size in %s.channelBufferSize, reset to %d", prefix, *n.ChannelBufferSize)
 	}
 
 	if n.Connection == nil {
@@ -214,7 +221,7 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	if f.BatchSize == nil {
 		b := 128
 		f.BatchSize = &b
-		logger.Infof("Invalide batch size in file(%s), reset to %d", *f.Path, *f.BatchSize)
+		logger.Infof("Invalid batch size in file(%s), reset to %d", *f.Path, *f.BatchSize)
 	}
 	if f.InOrder == nil {
 		inOrder := false

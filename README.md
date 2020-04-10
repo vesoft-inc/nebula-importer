@@ -34,7 +34,7 @@ After completing the configuration of the YAML file and the preparation of the (
 
 Nebula Importer is compiled with golang higher than **>=1.13**, so make sure that golang is installed on your system. The installation and configuration tutorial is referenced [here](docs/golang-install.md).
 
-Use `git` to clone the repository to local, go to the `nebula-importer/cmd` directory and execute the importer.
+Use `git` to clone the repository to local, go to the `nebula-importer/` directory and `make build`.
 
 ``` bash
 $ git clone https://github.com/vesoft-inc/nebula-importer.git
@@ -78,6 +78,7 @@ description: example
 
 ```yaml
 clientSettings:
+  retry: 3
   concurrency: 10
   channelBufferSize: 128
   space: test
@@ -86,7 +87,7 @@ clientSettings:
     password: password
     address: 192.168.8.1:3699,192.168.8.2:3699
 ```
-
+* `clientSettings.retry` is an optional parameter that shows the number of retrying to execute failed nGQL in **Nebula Graph** client.
 * `clientSettings.concurrency` is an optional parameter that shows the concurrency of **Nebula Graph** Client, i.e. the connection number of **Nebula Graph** Server, the default value is 10.
 * `clientSettings.channelBufferSize` is an optional parameter that shows the buffer size of the cache queue for each **Nebula Graph** Client, the default value is 128.
 * `clientSettings.space` is a **required** parameter that specifies which `space` the data will be importing into. Do not import data to multiple spaces at one time for performance sake.
@@ -306,7 +307,7 @@ The same with vertex, you can specify label in edge CSV file.
 - [X] Configure file
 - [X] Concurrent request to Graph server
 - [ ] Create space and tag/edge automatically
-- [ ] Configure retry option for Nebula client
+- [X] Configure retry option for Nebula client
 - [X] Support edge rank
 - [X] Support label for add/delete(+/-) in first column
 - [X] Support column header in the first line

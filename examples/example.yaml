@@ -1,6 +1,7 @@
 version: v1rc1
 description: example
 clientSettings:
+  retry: 3
   concurrency: 2 # number of graph clients
   channelBufferSize: 1
   space: test
