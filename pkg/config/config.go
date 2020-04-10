@@ -19,7 +19,7 @@ type NebulaClientConnection struct {
 }
 
 type NebulaClientSettings struct {
-	Retry             *int                    `json:"retry" yaml:"concurrency"`
+	Retry             *int                    `json:"retry" yaml:"retry"`
 	Concurrency       *int                    `json:"concurrency" yaml:"concurrency"`
 	ChannelBufferSize *int                    `json:"channelBufferSize" yaml:"channelBufferSize"`
 	Space             *string                 `json:"space" yaml:"space"`
