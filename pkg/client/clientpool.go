@@ -99,7 +99,7 @@ func (p *ClientPool) startWorker(i int) {
 
 		var err error = nil
 		var resp *graph.ExecutionResponse = nil
-		for retry = p.retry; retry > 0; retry-- {
+		for retry := p.retry; retry > 0; retry-- {
 			resp, err = p.Conns[i].Execute(data.Stmt)
 			if err == nil && resp.GetErrorCode() == graph.ErrorCode_SUCCEEDED {
 				break
