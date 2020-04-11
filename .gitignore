@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+nebula-importer
 
 # Test binary, build with `go test -c`
 *.test

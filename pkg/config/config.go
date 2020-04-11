@@ -73,6 +73,7 @@ type CSVConfig struct {
 }
 
 type File struct {
+	Paths        []string
 	Path         *string    `json:"path" yaml:"path"`
 	FailDataPath *string    `json:"failDataPath" yaml:"failDataPath"`
 	BatchSize    *int       `json:"batchSize" yaml:"batchSize"`
@@ -201,14 +202,16 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	if f.Path == nil {
 		return fmt.Errorf("Please configure file path in: %s.path", prefix)
 	}
-	if !base.FileExists(*f.Path) {
+	if !base.PathExists(*f.Path) {
 		path := filepath.Join(dir, *f.Path)
-		if !base.FileExists(path) {
+		if !base.PathExists(path) {
 			return fmt.Errorf("File(%s) doesn't exist", *f.Path)
 		} else {
 			f.Path = &path
 		}
 	}
+	f.Paths, _ = base.PathFileList(*f.Path)
+
 	if f.FailDataPath == nil {
 		if d, err := filepath.Abs(filepath.Dir(*f.Path)); err != nil {
 			return err
@@ -221,7 +224,7 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	if f.BatchSize == nil {
 		b := 128
 		f.BatchSize = &b
-		logger.Infof("Invalid batch size in file(%s), reset to %d", *f.Path, *f.BatchSize)
+		logger.Infof("Invalid batch size in path(%s), reset to %d", *f.Path, *f.BatchSize)
 	}
 	if f.InOrder == nil {
 		inOrder := false
@@ -373,13 +376,13 @@ func (e *Edge) FormatValues(record base.Record) string {
 		//TODO(yee): differentiate string and integer column type, find and compare src/dst vertex column with property
 		srcVID = fmt.Sprintf("%s(%q)", *e.SrcVID.Function, record[*e.SrcVID.Index])
 	} else {
-		srcVID = record[*e.SrcVID.Index]
+		srcVID = base.TryConvInt64(record[*e.SrcVID.Index])
 	}
 	var dstVID string
 	if e.DstVID.Function != nil {
 		dstVID = fmt.Sprintf("%s(%q)", *e.DstVID.Function, record[*e.DstVID.Index])
 	} else {
-		dstVID = record[*e.DstVID.Index]
+		dstVID = base.TryConvInt64(record[*e.DstVID.Index])
 	}
 	return fmt.Sprintf(" %s->%s%s:(%s) ", srcVID, dstVID, rank, strings.Join(cells, ","))
 }
@@ -493,7 +496,7 @@ func (v *Vertex) FormatValues(record base.Record) string {
 	if v.VID.Function != nil {
 		vid = fmt.Sprintf("%s(%q)", *v.VID.Function, record[*v.VID.Index])
 	} else {
-		vid = record[*v.VID.Index]
+		vid = base.TryConvInt64(record[*v.VID.Index])
 	}
 	return fmt.Sprintf(" %s: (%s)", vid, strings.Join(cells, ","))
 }
@@ -567,6 +570,10 @@ func (p *Prop) IsStringType() bool {
 	return strings.ToLower(*p.Type) == "string"
 }
 
+func (p *Prop) IsIntType() bool {
+	return strings.ToLower(*p.Type) == "int"
+}
+
 func (p *Prop) FormatValue(record base.Record) (string, error) {
 	if p.Index != nil && *p.Index >= len(record) {
 		return "", fmt.Errorf("Prop index %d out range %d of record(%v)", *p.Index, len(record), record)
@@ -574,6 +581,9 @@ func (p *Prop) FormatValue(record base.Record) (string, error) {
 	r := record[*p.Index]
 	if p.IsStringType() {
 		return fmt.Sprintf("%q", r), nil
+	}
+	if p.IsIntType() {
+		return base.TryConvInt64(r), nil
 	}
 	return r, nil
 }
