@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
+	"time"
 )
 
 type Stmt struct {
@@ -104,4 +106,16 @@ func TryConvInt64(cell string) string {
 	} else {
 		return cell
 	}
+}
+
+func TryConvDateTimestamp(cell string, format string) string {
+	f := strings.TrimSpace(format)
+	c := strings.TrimSpace(cell)
+	if len(c) < len(f) {
+		f = f[0:len(c)]
+	} else {
+		c = c[0:len(f)]
+	}
+	tm, _ := time.Parse(f, c)
+	return fmt.Sprint(tm.Unix())
 }

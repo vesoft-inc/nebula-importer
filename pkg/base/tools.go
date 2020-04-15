@@ -73,6 +73,9 @@ func IsValidType(t string) bool {
 	case "bool":
 	case "timestamp":
 	default:
+		if strings.HasPrefix(t, "date-timestamp") && len(strings.Split(t, ":")) == 2 {
+			return true
+		}
 		return false
 	}
 	return true

@@ -574,6 +574,10 @@ func (p *Prop) IsIntType() bool {
 	return strings.ToLower(*p.Type) == "int"
 }
 
+func (p *Prop) IsDateTimestampType() bool {
+	return strings.HasPrefix(strings.ToLower(*p.Type), "date-timestamp")
+}
+
 func (p *Prop) FormatValue(record base.Record) (string, error) {
 	if p.Index != nil && *p.Index >= len(record) {
 		return "", fmt.Errorf("Prop index %d out range %d of record(%v)", *p.Index, len(record), record)
@@ -584,6 +588,9 @@ func (p *Prop) FormatValue(record base.Record) (string, error) {
 	}
 	if p.IsIntType() {
 		return base.TryConvInt64(r), nil
+	}
+	if p.IsDateTimestampType() {
+		return base.TryConvDateTimestamp(r, strings.Split(*p.Type, ":")[1]), nil
 	}
 	return r, nil
 }
