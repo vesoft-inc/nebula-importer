@@ -70,7 +70,7 @@ func extractFilenameFromURL(uri string) (string, error) {
 	}
 }
 
-func (r *FileReader) handleDataFile() (*string, error) {
+func (r *FileReader) prepareDataFile() (*string, error) {
 	if _, err := url.ParseRequestURI(*r.File.Path); err != nil {
 		// This is a local path
 		return r.File.Path, nil
@@ -104,7 +104,7 @@ func (r *FileReader) handleDataFile() (*string, error) {
 }
 
 func (r *FileReader) Read() error {
-	filePath, err := r.handleDataFile()
+	filePath, err := r.prepareDataFile()
 	if err != nil {
 		return err
 	}
