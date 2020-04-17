@@ -63,8 +63,11 @@ func (r *FileReader) Stop() {
 
 func extractFilenameFromURL(uri string) (string, error) {
 	base := path.Base(uri)
-	index := strings.Index(base, "?")
-	return url.QueryUnescape(uri[:index])
+	if index := strings.Index(base, "?"); index != -1 {
+		return url.QueryUnescape(base[:index])
+	} else {
+		return url.QueryUnescape(base)
+	}
 }
 
 func (r *FileReader) handleDataFile() (*string, error) {
