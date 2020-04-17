@@ -71,9 +71,13 @@ func extractFilenameFromURL(uri string) (string, error) {
 }
 
 func (r *FileReader) prepareDataFile() (*string, error) {
-	if _, err := url.ParseRequestURI(*r.File.Path); err != nil {
+	if !base.HasHttpPrefix(*r.File.Path) {
 		// This is a local path
 		return r.File.Path, nil
+	}
+
+	if _, err := url.ParseRequestURI(*r.File.Path); err != nil {
+		return nil, err
 	}
 
 	// Download data file from internet to `/tmp` directory and return the path
@@ -82,7 +86,7 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 		return nil, err
 	}
 
-	file, err := ioutil.TempFile("", filename)
+	file, err := ioutil.TempFile("", fmt.Sprintf("*_%s", filename))
 	if err != nil {
 		return nil, err
 	}
@@ -94,12 +98,15 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 	}
 	defer resp.Body.Close()
 
-	_, err = io.Copy(file, resp.Body)
+	n, err := io.Copy(file, resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
 	filepath := file.Name()
+
+	logger.Infof("File(%s) has been downloaded to \"%s\", size: %d", *r.File.Path, filepath, n)
+
 	return &filepath, nil
 }
 
@@ -145,7 +152,7 @@ func (r *FileReader) Read() error {
 		}
 
 		if err != nil {
-			logger.Errorf("Fail to read line %d, error: %s", lineNum, err.Error())
+			logger.Errorf("Fail to read file(%s) line %d, error: %s", *r.File.Path, lineNum, err.Error())
 			numErrorLines++
 		}
 

@@ -202,7 +202,12 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	if f.Path == nil {
 		return fmt.Errorf("Please configure file path in: %s.path", prefix)
 	}
-	if _, err := url.ParseRequestURI(*f.Path); err != nil {
+
+	if base.HasHttpPrefix(*f.Path) {
+		if _, err := url.ParseRequestURI(*f.Path); err != nil {
+			return err
+		}
+	} else {
 		if !base.FileExists(*f.Path) {
 			path := filepath.Join(dir, *f.Path)
 			if !base.FileExists(path) {
@@ -211,9 +216,8 @@ func (f *File) validateAndReset(dir, prefix string) error {
 				f.Path = &path
 			}
 		}
-	} else {
-		logger.Infof("Data file from internet: %s", *f.Path)
 	}
+
 	if f.FailDataPath == nil {
 		if d, err := filepath.Abs(filepath.Dir(*f.Path)); err != nil {
 			return err

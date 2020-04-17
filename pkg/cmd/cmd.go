@@ -55,12 +55,12 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 		errCh, err := errHandler.Init(file, clientMgr.GetNumConnections())
 		if err != nil {
 			r.err = err
-			return
+			continue
 		}
 
 		if fr, err := reader.New(i, file, clientMgr.GetRequestChans(), errCh); err != nil {
 			r.err = err
-			return
+			continue
 		} else {
 			go func() {
 				if err := fr.Read(); err != nil {
