@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/client"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/errhandler"
@@ -13,22 +16,30 @@ import (
 )
 
 type Runner struct {
-	err       error
+	errs      []error
 	Readers   []*reader.FileReader
 	NumFailed int64
 }
 
 func (r *Runner) Error() error {
-	return r.err
+	if len(r.errs) == 0 {
+		return nil
+	}
+
+	var msg []string
+	for _, e := range r.errs {
+		msg = append(msg, e.Error())
+	}
+	return errors.New(strings.Join(msg, "\n"))
 }
 
 func (r *Runner) Run(yaml *config.YAMLConfig) {
 	now := time.Now()
 	defer func() {
 		if re := recover(); re != nil {
-			r.err = fmt.Errorf("%v", re)
+			r.errs = append(r.errs, fmt.Errorf("%v", re))
 		} else {
-			if r.err == nil {
+			if len(r.errs) == 0 {
 				logger.Infof("Finish import data, consume time: %.2fs", time.Since(now).Seconds())
 			}
 		}
@@ -41,7 +52,7 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 
 	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
 	if err != nil {
-		r.err = err
+		r.errs = append(r.errs, err)
 		return
 	}
 	defer clientMgr.Close()
@@ -51,22 +62,24 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	freaders := make([]*reader.FileReader, len(yaml.Files))
 
 	for i, file := range yaml.Files {
-		// TODO: skip files with error
 		errCh, err := errHandler.Init(file, clientMgr.GetNumConnections())
 		if err != nil {
-			r.err = err
+			r.errs = append(r.errs, err)
+			statsMgr.StatsCh <- base.NewFileDoneStats(*file.Path)
 			continue
 		}
 
 		if fr, err := reader.New(i, file, clientMgr.GetRequestChans(), errCh); err != nil {
-			r.err = err
+			r.errs = append(r.errs, err)
+			statsMgr.StatsCh <- base.NewFileDoneStats(*file.Path)
 			continue
 		} else {
-			go func() {
+			go func(fr *reader.FileReader, filename string) {
 				if err := fr.Read(); err != nil {
-					logger.Error(err)
+					r.errs = append(r.errs, err)
+					statsMgr.StatsCh <- base.NewFileDoneStats(filename)
 				}
-			}()
+			}(fr, *file.Path)
 			freaders[i] = fr
 		}
 	}
@@ -79,8 +92,6 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	r.NumFailed = statsMgr.NumFailed
 
 	if statsMgr.NumFailed > 0 {
-		r.err = fmt.Errorf("Total %d lines fail to insert to nebula", statsMgr.NumFailed)
-	} else {
-		r.err = nil
+		r.errs = append(r.errs, fmt.Errorf("Total %d lines fail to insert to nebula", statsMgr.NumFailed))
 	}
 }
