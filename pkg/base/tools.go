@@ -1,8 +1,10 @@
 package base
 
 import (
+	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -15,6 +17,43 @@ func MustCreateFile(filePath string) *os.File {
 		panic(err)
 	}
 	return file
+}
+
+func PathFileList(path string) ([]string, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+	if !info.IsDir() {
+		return []string{path}, nil
+	}
+
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+
+	}
+
+	var filenames []string
+	for _, f := range files {
+		if !f.IsDir() {
+			filenames = append(filenames, filepath.Join(path, f.Name()))
+		}
+	}
+	return filenames, nil
+}
+
+func PathExists(dir string) bool {
+	_, err := os.Stat(dir)
+	return !os.IsNotExist(err)
+}
+
+func DirExists(dir string) bool {
+	info, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return info.IsDir()
 }
 
 func FileExists(filename string) bool {
@@ -34,6 +73,9 @@ func IsValidType(t string) bool {
 	case "bool":
 	case "timestamp":
 	default:
+		if strings.HasPrefix(t, "date-timestamp") && len(strings.Split(t, ":")) == 2 {
+			return true
+		}
 		return false
 	}
 	return true

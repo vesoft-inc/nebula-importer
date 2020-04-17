@@ -45,31 +45,29 @@ func New(fileIdx int, file *config.File, clientRequestChs []chan base.ClientRequ
 		}
 		return &reader, nil
 	default:
-		return nil, fmt.Errorf("Wrong file type: %s", file.Type)
+		return nil, fmt.Errorf("Wrong file type: %s", *file.Type)
 	}
 }
 
-func (r *FileReader) startLog() {
-	logger.Infof("Start to read file(%d): %s, schema: < %s >", r.FileIdx, *r.File.Path, r.BatchMgr.Schema.String())
+func (r *FileReader) startLog(filename string) {
+	logger.Infof("Start to read file(%d): %s, schema: < %s >", r.FileIdx, filename, r.BatchMgr.Schema.String())
 }
 
 func (r *FileReader) Stop() {
 	r.StopFlag = true
 }
 
-func (r *FileReader) Read() error {
-	file, err := os.Open(*r.File.Path)
+func (r *FileReader) ReadFile(filename string) (lineNum int64, numErrorLines int64, err error) {
+	file, err := os.Open(filename)
 	if err != nil {
-		return err
+		return
 	}
 	defer file.Close()
 
 	r.DataReader.InitReader(file)
 
-	lineNum, numErrorLines := 0, 0
-
 	if !r.WithHeader {
-		r.startLog()
+		r.startLog(filename)
 	}
 
 	for {
@@ -83,12 +81,12 @@ func (r *FileReader) Read() error {
 		if err == nil {
 			if data.Type == base.HEADER {
 				r.BatchMgr.InitSchema(data.Record)
-				r.startLog()
+				r.startLog(filename)
 			} else {
 				if *r.File.InOrder {
 					err = r.BatchMgr.Add(data)
 				} else {
-					idx := lineNum % len(r.BatchMgr.Batches)
+					idx := lineNum % int64(len(r.BatchMgr.Batches))
 					r.BatchMgr.Batches[idx].Add(data)
 				}
 			}
@@ -99,13 +97,28 @@ func (r *FileReader) Read() error {
 			numErrorLines++
 		}
 
-		if r.StopFlag || (r.File.Limit != nil && *r.File.Limit > 0 && *r.File.Limit <= lineNum) {
+		if r.StopFlag || (r.File.Limit != nil && *r.File.Limit > 0 && int64(*r.File.Limit) <= lineNum) {
 			break
 		}
 	}
 
-	r.BatchMgr.Done()
-	logger.Infof("Total lines of file(%s) is: %d, error lines: %d", *r.File.Path, lineNum, numErrorLines)
+	return
+}
 
+func (r *FileReader) Read() error {
+	var lineNumTotal int64
+	var numErrorLinesTotal int64
+	for _, filename := range r.File.Paths {
+		lineNum, numErrorLines, err := r.ReadFile(filename)
+		if err != nil {
+			return err
+		}
+		logger.Infof("Total lines of file(%s) is: %d, error lines: %d", filename, lineNum, numErrorLines)
+		lineNumTotal = lineNumTotal + lineNum
+		numErrorLinesTotal = numErrorLinesTotal + numErrorLines
+	}
+
+	r.BatchMgr.Done()
+	logger.Infof("Total lines of path(%s) is: %d, error lines: %d", *r.File.Path, lineNumTotal, numErrorLinesTotal)
 	return nil
 }

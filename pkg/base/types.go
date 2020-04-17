@@ -1,5 +1,13 @@
 package base
 
+import (
+	"fmt"
+	"math"
+	"strconv"
+	"strings"
+	"time"
+)
+
 type Stmt struct {
 	Stmt string
 	Data [][]interface{}
@@ -90,3 +98,24 @@ const (
 	LABEL_RANK    = ":RANK"
 	LABEL_IGNORE  = ":IGNORE"
 )
+
+func TryConvInt64(cell string) string {
+	n, _ := strconv.ParseUint(cell, 10, 64)
+	if n > math.MaxInt64 {
+		return fmt.Sprint(int64(n))
+	} else {
+		return cell
+	}
+}
+
+func TryConvDateTimestamp(cell string, format string) string {
+	f := strings.TrimSpace(format)
+	c := strings.TrimSpace(cell)
+	if len(c) < len(f) {
+		f = f[0:len(c)]
+	} else {
+		c = c[0:len(f)]
+	}
+	tm, _ := time.Parse(f, c)
+	return fmt.Sprint(tm.Unix())
+}
