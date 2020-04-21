@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
@@ -92,7 +93,9 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 	}
 	defer file.Close()
 
-	resp, err := http.Get(*r.File.Path)
+	client := http.Client{Timeout: 5 * time.Second}
+
+	resp, err := client.Get(*r.File.Path)
 	if err != nil {
 		return nil, err
 	}
