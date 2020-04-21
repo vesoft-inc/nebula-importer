@@ -38,3 +38,7 @@ func IsValidType(t string) bool {
 	}
 	return true
 }
+
+func HasHttpPrefix(path string) bool {
+	return strings.HasPrefix(path, "https://") || strings.HasPrefix(path, "http://")
+}

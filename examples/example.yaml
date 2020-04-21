@@ -174,3 +174,30 @@ files:
       edge:
         name: follow
         withRanking: true
+
+  - path: https://data.ok.gov/sites/default/files/res_child_mental_health_treatment_w929-ctrc.csv
+    failDataPath: /tmp/err_child_mental_health_treatment.csv
+    batchSize: 2
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+      delimiter: ","
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          index: 0
+          function: hash
+        tags:
+          - name: child_mental_health
+            props:
+              - name: years
+                type: string
+                index: 0
+              - name: historical_data
+                type: string
+                index: 1
+              - name: target
+                type: string
+                index: 2

@@ -1,11 +1,14 @@
 package client
 
 import (
+	"time"
+
 	nebula "github.com/vesoft-inc/nebula-go"
 )
 
 func NewNebulaConnection(addr, user, password string) (*nebula.GraphClient, error) {
-	client, err := nebula.NewClient(addr)
+	opts := nebula.WithTimeout(10 * time.Second)
+	client, err := nebula.NewClient(addr, opts)
 	if err != nil {
 		return nil, err
 	}

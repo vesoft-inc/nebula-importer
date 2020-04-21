@@ -3,8 +3,13 @@ package reader
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
+	"path"
 	"strings"
+	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
@@ -57,8 +62,63 @@ func (r *FileReader) Stop() {
 	r.StopFlag = true
 }
 
+func extractFilenameFromURL(uri string) (string, error) {
+	base := path.Base(uri)
+	if index := strings.Index(base, "?"); index != -1 {
+		return url.QueryUnescape(base[:index])
+	} else {
+		return url.QueryUnescape(base)
+	}
+}
+
+func (r *FileReader) prepareDataFile() (*string, error) {
+	if !base.HasHttpPrefix(*r.File.Path) {
+		// This is a local path
+		return r.File.Path, nil
+	}
+
+	if _, err := url.ParseRequestURI(*r.File.Path); err != nil {
+		return nil, err
+	}
+
+	// Download data file from internet to `/tmp` directory and return the path
+	filename, err := extractFilenameFromURL(*r.File.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := ioutil.TempFile("", fmt.Sprintf("*_%s", filename))
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	client := http.Client{Timeout: 5 * time.Second}
+
+	resp, err := client.Get(*r.File.Path)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	n, err := io.Copy(file, resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	filepath := file.Name()
+
+	logger.Infof("File(%s) has been downloaded to \"%s\", size: %d", *r.File.Path, filepath, n)
+
+	return &filepath, nil
+}
+
 func (r *FileReader) Read() error {
-	file, err := os.Open(*r.File.Path)
+	filePath, err := r.prepareDataFile()
+	if err != nil {
+		return err
+	}
+	file, err := os.Open(*filePath)
 	if err != nil {
 		return err
 	}
@@ -95,7 +155,7 @@ func (r *FileReader) Read() error {
 		}
 
 		if err != nil {
-			logger.Errorf("Fail to read line %d, error: %s", lineNum, err.Error())
+			logger.Errorf("Fail to read file(%s) line %d, error: %s", *r.File.Path, lineNum, err.Error())
 			numErrorLines++
 		}
 
