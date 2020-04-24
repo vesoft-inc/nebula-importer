@@ -98,7 +98,7 @@ clientSettings:
 The log and data file related configurations are:
 
 * `logPath`: **Optional**. Specifies log directory when importing data, default path is `/tmp/nebula-importer.log`.
-* `files`: **Required**. An array type to configure different CSV files.
+* `files`: **Required**. An array type to configure different CSV files. You can also import data from a HTTP link by input the link in the file path.
 
 ```yaml
 logPath: ./err/test.log
