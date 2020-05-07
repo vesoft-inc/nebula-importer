@@ -74,7 +74,7 @@ func extractFilenameFromURL(uri string) (string, error) {
 	}
 }
 
-func (r *FileReader) downloadDataFileByHttpURL() (*string, error) {
+func (r *FileReader) downloadDataFileFromHttpURL() (*string, error) {
 	if _, err := url.ParseRequestURI(*r.File.Path); err != nil {
 		return nil, err
 	}
@@ -111,13 +111,20 @@ func (r *FileReader) downloadDataFileByHttpURL() (*string, error) {
 	return &filepath, nil
 }
 
-func (r *FileReader) dowloadDataFileByS3() (*string, error) {
+// File path format: s3://region/bucket/object config=/path/to/s3.conf
+// Content of s3.conf is following:
+//
+//  [default]
+//  secret = "secret"
+//  accessid = "user access id"
+//
+func (r *FileReader) downloadDataFileFromS3() (*string, error) {
 	trimStr := strings.TrimSpace(*r.File.Path)
 	splitStr := strings.Split(trimStr, " ")
 	path := strings.TrimSpace(splitStr[0])
 	confArr := strings.Split(strings.TrimSpace(splitStr[1]), "=")
 	confPath := strings.TrimSpace(confArr[1])
-	sharedConfig, err := external.NewSharedConfig("default", confPath)
+	sharedConfig, err := external.NewSharedConfig("default", []string{confPath})
 	if err != nil {
 		return nil, err
 	}
@@ -159,11 +166,11 @@ func (r *FileReader) dowloadDataFileByS3() (*string, error) {
 
 func (r *FileReader) prepareDataFile() (*string, error) {
 	if base.HasHttpPrefix(*r.File.Path) {
-		return r.downloadDataFileByHttpURL()
+		return r.downloadDataFileFromHttpURL()
 	}
 
 	if base.HasS3Prefix(*r.File.Path) {
-		return r.downloadDataFileByS3()
+		return r.downloadDataFileFromS3()
 	}
 
 	// This is a local path
