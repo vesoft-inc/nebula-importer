@@ -202,7 +202,8 @@ files:
                 type: string
                 index: 2
 
-  # - path: s3://hangzhou/test/data.csv config=/tmp/s3.conf
+  #  ~/.aws/credentials and ~/.aws/config
+  # - path: s3://hangzhou/test/data.csv profile=default
   #   failDataPath: /tmp/err_child_mental_health_treatment.csv
   #   batchSize: 2
   #   type: csv

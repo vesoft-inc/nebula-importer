@@ -111,25 +111,27 @@ func (r *FileReader) downloadDataFileFromHttpURL() (*string, error) {
 	return &filepath, nil
 }
 
-// File path format: s3://region/bucket/object config=/path/to/s3.conf
-// Content of s3.conf is following:
+// File path format: s3://region/bucket/object profile="default"
+// `profile` refer to following files:
 //
-//  [default]
-//  secret = "secret"
-//  accessid = "user access id"
+//    * ~/.aws/credentials
+//    * ~/.aws/config
 //
 func (r *FileReader) downloadDataFileFromS3() (*string, error) {
 	trimStr := strings.TrimSpace(*r.File.Path)
 	splitStr := strings.Split(trimStr, " ")
 	path := strings.TrimSpace(splitStr[0])
-	confArr := strings.Split(strings.TrimSpace(splitStr[1]), "=")
-	confPath := strings.TrimSpace(confArr[1])
-	sharedConfig, err := external.NewSharedConfig("default", []string{confPath})
-	if err != nil {
-		return nil, err
+	var profile string
+	if len(splitStr) <= 1 {
+		profile = "default"
+	} else {
+		profileArr := strings.Split(strings.TrimSpace(splitStr[1]), "=")
+		profile = strings.TrimSpace(profileArr[1])
 	}
 
-	cfg, err := external.LoadDefaultAWSConfig(sharedConfig)
+	cfg, err := external.LoadDefaultAWSConfig(
+		external.WithSharedConfigProfile(profile),
+	)
 	if err != nil {
 		return nil, err
 	}

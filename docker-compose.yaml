@@ -110,10 +110,24 @@ services:
         ipv4_address: 172.29.3.2
     restart: on-failure
 
+  minio:
+    image: minio/minio
+    volumes:
+      - ./ci/minio/data:/data:rw
+    command:
+      - server
+      - /data
+    ports:
+      - 9000
+    networks:
+      nebula-net:
+        ipv4_address: 172.29.4.1
+
   importer:
     image: vesoft/nebula-console:nightly
     volumes:
       - .:/usr/local/nebula/importer:ro
+      - ./ci/.aws/:/root/.aws/
     entrypoint:
       - ./importer/ci/bootstrap.sh
       - "172.29.3.1"
@@ -121,9 +135,10 @@ services:
     depends_on:
       - graphd1
       - graphd2
+      - minio
     networks:
       nebula-net:
-        ipv4_address: 172.29.4.1
+        ipv4_address: 172.29.5.1
 
 networks:
   nebula-net:
