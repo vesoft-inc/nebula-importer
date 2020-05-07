@@ -207,6 +207,12 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		if _, err := url.ParseRequestURI(*f.Path); err != nil {
 			return err
 		}
+	} else if base.HasS3Prefix(*f.Path) {
+		ss := strings.Split(*f.Path, " ")
+		conf := strings.Split(ss[1], "=")
+		if strings.ToLower(strings.TrimSpace(conf[0])) != "conf" {
+			return fmt.Errorf("Invalid s3 file path in %s.path config, format: s3://bucket/key config={your-config-file}", prefix)
+		}
 	} else {
 		if !base.FileExists(*f.Path) {
 			path := filepath.Join(dir, *f.Path)

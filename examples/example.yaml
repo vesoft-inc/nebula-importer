@@ -201,3 +201,30 @@ files:
               - name: target
                 type: string
                 index: 2
+
+  # - path: s3://hangzhou/test/data.csv config=/tmp/s3.conf
+  #   failDataPath: /tmp/err_child_mental_health_treatment.csv
+  #   batchSize: 2
+  #   type: csv
+  #   csv:
+  #     withHeader: false
+  #     withLabel: false
+  #     delimiter: ","
+  #   schema:
+  #     type: vertex
+  #     vertex:
+  #       vid:
+  #         index: 0
+  #         function: hash
+  #       tags:
+  #         - name: child_mental_health
+  #           props:
+  #             - name: years
+  #               type: string
+  #               index: 0
+  #             - name: historical_data
+  #               type: string
+  #               index: 1
+  #             - name: target
+  #               type: string
+  #               index: 2

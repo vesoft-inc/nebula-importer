@@ -42,3 +42,7 @@ func IsValidType(t string) bool {
 func HasHttpPrefix(path string) bool {
 	return strings.HasPrefix(path, "https://") || strings.HasPrefix(path, "http://")
 }
+
+func HasS3Prefix(path string) bool {
+	return strings.HasPrefix(path, "s3://") || strings.HasPrefix(path, "S3://")
+}

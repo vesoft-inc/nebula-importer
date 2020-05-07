@@ -1,6 +1,7 @@
 package reader
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws/external"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/csv"
@@ -71,12 +74,7 @@ func extractFilenameFromURL(uri string) (string, error) {
 	}
 }
 
-func (r *FileReader) prepareDataFile() (*string, error) {
-	if !base.HasHttpPrefix(*r.File.Path) {
-		// This is a local path
-		return r.File.Path, nil
-	}
-
+func (r *FileReader) downloadDataFileByHttpURL() (*string, error) {
 	if _, err := url.ParseRequestURI(*r.File.Path); err != nil {
 		return nil, err
 	}
@@ -111,6 +109,65 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 	logger.Infof("File(%s) has been downloaded to \"%s\", size: %d", *r.File.Path, filepath, n)
 
 	return &filepath, nil
+}
+
+func (r *FileReader) dowloadDataFileByS3() (*string, error) {
+	trimStr := strings.TrimSpace(*r.File.Path)
+	splitStr := strings.Split(trimStr, " ")
+	path := strings.TrimSpace(splitStr[0])
+	confArr := strings.Split(strings.TrimSpace(splitStr[1]), "=")
+	confPath := strings.TrimSpace(confArr[1])
+	sharedConfig, err := external.NewSharedConfig("default", confPath)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg, err := external.LoadDefaultAWSConfig(sharedConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	client := s3.New(cfg)
+	req := client.GetObjectRequest(&s3.GetObjectInput{})
+	resp, err := req.Send(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	filename, err := extractFilenameFromURL(path)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := ioutil.TempFile("", fmt.Sprintf("*_%s", filename))
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	n, err := io.Copy(file, resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	filepath := file.Name()
+
+	logger.Infof("File(%s) has been downloaded to \"%s\" from s3, size: %d", path, filepath, n)
+
+	return &filepath, nil
+}
+
+func (r *FileReader) prepareDataFile() (*string, error) {
+	if base.HasHttpPrefix(*r.File.Path) {
+		return r.downloadDataFileByHttpURL()
+	}
+
+	if base.HasS3Prefix(*r.File.Path) {
+		return r.downloadDataFileByS3()
+	}
+
+	// This is a local path
+	return r.File.Path, nil
 }
 
 func (r *FileReader) Read() error {
