@@ -115,7 +115,7 @@ clientSettings:
 
 跟日志和数据文件相关的配置跟以下两个选项有关：
 
-- `logPath`: **可选**。指定导入过程中的错误等日志信息输出的文件路径，默认输出到 `/tmp/nebula-importer.log` 中。
+- `logPath`: **可选**。指定导入过程中的错误等日志信息输出的文件路径，默认输出到 `/tmp/nebula-importer-{timestamp}.log` 中。
 - `files`: **必填**。数组类型，用来配置不同的数据文件。您也可以从 HTTP 链接导入数据，在文件路径中输入链接即可。
 
 ```yaml

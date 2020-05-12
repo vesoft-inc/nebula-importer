@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
@@ -129,7 +131,7 @@ func (config *YAMLConfig) ValidateAndReset(dir string) error {
 	}
 
 	if config.LogPath == nil {
-		defaultPath := "/tmp/nebula-importer.log"
+		defaultPath := filepath.Join(os.TempDir(), fmt.Sprintf("nebula-importer-%d.log", time.Now().UnixNano()))
 		config.LogPath = &defaultPath
 		logger.Warnf("You have not configured the log file path in: logPath, reset to default path: %s", *config.LogPath)
 	}
@@ -207,6 +209,12 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		if _, err := url.ParseRequestURI(*f.Path); err != nil {
 			return err
 		}
+
+		if f.FailDataPath == nil {
+			failDataPath := filepath.Join(os.TempDir(), fmt.Sprintf("nebula-importer-err-data-%d", time.Now().UnixNano()))
+			f.FailDataPath = &failDataPath
+			logger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to tmp path: %s", prefix, *f.FailDataPath)
+		}
 	} else {
 		if !base.FileExists(*f.Path) {
 			path := filepath.Join(dir, *f.Path)
@@ -216,26 +224,29 @@ func (f *File) validateAndReset(dir, prefix string) error {
 				f.Path = &path
 			}
 		}
-	}
 
-	if f.FailDataPath == nil {
-		if d, err := filepath.Abs(filepath.Dir(*f.Path)); err != nil {
-			return err
-		} else {
-			p := filepath.Join(d, "err", filepath.Base(*f.Path))
-			f.FailDataPath = &p
-			logger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to default path: %s", prefix, *f.FailDataPath)
+		if f.FailDataPath == nil {
+			if d, err := filepath.Abs(filepath.Dir(*f.Path)); err != nil {
+				return err
+			} else {
+				p := filepath.Join(d, "err", filepath.Base(*f.Path))
+				f.FailDataPath = &p
+				logger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to default path: %s", prefix, *f.FailDataPath)
+			}
 		}
 	}
+
 	if f.BatchSize == nil {
 		b := 128
 		f.BatchSize = &b
 		logger.Infof("Invalid batch size in file(%s), reset to %d", *f.Path, *f.BatchSize)
 	}
+
 	if f.InOrder == nil {
 		inOrder := false
 		f.InOrder = &inOrder
 	}
+
 	if strings.ToLower(*f.Type) != "csv" {
 		// TODO: Now only support csv import
 		return fmt.Errorf("Invalid file data type: %s, reset to csv", *f.Type)

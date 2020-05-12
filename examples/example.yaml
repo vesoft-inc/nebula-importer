@@ -12,7 +12,6 @@ clientSettings:
 logPath: ./err/test.log
 files:
   - path: ./choose.csv
-    failDataPath: ./err/choose.csv
     batchSize: 2
     inOrder: false
     type: csv
@@ -176,7 +175,6 @@ files:
         withRanking: true
 
   - path: https://data.ok.gov/sites/default/files/res_child_mental_health_treatment_w929-ctrc.csv
-    failDataPath: /tmp/err_child_mental_health_treatment.csv
     batchSize: 2
     type: csv
     csv:
