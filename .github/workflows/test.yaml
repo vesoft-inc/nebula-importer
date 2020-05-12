@@ -7,8 +7,6 @@ jobs:
     name: test with nebula docker compose
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
+      - uses: actions/checkout@v2
       - name: test importer
         run: docker-compose up --exit-code-from importer
