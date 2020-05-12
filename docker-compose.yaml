@@ -113,7 +113,7 @@ services:
   importer:
     image: vesoft/nebula-console:nightly
     volumes:
-      - .:/usr/local/nebula/importer:ro
+      - .:/usr/local/nebula/importer:rw
     entrypoint:
       - ./importer/ci/bootstrap.sh
       - "172.29.3.1"
