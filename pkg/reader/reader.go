@@ -14,6 +14,7 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/csv"
+	"github.com/vesoft-inc/nebula-importer/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 )
 
@@ -78,18 +79,18 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 	}
 
 	if _, err := url.ParseRequestURI(*r.File.Path); err != nil {
-		return nil, err
+		return nil, errors.NewDownloadError(err)
 	}
 
 	// Download data file from internet to `/tmp` directory and return the path
 	filename, err := extractFilenameFromURL(*r.File.Path)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewDownloadError(err)
 	}
 
 	file, err := ioutil.TempFile("", fmt.Sprintf("*_%s", filename))
 	if err != nil {
-		return nil, err
+		return nil, errors.NewUnknownError(err)
 	}
 	defer file.Close()
 
@@ -97,13 +98,13 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 
 	resp, err := client.Get(*r.File.Path)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewDownloadError(err)
 	}
 	defer resp.Body.Close()
 
 	n, err := io.Copy(file, resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewDownloadError(err)
 	}
 
 	filepath := file.Name()
@@ -120,7 +121,7 @@ func (r *FileReader) Read() error {
 	}
 	file, err := os.Open(*filePath)
 	if err != nil {
-		return err
+		return errors.NewConfigError(err)
 	}
 	defer file.Close()
 
