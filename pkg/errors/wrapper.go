@@ -19,7 +19,7 @@ func (e ImporterError) Error() string {
 	return fmt.Sprintf("error code: %d, message: %s", e.ErrCode, e.ErrMsg.Error())
 }
 
-func New(code int, err error) ImporterError {
+func Wrap(code int, err error) ImporterError {
 	return ImporterError{
 		ErrCode: code,
 		ErrMsg:  err,
