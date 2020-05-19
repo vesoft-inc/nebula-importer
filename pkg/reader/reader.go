@@ -79,18 +79,18 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 	}
 
 	if _, err := url.ParseRequestURI(*r.File.Path); err != nil {
-		return nil, errors.NewDownloadError(err)
+		return nil, errors.New(errors.DownloadError, err)
 	}
 
 	// Download data file from internet to `/tmp` directory and return the path
 	filename, err := extractFilenameFromURL(*r.File.Path)
 	if err != nil {
-		return nil, errors.NewDownloadError(err)
+		return nil, errors.New(errors.DownloadError, err)
 	}
 
 	file, err := ioutil.TempFile("", fmt.Sprintf("*_%s", filename))
 	if err != nil {
-		return nil, errors.NewUnknownError(err)
+		return nil, errors.New(errors.UnknownError, err)
 	}
 	defer file.Close()
 
@@ -98,13 +98,13 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 
 	resp, err := client.Get(*r.File.Path)
 	if err != nil {
-		return nil, errors.NewDownloadError(err)
+		return nil, errors.New(errors.DownloadError, err)
 	}
 	defer resp.Body.Close()
 
 	n, err := io.Copy(file, resp.Body)
 	if err != nil {
-		return nil, errors.NewDownloadError(err)
+		return nil, errors.New(errors.DownloadError, err)
 	}
 
 	filepath := file.Name()
@@ -121,7 +121,7 @@ func (r *FileReader) Read() error {
 	}
 	file, err := os.Open(*filePath)
 	if err != nil {
-		return errors.NewConfigError(err)
+		return errors.New(errors.ConfigError, err)
 	}
 	defer file.Close()
 

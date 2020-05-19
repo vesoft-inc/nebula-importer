@@ -100,25 +100,25 @@ var version string = "v1rc2"
 func Parse(filename string) (*YAMLConfig, error) {
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, ierrors.NewInvalidConfigPathOrFormat(err)
+		return nil, ierrors.New(ierrors.InvalidConfigPathOrFormat, err)
 	}
 
 	var conf YAMLConfig
 	if err = yaml.Unmarshal(content, &conf); err != nil {
-		return nil, ierrors.NewInvalidConfigPathOrFormat(err)
+		return nil, ierrors.New(ierrors.InvalidConfigPathOrFormat, err)
 	}
 
 	if conf.Version == nil && *conf.Version != version {
-		return nil, ierrors.NewInvalidConfigPathOrFormat(
+		return nil, ierrors.New(ierrors.InvalidConfigPathOrFormat,
 			fmt.Errorf("The YAML configure version must be %s", version))
 	}
 
 	path, err := filepath.Abs(filepath.Dir(filename))
 	if err != nil {
-		return nil, ierrors.NewInvalidConfigPathOrFormat(err)
+		return nil, ierrors.New(ierrors.InvalidConfigPathOrFormat, err)
 	}
 	if err = conf.ValidateAndReset(path); err != nil {
-		return nil, ierrors.NewConfigError(err)
+		return nil, ierrors.New(ierrors.ConfigError, err)
 	}
 
 	return &conf, nil

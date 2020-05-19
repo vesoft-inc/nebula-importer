@@ -33,7 +33,7 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	now := time.Now()
 	defer func() {
 		if re := recover(); re != nil {
-			r.errs = append(r.errs, errors.NewUnknownError(fmt.Errorf("%v", re)))
+			r.errs = append(r.errs, errors.New(errors.UnknownError, fmt.Errorf("%v", re)))
 		} else {
 			if len(r.errs) == 0 {
 				logger.Infof("Finish import data, consume time: %.2fs", time.Since(now).Seconds())
@@ -48,7 +48,7 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 
 	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
 	if err != nil {
-		r.errs = append(r.errs, errors.NewNebulaError(err))
+		r.errs = append(r.errs, errors.New(errors.NebulaError, err))
 		return
 	}
 	defer clientMgr.Close()
@@ -60,13 +60,13 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	for i, file := range yaml.Files {
 		errCh, err := errHandler.Init(file, clientMgr.GetNumConnections())
 		if err != nil {
-			r.errs = append(r.errs, errors.NewConfigError(err))
+			r.errs = append(r.errs, errors.New(errors.ConfigError, err))
 			statsMgr.StatsCh <- base.NewFileDoneStats(*file.Path)
 			continue
 		}
 
 		if fr, err := reader.New(i, file, clientMgr.GetRequestChans(), errCh); err != nil {
-			r.errs = append(r.errs, errors.NewConfigError(err))
+			r.errs = append(r.errs, errors.New(errors.ConfigError, err))
 			statsMgr.StatsCh <- base.NewFileDoneStats(*file.Path)
 			continue
 		} else {
@@ -88,7 +88,7 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	r.NumFailed = statsMgr.NumFailed
 
 	if statsMgr.NumFailed > 0 {
-		r.errs = append(r.errs, errors.NewNebulaError(
+		r.errs = append(r.errs, errors.New(errors.NebulaError,
 			fmt.Errorf("Total %d lines fail to insert into nebula graph database", statsMgr.NumFailed)))
 	}
 }
