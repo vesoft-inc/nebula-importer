@@ -2,9 +2,11 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/pkg/web"
 )
 
@@ -30,14 +32,16 @@ func main() {
 
 		conf, err := config.Parse(*configuration)
 		if err != nil {
-			panic(err)
+			e := err.(errors.ImporterError)
+			os.Exit(e.ErrCode)
 		}
 
 		runner := &cmd.Runner{}
 		runner.Run(conf)
 
 		if runner.Error() != nil {
-			panic(runner.Error())
+			e := runner.Error().(errors.ImporterError)
+			os.Exit(e.ErrCode)
 		}
 	}
 }

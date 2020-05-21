@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
+	ierrors "github.com/vesoft-inc/nebula-importer/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -99,24 +100,25 @@ var version string = "v1rc2"
 func Parse(filename string) (*YAMLConfig, error) {
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, err
+		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat, err)
 	}
 
 	var conf YAMLConfig
 	if err = yaml.Unmarshal(content, &conf); err != nil {
-		return nil, err
+		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat, err)
 	}
 
 	if conf.Version == nil && *conf.Version != version {
-		return nil, fmt.Errorf("The YAML configure version must be %s", version)
+		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat,
+			fmt.Errorf("The YAML configure version must be %s", version))
 	}
 
 	path, err := filepath.Abs(filepath.Dir(filename))
 	if err != nil {
-		return nil, err
+		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat, err)
 	}
 	if err = conf.ValidateAndReset(path); err != nil {
-		return nil, err
+		return nil, ierrors.Wrap(ierrors.ConfigError, err)
 	}
 
 	return &conf, nil
