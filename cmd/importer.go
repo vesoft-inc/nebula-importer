@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 	"os"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
@@ -33,6 +34,7 @@ func main() {
 		conf, err := config.Parse(*configuration)
 		if err != nil {
 			e := err.(errors.ImporterError)
+			log.Println(e.ErrMsg.Error())
 			os.Exit(e.ErrCode)
 		}
 
@@ -41,6 +43,7 @@ func main() {
 
 		if runner.Error() != nil {
 			e := runner.Error().(errors.ImporterError)
+			log.Println(e.ErrMsg.Error())
 			os.Exit(e.ErrCode)
 		}
 	}
