@@ -1,9 +1,9 @@
 
 .PHONY: test build clean
 
-default: test
+default: build
 
-build:
+build: clean
 	@cd cmd; \
 	go build -mod vendor -o nebula-importer; \
 	mv nebula-importer ..;

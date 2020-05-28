@@ -10,6 +10,7 @@ import (
 
 	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 )
 
@@ -198,13 +199,15 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 	go func(tid string) {
 		runner.Run(&conf)
 		var body respBody
-		if runner.Error() != nil {
-			logger.Error(runner.Error())
+		rerr := runner.Error()
+		if rerr != nil {
+			err, _ := rerr.(errors.ImporterError)
+			logger.Error(err)
 			body = respBody{
 				task: task{
 					errResult: errResult{
-						ErrCode: 1,
-						ErrMsg:  runner.Error().Error(),
+						ErrCode: err.ErrCode,
+						ErrMsg:  err.ErrMsg.Error(),
 					},
 					TaskId: tid,
 				},
