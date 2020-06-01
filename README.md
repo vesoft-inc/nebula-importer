@@ -65,7 +65,7 @@ $ docker run --rm -ti \
 
 ## Prepare Configuration File
 
-Nebula Importer reads the CSV file to be imported and **Nebula Graph** server data through the YAML configuration file. Here's an [example](examples/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
+Nebula Importer reads the CSV file to be imported and **Nebula Graph** Server data through the YAML configuration file. Here's an [example](examples/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
 
 ```yaml
 version: v1rc1
@@ -86,12 +86,26 @@ clientSettings:
     user: user
     password: password
     address: 192.168.8.1:3699,192.168.8.2:3699
+  postStart:
+    commands: |
+      UPDATE CONFIGS storage:wal_ttl=3600;
+      UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = true };
+    afterPeriod: 8s
+  preStop:
+    commands: |
+      UPDATE CONFIGS storage:wal_ttl=86400;
+      UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };
 ```
 * `clientSettings.retry` is an optional parameter that shows the number of retrying to execute failed nGQL in **Nebula Graph** client.
 * `clientSettings.concurrency` is an optional parameter that shows the concurrency of **Nebula Graph** Client, i.e. the connection number of **Nebula Graph** Server, the default value is 10.
 * `clientSettings.channelBufferSize` is an optional parameter that shows the buffer size of the cache queue for each **Nebula Graph** Client, the default value is 128.
 * `clientSettings.space` is a **required** parameter that specifies which `space` the data will be importing into. Do not import data to multiple spaces at one time for performance sake.
 * `clientSettings.connection` is a **required** parameter that contains the `user`, `password` and `address` information of **Nebula Graph** Server.
+* `clientSettings.postStart` is an **optional** parameter that describes post scripts after connecting **Nebula Graph** Server:
+  - `clientSettings.postStart.commands` define some commands to run after connecting **Nebula Graph** Server.
+  - `clientSettings.postStart.afterPeriod` define the period time between running above commands and inserting data to **Nebula Graph** Server.
+* `clientSettings.preStop` is an **optional** parameter that describes prescripts to run before disconnecting **Nebula Graph** Server.
+  - `clientSettings.preStop.commands` define some commands to run before disconnecting **Nebula Graph** Server.
 
 ### Files
 

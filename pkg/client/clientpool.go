@@ -16,6 +16,8 @@ type ClientPool struct {
 	retry       int
 	concurrency int
 	space       string
+	postStart   *config.NebulaPostStart
+	preStop     *config.NebulaPreStop
 	statsCh     chan<- base.Stats
 	Conns       []*nebula.GraphClient
 	requestChs  []chan base.ClientRequest
@@ -23,8 +25,10 @@ type ClientPool struct {
 
 func NewClientPool(settings *config.NebulaClientSettings, statsCh chan<- base.Stats) (*ClientPool, error) {
 	pool := ClientPool{
-		space:   *settings.Space,
-		statsCh: statsCh,
+		space:     *settings.Space,
+		postStart: settings.PostStart,
+		preStop:   settings.PreStop,
+		statsCh:   statsCh,
 	}
 	addrs := strings.Split(*settings.Connection.Address, ",")
 	pool.retry = *settings.Retry
@@ -48,18 +52,39 @@ func NewClientPool(settings *config.NebulaClientSettings, statsCh chan<- base.St
 	return &pool, nil
 }
 
+func (p *ClientPool) getActiveConnIdx() int {
+	for i := range p.Conns {
+		if p.Conns[i] != nil {
+			return i
+		}
+	}
+	return -1
+}
+
+func (p *ClientPool) exec(i int, stmt string) error {
+	resp, err := p.Conns[i].Execute(stmt)
+	if err != nil {
+		return fmt.Errorf("Client(%d) fails to execute commands (%s), error: %s", i, stmt, err.Error())
+	}
+
+	if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
+		return fmt.Errorf("Client(%d) fails to execute commands (%s), response error code: %v, message: %s", i, stmt, resp.GetErrorCode(), resp.GetErrorMsg())
+	}
+
+	return nil
+}
+
 func (p *ClientPool) Close() {
-	stmt := `UPDATE CONFIGS storage:wal_ttl=86400;
-          UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };`
+	if p.preStop != nil && p.preStop.Commands != nil {
+		if i := p.getActiveConnIdx(); i != -1 {
+			if err := p.exec(i, *p.preStop.Commands); err != nil {
+				logger.Errorf("%s", err.Error())
+			}
+		}
+	}
+
 	for i := 0; i < p.concurrency; i++ {
 		if p.Conns[i] != nil {
-			if resp, err := p.Conns[i].Execute(stmt); err != nil {
-				logger.Errorf("Client %d fails to open compaction option when close connection, error: %s", i, err)
-			} else {
-				if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-					logger.Errorf("Client %d fails to open compaction option when close connection, error code: %v, message: %s", i, resp.GetErrorCode(), resp.GetErrorMsg())
-				}
-			}
 			p.Conns[i].Disconnect()
 		}
 		if p.requestChs[i] != nil {
@@ -69,16 +94,26 @@ func (p *ClientPool) Close() {
 }
 
 func (p *ClientPool) Init() error {
-	stmt := fmt.Sprintf("USE %s; UPDATE CONFIGS storage:wal_ttl=3600; UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = true };", p.space)
-	for i := 0; i < p.concurrency; i++ {
-		if resp, err := p.Conns[i].Execute(stmt); err != nil {
-			return err
-		} else {
-			if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-				return fmt.Errorf("Response error code: %v, message: %s", resp.GetErrorCode(), resp.GetErrorMsg())
+	if p.postStart != nil && p.postStart.Commands != nil {
+		if i := p.getActiveConnIdx(); i != -1 {
+			if err := p.exec(i, *p.postStart.Commands); err != nil {
+				return err
 			}
 		}
-		go p.startWorker(i)
+	}
+
+	stmt := fmt.Sprintf("USE %s;", p.space)
+	for i := 0; i < p.concurrency; i++ {
+		if err := p.exec(i, stmt); err != nil {
+			return err
+		}
+		go func(i int) {
+			if p.postStart != nil {
+				afterPeriod, _ := time.ParseDuration(*p.postStart.AfterPeriod)
+				time.Sleep(afterPeriod)
+			}
+			p.startWorker(i)
+		}(i)
 	}
 	return nil
 }
