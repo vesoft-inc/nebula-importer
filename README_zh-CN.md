@@ -89,6 +89,15 @@ clientSettings:
     user: user
     password: password
     address: 192.168.8.1:3699,192.168.8.2:3699
+  postStart:
+    commands: |
+      UPDATE CONFIGS storage:wal_ttl=3600;
+      UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = true };
+    afterPeriod: 8s
+  preStop:
+    commands: |
+      UPDATE CONFIGS storage:wal_ttl=86400;
+      UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };
 ```
 
 #### `clientSettings.retry`
@@ -110,6 +119,19 @@ clientSettings:
 #### `clientSettings.connection`
 
 **必填**。配置 **Nebula Graph** Server 的 `user`，`password` 和 `address` 信息。
+
+#### `clientSettings.postStart`
+
+**可选**。配置连接 **Nebula Graph** Server 之后，在插入数据之前执行的一些操作。
+
+- `clientSettings.postStart.commands`: 定义连接 **Nebula Graph** Server 之后的一些命令脚本。
+- `clientSettings.postStart.afterPeriod`: 定义执行上述命令之后到真正插入数据之前的间隔。
+
+#### `clientSettings.preStop`
+
+**可选**。配置断开 **Nebula Graph** Server 连接之前执行的一些操作。
+
+- `clientSettings.preStop.commands`: 定义断开连接 **Nebula Graph** Server 之前的一些命令脚本。
 
 ### 文件
 

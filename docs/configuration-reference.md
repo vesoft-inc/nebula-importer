@@ -13,6 +13,9 @@
 | clientSettings.connection.user                | Username                                                                  | user           |
 | clientSettings.connection.password            | Password                                                                  | password       |
 | clientSettings.connection.address             | Address of graph client                                                   | 127.0.0.1:3699 |
+| clientSettings.postStart.commands             | Post scripts after connecting nebula                                      | ""             |
+| clientSettings.postStart.afterPeriod          | The period time between running post scripts and inserting data           | 0s             |
+| clientSettings.preStop.commands               | Prescripts before disconnecting nebula                                    | ""             |
 | logPath                                       | Path of log file                                                          | ""             |
 | files                                         | File list to be imported                                                  | -              |
 | files[0].path                                 | File path                                                                 | ""             |

@@ -22,12 +22,23 @@ type NebulaClientConnection struct {
 	Address  *string `json:"address" yaml:"address"`
 }
 
+type NebulaPostStart struct {
+	Commands    *string `json:"commands" yaml:"commands"`
+	AfterPeriod *string `json:"afterPeriod" yaml:"afterPeriod"`
+}
+
+type NebulaPreStop struct {
+	Commands *string `json:"commands" yaml:"commands"`
+}
+
 type NebulaClientSettings struct {
 	Retry             *int                    `json:"retry" yaml:"retry"`
 	Concurrency       *int                    `json:"concurrency" yaml:"concurrency"`
 	ChannelBufferSize *int                    `json:"channelBufferSize" yaml:"channelBufferSize"`
 	Space             *string                 `json:"space" yaml:"space"`
 	Connection        *NebulaClientConnection `json:"connection" yaml:"connection"`
+	PostStart         *NebulaPostStart        `json:"postStart" yaml:"postStart"`
+	PreStop           *NebulaPreStop          `json:"preStop" yaml:"preStop"`
 }
 
 type Prop struct {
@@ -151,6 +162,20 @@ func (config *YAMLConfig) ValidateAndReset(dir string) error {
 	return nil
 }
 
+func (n *NebulaPostStart) validateAndReset(prefix string) error {
+	if n.AfterPeriod != nil {
+		_, err := time.ParseDuration(*n.AfterPeriod)
+		if err != nil {
+			return err
+		}
+	} else {
+		period := "0s"
+		n.AfterPeriod = &period
+	}
+
+	return nil
+}
+
 func (n *NebulaClientSettings) validateAndReset(prefix string) error {
 	if n.Space == nil {
 		return fmt.Errorf("Please configure the space name in: %s.space", prefix)
@@ -176,9 +201,15 @@ func (n *NebulaClientSettings) validateAndReset(prefix string) error {
 
 	if n.Connection == nil {
 		return fmt.Errorf("Please configure the connection information in: %s.connection", prefix)
-	} else {
-		return n.Connection.validateAndReset(fmt.Sprintf("%s.connection", prefix))
 	}
+	if err := n.Connection.validateAndReset(fmt.Sprintf("%s.connection", prefix)); err != nil {
+		return err
+	}
+
+	if n.PostStart != nil {
+		return n.PostStart.validateAndReset(fmt.Sprintf("%s.postStart", prefix))
+	}
+	return nil
 }
 
 func (c *NebulaClientConnection) validateAndReset(prefix string) error {
