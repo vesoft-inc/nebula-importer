@@ -2,6 +2,7 @@ package errhandler
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
@@ -22,7 +23,7 @@ func New(statsCh chan<- base.Stats) *Handler {
 	return &h
 }
 
-func (w *Handler) Init(file *config.File, concurrency int) (chan base.ErrData, error) {
+func (w *Handler) Init(file *config.File, concurrency int, cleanup bool) (chan base.ErrData, error) {
 	var dataWriter DataWriter
 	switch strings.ToLower(*file.Type) {
 	case "csv":
@@ -35,7 +36,16 @@ func (w *Handler) Init(file *config.File, concurrency int) (chan base.ErrData, e
 	errCh := make(chan base.ErrData)
 
 	go func() {
-		defer dataFile.Close()
+		defer func() {
+			if err := dataFile.Close(); err != nil {
+				logger.Errorf("Fail to close opened error data file: %s", *file.FailDataPath)
+			}
+			if cleanup {
+				if err := os.Remove(*file.FailDataPath); err != nil {
+					logger.Errorf("Fail to remove error data file: %s", *file.FailDataPath)
+				}
+			}
+		}()
 		defer close(errCh)
 		dataWriter.Init(dataFile)
 

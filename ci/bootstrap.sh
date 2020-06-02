@@ -23,4 +23,4 @@ until echo "quit" | ./bin/nebula -u user -p password --addr=$addr --port=$port &
 done
 
 echo "nebula graph is up - executing command"
-./nebula-importer --config ./importer/examples/example.yaml
+./nebula-importer --config ./importer/examples/example.yaml --cleanup=true
