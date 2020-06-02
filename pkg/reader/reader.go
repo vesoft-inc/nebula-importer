@@ -26,6 +26,7 @@ type DataFileReader interface {
 type FileReader struct {
 	FileIdx     int
 	File        *config.File
+	localFile   bool
 	WithHeader  bool
 	DataReader  DataFileReader
 	Concurrency int
@@ -65,7 +66,8 @@ func (r *FileReader) Stop() {
 
 func (r *FileReader) prepareDataFile() (*string, error) {
 	local, filename, err := base.ExtractFilename(*r.File.Path)
-	if local {
+	r.localFile = local
+	if r.localFile {
 		// Do nothing for local file, so it wouldn't throw any errors
 		return &filename, nil
 	}
@@ -114,7 +116,19 @@ func (r *FileReader) Read() error {
 	if err != nil {
 		return errors.Wrap(errors.ConfigError, err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			logger.Errorf("Fail to close opened data file: %s", *filePath)
+			return
+		}
+		if !r.localFile {
+			if err := os.Remove(*filePath); err != nil {
+				logger.Errorf("Fail to remove temp data file: %s", *filePath)
+			} else {
+				logger.Infof("Temp downloaded data file has been removed: %s", *filePath)
+			}
+		}
+	}()
 
 	r.DataReader.InitReader(file)
 
