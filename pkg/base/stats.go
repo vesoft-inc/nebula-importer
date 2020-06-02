@@ -35,8 +35,11 @@ func NewFailureStats(batchSize int) Stats {
 }
 
 func NewFileDoneStats(filename string) Stats {
+	// When goto this step, we have finished configure file validation
+	// and it's safe to ignore following error
+	fpath, _ := FormatFilePath(filename)
 	return Stats{
 		Type:     FILEDONE,
-		Filename: filename,
+		Filename: fpath,
 	}
 }

@@ -68,7 +68,8 @@ func (p *ClientPool) exec(i int, stmt string) error {
 	}
 
 	if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-		return fmt.Errorf("Client(%d) fails to execute commands (%s), response error code: %v, message: %s", i, stmt, resp.GetErrorCode(), resp.GetErrorMsg())
+		return fmt.Errorf("Client(%d) fails to execute commands (%s), response error code: %v, message: %s",
+			i, stmt, resp.GetErrorCode(), resp.GetErrorMsg())
 	}
 
 	return nil
