@@ -1,6 +1,8 @@
 package base
 
 import (
+	"fmt"
+	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -41,4 +43,29 @@ func IsValidType(t string) bool {
 
 func HasHttpPrefix(path string) bool {
 	return strings.HasPrefix(path, "https://") || strings.HasPrefix(path, "http://")
+}
+
+func ExtractFilename(uri string) (local bool, filename string, err error) {
+	if !HasHttpPrefix(uri) {
+		local, filename, err = true, uri, nil
+		return
+	}
+
+	local = false
+	base := path.Base(uri)
+	if index := strings.Index(base, "?"); index != -1 {
+		filename, err = url.QueryUnescape(base[:index])
+	} else {
+		filename, err = url.QueryUnescape(base)
+	}
+	return
+}
+
+func FormatFilePath(filepath string) (path string, err error) {
+	local, path, err := ExtractFilename(filepath)
+	if local || err != nil {
+		return
+	}
+	path = fmt.Sprintf("http(s)://**/%s", path)
+	return
 }

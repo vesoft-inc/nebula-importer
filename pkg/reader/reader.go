@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"strings"
 	"time"
 
@@ -56,26 +55,22 @@ func New(fileIdx int, file *config.File, clientRequestChs []chan base.ClientRequ
 }
 
 func (r *FileReader) startLog() {
-	logger.Infof("Start to read file(%d): %s, schema: < %s >", r.FileIdx, *r.File.Path, r.BatchMgr.Schema.String())
+	fpath, _ := base.FormatFilePath(*r.File.Path)
+	logger.Infof("Start to read file(%d): %s, schema: < %s >", r.FileIdx, fpath, r.BatchMgr.Schema.String())
 }
 
 func (r *FileReader) Stop() {
 	r.StopFlag = true
 }
 
-func extractFilenameFromURL(uri string) (string, error) {
-	base := path.Base(uri)
-	if index := strings.Index(base, "?"); index != -1 {
-		return url.QueryUnescape(base[:index])
-	} else {
-		return url.QueryUnescape(base)
-	}
-}
-
 func (r *FileReader) prepareDataFile() (*string, error) {
-	if !base.HasHttpPrefix(*r.File.Path) {
-		// This is a local path
-		return r.File.Path, nil
+	local, filename, err := base.ExtractFilename(*r.File.Path)
+	if local {
+		// Do nothing for local file, so it wouldn't throw any errors
+		return &filename, nil
+	}
+	if err != nil {
+		return nil, errors.Wrap(errors.DownloadError, err)
 	}
 
 	if _, err := url.ParseRequestURI(*r.File.Path); err != nil {
@@ -83,11 +78,6 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 	}
 
 	// Download data file from internet to `/tmp` directory and return the path
-	filename, err := extractFilenameFromURL(*r.File.Path)
-	if err != nil {
-		return nil, errors.Wrap(errors.DownloadError, err)
-	}
-
 	file, err := ioutil.TempFile("", fmt.Sprintf("*_%s", filename))
 	if err != nil {
 		return nil, errors.Wrap(errors.UnknownError, err)
@@ -109,7 +99,8 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 
 	filepath := file.Name()
 
-	logger.Infof("File(%s) has been downloaded to \"%s\", size: %d", *r.File.Path, filepath, n)
+	fpath, _ := base.FormatFilePath(*r.File.Path)
+	logger.Infof("File(%s) has been downloaded to \"%s\", size: %d", fpath, filepath, n)
 
 	return &filepath, nil
 }
@@ -156,7 +147,8 @@ func (r *FileReader) Read() error {
 		}
 
 		if err != nil {
-			logger.Errorf("Fail to read file(%s) line %d, error: %s", *r.File.Path, lineNum, err.Error())
+			fpath, _ := base.FormatFilePath(*r.File.Path)
+			logger.Errorf("Fail to read file(%s) line %d, error: %s", fpath, lineNum, err.Error())
 			numErrorLines++
 		}
 
@@ -166,7 +158,8 @@ func (r *FileReader) Read() error {
 	}
 
 	r.BatchMgr.Done()
-	logger.Infof("Total lines of file(%s) is: %d, error lines: %d", *r.File.Path, lineNum, numErrorLines)
+	fpath, _ := base.FormatFilePath(*r.File.Path)
+	logger.Infof("Total lines of file(%s) is: %d, error lines: %d", fpath, lineNum, numErrorLines)
 
 	return nil
 }

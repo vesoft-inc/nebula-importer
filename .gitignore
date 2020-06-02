@@ -14,3 +14,5 @@ nebula-importer
 
 # macOS
 .DS_Store
+
+examples/err/

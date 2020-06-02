@@ -243,6 +243,10 @@ func (f *File) validateAndReset(dir, prefix string) error {
 			return err
 		}
 
+		if _, _, err := base.ExtractFilename(*f.Path); err != nil {
+			return err
+		}
+
 		if f.FailDataPath == nil {
 			failDataPath := filepath.Join(os.TempDir(), fmt.Sprintf("nebula-importer-err-data-%d", time.Now().UnixNano()))
 			f.FailDataPath = &failDataPath
