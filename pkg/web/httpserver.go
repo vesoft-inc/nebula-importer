@@ -20,6 +20,7 @@ type WebServer struct {
 	server   *http.Server
 	taskMgr  *taskMgr
 	mux      sync.Mutex
+	Cleanup  bool
 }
 
 var taskId uint64 = 0
@@ -188,7 +189,9 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	runner := &cmd.Runner{}
+	runner := &cmd.Runner{
+		Cleanup: w.Cleanup,
+	}
 	tid := w.newTaskId()
 	w.taskMgr.put(tid, runner)
 	t := task{

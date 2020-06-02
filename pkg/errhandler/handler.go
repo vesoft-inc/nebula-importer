@@ -43,6 +43,8 @@ func (w *Handler) Init(file *config.File, concurrency int, cleanup bool) (chan b
 			if cleanup {
 				if err := os.Remove(*file.FailDataPath); err != nil {
 					logger.Errorf("Fail to remove error data file: %s", *file.FailDataPath)
+				} else {
+					logger.Infof("Error data file has been removed: %s", *file.FailDataPath)
 				}
 			}
 		}()
