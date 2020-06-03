@@ -1,5 +1,6 @@
 version: v1rc1
 description: example
+removeTempFiles: false
 clientSettings:
   retry: 3
   concurrency: 2 # number of graph clients

@@ -101,6 +101,7 @@ type File struct {
 type YAMLConfig struct {
 	Version              *string               `json:"version" yaml:"version"`
 	Description          *string               `json:"description" yaml:"description"`
+	RemoveTempFiles      *bool                 `json:"removeTempFiles" yaml:"removeTempFiles"`
 	NebulaClientSettings *NebulaClientSettings `json:"clientSettings" yaml:"clientSettings"`
 	LogPath              *string               `json:"logPath" yaml:"logPath"`
 	Files                []*File               `json:"files" yaml:"files"`
@@ -123,11 +124,11 @@ func Parse(filename string) (*YAMLConfig, error) {
 		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat,
 			fmt.Errorf("The YAML configure version must be %s", version))
 	}
-
-	path, err := filepath.Abs(filepath.Dir(filename))
+	abs, err := filepath.Abs(filename)
 	if err != nil {
 		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat, err)
 	}
+	path := filepath.Dir(abs)
 	if err = conf.ValidateAndReset(path); err != nil {
 		return nil, ierrors.Wrap(ierrors.ConfigError, err)
 	}
@@ -143,10 +144,21 @@ func (config *YAMLConfig) ValidateAndReset(dir string) error {
 		return err
 	}
 
+	if config.RemoveTempFiles == nil {
+		removeTempFiles := false
+		config.RemoveTempFiles = &removeTempFiles
+		logger.Warnf("You have not configured whether to remove generated temporary files, reset to default value. removeTempFiles: %v",
+			*config.RemoveTempFiles)
+	}
+
 	if config.LogPath == nil {
 		defaultPath := filepath.Join(os.TempDir(), fmt.Sprintf("nebula-importer-%d.log", time.Now().UnixNano()))
 		config.LogPath = &defaultPath
 		logger.Warnf("You have not configured the log file path in: logPath, reset to default path: %s", *config.LogPath)
+	}
+	if !filepath.IsAbs(*config.LogPath) {
+		absPath := filepath.Join(dir, *config.LogPath)
+		config.LogPath = &absPath
 	}
 
 	if config.Files == nil || len(config.Files) == 0 {
@@ -250,25 +262,27 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		if f.FailDataPath == nil {
 			failDataPath := filepath.Join(os.TempDir(), fmt.Sprintf("nebula-importer-err-data-%d", time.Now().UnixNano()))
 			f.FailDataPath = &failDataPath
-			logger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to tmp path: %s", prefix, *f.FailDataPath)
+			logger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to tmp path: %s",
+				prefix, *f.FailDataPath)
 		}
 	} else {
+		if !filepath.IsAbs(*f.Path) {
+			absPath := filepath.Join(dir, *f.Path)
+			f.Path = &absPath
+		}
 		if !base.FileExists(*f.Path) {
-			path := filepath.Join(dir, *f.Path)
-			if !base.FileExists(path) {
-				return fmt.Errorf("File(%s) doesn't exist", *f.Path)
-			} else {
-				f.Path = &path
-			}
+			return fmt.Errorf("File(%s) doesn't exist", *f.Path)
 		}
 
 		if f.FailDataPath == nil {
-			if d, err := filepath.Abs(filepath.Dir(*f.Path)); err != nil {
-				return err
-			} else {
-				p := filepath.Join(d, "err", filepath.Base(*f.Path))
-				f.FailDataPath = &p
-				logger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to default path: %s", prefix, *f.FailDataPath)
+			p := filepath.Join(filepath.Dir(*f.Path), "err", filepath.Base(*f.Path))
+			f.FailDataPath = &p
+			logger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to default path: %s",
+				prefix, *f.FailDataPath)
+		} else {
+			if !filepath.IsAbs(*f.FailDataPath) {
+				absPath := filepath.Join(dir, *f.FailDataPath)
+				f.FailDataPath = &absPath
 			}
 		}
 	}

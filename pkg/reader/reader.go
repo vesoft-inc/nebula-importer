@@ -26,6 +26,8 @@ type DataFileReader interface {
 type FileReader struct {
 	FileIdx     int
 	File        *config.File
+	localFile   bool
+	cleanup     bool
 	WithHeader  bool
 	DataReader  DataFileReader
 	Concurrency int
@@ -33,7 +35,7 @@ type FileReader struct {
 	StopFlag    bool
 }
 
-func New(fileIdx int, file *config.File, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) (*FileReader, error) {
+func New(fileIdx int, file *config.File, cleanup bool, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) (*FileReader, error) {
 	switch strings.ToLower(*file.Type) {
 	case "csv":
 		r := csv.CSVReader{CSVConfig: file.CSV}
@@ -43,6 +45,7 @@ func New(fileIdx int, file *config.File, clientRequestChs []chan base.ClientRequ
 			File:       file,
 			WithHeader: *file.CSV.WithHeader,
 			StopFlag:   false,
+			cleanup:    cleanup,
 		}
 		reader.BatchMgr = NewBatchMgr(file.Schema, *file.BatchSize, clientRequestChs, errCh)
 		if !reader.WithHeader {
@@ -65,7 +68,8 @@ func (r *FileReader) Stop() {
 
 func (r *FileReader) prepareDataFile() (*string, error) {
 	local, filename, err := base.ExtractFilename(*r.File.Path)
-	if local {
+	r.localFile = local
+	if r.localFile {
 		// Do nothing for local file, so it wouldn't throw any errors
 		return &filename, nil
 	}
@@ -114,7 +118,19 @@ func (r *FileReader) Read() error {
 	if err != nil {
 		return errors.Wrap(errors.ConfigError, err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			logger.Errorf("Fail to close opened data file: %s", *filePath)
+			return
+		}
+		if !r.localFile && r.cleanup {
+			if err := os.Remove(*filePath); err != nil {
+				logger.Errorf("Fail to remove temp data file: %s", *filePath)
+			} else {
+				logger.Infof("Temp downloaded data file has been removed: %s", *filePath)
+			}
+		}
+	}()
 
 	r.DataReader.InitReader(file)
 
