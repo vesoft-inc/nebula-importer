@@ -70,10 +70,12 @@ Nebula Importer reads the CSV file to be imported and **Nebula Graph** Server da
 ```yaml
 version: v1rc1
 description: example
+removeTempFiles: false
 ```
 
 * `version` is a **required** parameter that indicates the configure file's version, the default version is `v2rc1`.
 * `description` is an **optional** parameter that describes the configure file.
+* `removeTempFiles` is an **optional** parameter that confirms whether to remove generated temporary log and data files, default value: `false`.
 * `clientSettings` takes care of all the **Nebula Graph** related configurations.
 
 ```yaml

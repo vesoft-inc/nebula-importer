@@ -18,7 +18,6 @@ type Runner struct {
 	errs      []error
 	Readers   []*reader.FileReader
 	NumFailed int64
-	Cleanup   bool
 }
 
 func (r *Runner) Error() error {
@@ -42,7 +41,7 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 		}
 	}()
 
-	if !r.Cleanup {
+	if !*yaml.RemoveTempFiles {
 		logger.Init(*yaml.LogPath)
 	}
 
@@ -61,14 +60,14 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	freaders := make([]*reader.FileReader, len(yaml.Files))
 
 	for i, file := range yaml.Files {
-		errCh, err := errHandler.Init(file, clientMgr.GetNumConnections(), r.Cleanup)
+		errCh, err := errHandler.Init(file, clientMgr.GetNumConnections(), *yaml.RemoveTempFiles)
 		if err != nil {
 			r.errs = append(r.errs, errors.Wrap(errors.ConfigError, err))
 			statsMgr.StatsCh <- base.NewFileDoneStats(*file.Path)
 			continue
 		}
 
-		if fr, err := reader.New(i, file, r.Cleanup, clientMgr.GetRequestChans(), errCh); err != nil {
+		if fr, err := reader.New(i, file, *yaml.RemoveTempFiles, clientMgr.GetRequestChans(), errCh); err != nil {
 			r.errs = append(r.errs, errors.Wrap(errors.ConfigError, err))
 			statsMgr.StatsCh <- base.NewFileDoneStats(*file.Path)
 			continue

@@ -14,7 +14,6 @@ import (
 var configuration = flag.String("config", "", "Specify importer configure file path")
 var port = flag.Int("port", -1, "HTTP server port")
 var callback = flag.String("callback", "", "HTTP server callback address")
-var cleanup = flag.Bool("remove_temp_files", false, "Whether to cleanup all generated temporary log and data files")
 
 func main() {
 	flag.Parse()
@@ -24,7 +23,6 @@ func main() {
 		svr := &web.WebServer{
 			Port:     *port,
 			Callback: *callback,
-			Cleanup:  false,
 		}
 
 		svr.Start()
@@ -40,9 +38,7 @@ func main() {
 			os.Exit(e.ErrCode)
 		}
 
-		runner := &cmd.Runner{
-			Cleanup: *cleanup,
-		}
+		runner := &cmd.Runner{}
 		runner.Run(conf)
 
 		if runner.Error() != nil {

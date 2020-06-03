@@ -101,6 +101,7 @@ type File struct {
 type YAMLConfig struct {
 	Version              *string               `json:"version" yaml:"version"`
 	Description          *string               `json:"description" yaml:"description"`
+	RemoveTempFiles      *bool                 `json:"removeTempFiles" yaml:"removeTempFiles"`
 	NebulaClientSettings *NebulaClientSettings `json:"clientSettings" yaml:"clientSettings"`
 	LogPath              *string               `json:"logPath" yaml:"logPath"`
 	Files                []*File               `json:"files" yaml:"files"`
@@ -141,6 +142,13 @@ func (config *YAMLConfig) ValidateAndReset(dir string) error {
 	}
 	if err := config.NebulaClientSettings.validateAndReset("clientSettings"); err != nil {
 		return err
+	}
+
+	if config.RemoveTempFiles == nil {
+		removeTempFiles := false
+		config.RemoveTempFiles = &removeTempFiles
+		logger.Warnf("You have not configured whether to remove generated temporary files, reset to default value. removeTempFiles: %v",
+			*config.RemoveTempFiles)
 	}
 
 	if config.LogPath == nil {

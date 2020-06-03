@@ -65,6 +65,7 @@ Nebula Importer 通过 YAML 配置文件来描述要导入的文件信息、**Ne
 ```yaml
 version: v1rc2
 description: example
+removeTempFiles: false
 ```
 
 ### `version`
@@ -74,6 +75,10 @@ description: example
 ### `description`
 
 **可选**。对当前配置文件的描述信息。
+
+### `removeTempFiles`
+
+**可选**。是否删除生成的临时日志和错误数据文件，默认值为：`false`。
 
 ### `clientSettings`
 

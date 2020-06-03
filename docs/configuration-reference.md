@@ -4,6 +4,7 @@
 | :--                                           | :--                                                                       | :--            |
 | version                                       | Configuration file version                                                | v1rc2          |
 | description                                   | Description of this configure file                                        | ""             |
+| removeTempFiles                               | Whether to remove generated temporary data and log files                  | false          |
 | clientSettings                                | Graph client settings                                                     | -              |
 | clientSettings.retry                          | Number of graph clients retry to execute failed nGQL                      | 1              |
 | clientSettings.concurrency                    | Number of graph clients                                                   | 4              |
