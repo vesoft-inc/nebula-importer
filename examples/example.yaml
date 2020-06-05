@@ -7,8 +7,8 @@ clientSettings:
   channelBufferSize: 1
   space: test
   connection:
-    user: user
-    password: password
+    user: root
+    password: nebula
     address: 172.29.3.1:3699,172.29.3.2:3699
   postStart:
     commands: |
