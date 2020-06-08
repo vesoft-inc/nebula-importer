@@ -62,6 +62,9 @@ func (p *ClientPool) getActiveConnIdx() int {
 }
 
 func (p *ClientPool) exec(i int, stmt string) error {
+	if len(stmt) == 0 {
+		return nil
+	}
 	resp, err := p.Conns[i].Execute(stmt)
 	if err != nil {
 		return fmt.Errorf("Client(%d) fails to execute commands (%s), error: %s", i, stmt, err.Error())
