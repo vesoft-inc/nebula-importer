@@ -131,7 +131,7 @@ func Parse(filename string) (*YAMLConfig, error) {
 
 	if conf.Version == nil && !isSupportedVersion(*conf.Version) {
 		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat,
-			fmt.Errorf("The supported YAML configure version are %v, please upgrade importer.", supportedVersions))
+			fmt.Errorf("The supported YAML configure versions are %v, please upgrade importer.", supportedVersions))
 	}
 	abs, err := filepath.Abs(filename)
 	if err != nil {
