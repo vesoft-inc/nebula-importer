@@ -68,12 +68,12 @@ $ docker run --rm -ti \
 Nebula Importer reads the CSV file to be imported and **Nebula Graph** Server data through the YAML configuration file. Here's an [example](examples/example.yaml) of the configuration file and the CSV file. Detail descriptions for the configuration file see the following section.
 
 ```yaml
-version: v1rc1
+version: v1
 description: example
 removeTempFiles: false
 ```
 
-* `version` is a **required** parameter that indicates the configure file's version, the default version is `v2rc1`.
+* `version` is a **required** parameter that indicates the configure file's version, the default version is `v1`.
 * `description` is an **optional** parameter that describes the configure file.
 * `removeTempFiles` is an **optional** parameter that confirms whether to remove generated temporary log and data files, default value: `false`.
 * `clientSettings` takes care of all the **Nebula Graph** related configurations.

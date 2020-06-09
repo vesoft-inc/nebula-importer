@@ -2,7 +2,7 @@
 
 | options                                       | description                                                               | default        |
 | :--                                           | :--                                                                       | :--            |
-| version                                       | Configuration file version                                                | v1rc2          |
+| version                                       | Configuration file version                                                | v1             |
 | description                                   | Description of this configure file                                        | ""             |
 | removeTempFiles                               | Whether to remove generated temporary data and log files                  | false          |
 | clientSettings                                | Graph client settings                                                     | -              |
