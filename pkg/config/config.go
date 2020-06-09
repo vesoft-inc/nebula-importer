@@ -37,8 +37,8 @@ type NebulaClientSettings struct {
 	ChannelBufferSize *int                    `json:"channelBufferSize" yaml:"channelBufferSize"`
 	Space             *string                 `json:"space" yaml:"space"`
 	Connection        *NebulaClientConnection `json:"connection" yaml:"connection"`
-	PostStart         *NebulaPostStart        `json:"postStart" yaml:"postStart"`
-	PreStop           *NebulaPreStop          `json:"preStop" yaml:"preStop"`
+	PostStart         *NebulaPostStart        `json:"postStart" yaml:"postStart"` // from v1
+	PreStop           *NebulaPreStop          `json:"preStop" yaml:"preStop"`     // from v1
 }
 
 type Prop struct {
@@ -101,13 +101,13 @@ type File struct {
 type YAMLConfig struct {
 	Version              *string               `json:"version" yaml:"version"`
 	Description          *string               `json:"description" yaml:"description"`
-	RemoveTempFiles      *bool                 `json:"removeTempFiles" yaml:"removeTempFiles"`
+	RemoveTempFiles      *bool                 `json:"removeTempFiles" yaml:"removeTempFiles"` // from v1
 	NebulaClientSettings *NebulaClientSettings `json:"clientSettings" yaml:"clientSettings"`
 	LogPath              *string               `json:"logPath" yaml:"logPath"`
 	Files                []*File               `json:"files" yaml:"files"`
 }
 
-var version string = "v1rc2"
+var version string = "v1"
 
 func Parse(filename string) (*YAMLConfig, error) {
 	content, err := ioutil.ReadFile(filename)
