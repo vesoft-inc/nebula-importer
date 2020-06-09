@@ -107,7 +107,16 @@ type YAMLConfig struct {
 	Files                []*File               `json:"files" yaml:"files"`
 }
 
-var version string = "v1"
+var supportedVersions []string = []string{"v1rc1", "v1rc2", "v1"}
+
+func isSupportedVersion(ver string) bool {
+	for _, v := range supportedVersions {
+		if v == ver {
+			return true
+		}
+	}
+	return false
+}
 
 func Parse(filename string) (*YAMLConfig, error) {
 	content, err := ioutil.ReadFile(filename)
@@ -120,9 +129,9 @@ func Parse(filename string) (*YAMLConfig, error) {
 		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat, err)
 	}
 
-	if conf.Version == nil && *conf.Version != version {
+	if conf.Version == nil && !isSupportedVersion(*conf.Version) {
 		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat,
-			fmt.Errorf("The YAML configure version must be %s", version))
+			fmt.Errorf("The supported YAML configure version are %v, please upgrade importer.", supportedVersions))
 	}
 	abs, err := filepath.Abs(filename)
 	if err != nil {
