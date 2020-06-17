@@ -90,7 +90,7 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	r.NumFailed = statsMgr.NumFailed
 
 	if statsMgr.NumFailed > 0 {
-		r.errs = append(r.errs, errors.Wrap(errors.NebulaError,
+		r.errs = append(r.errs, errors.Wrap(errors.NotCompleteError,
 			fmt.Errorf("Total %d lines fail to insert into nebula graph database", statsMgr.NumFailed)))
 	}
 }

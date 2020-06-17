@@ -8,6 +8,7 @@ const (
 	InvalidConfigPathOrFormat = 2
 	DownloadError             = 100
 	NebulaError               = 200
+	NotCompleteError          = 201
 )
 
 type ImporterError struct {
