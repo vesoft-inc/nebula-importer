@@ -25,7 +25,9 @@ func main() {
 			Callback: *callback,
 		}
 
-		svr.Start()
+		if err := svr.Start(); err != nil {
+			panic(err)
+		}
 	} else {
 		if configuration == nil {
 			panic("please configure yaml file")

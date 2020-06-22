@@ -50,10 +50,15 @@ func (b *Batch) Done() {
 
 func (b *Batch) requestClient() {
 	var stmt string
+	var err error
 	if b.batchMgr.Schema.IsVertex() {
-		stmt = b.batchMgr.MakeVertexStmt(b.buffer[:b.currentIndex])
+		stmt, err = b.batchMgr.MakeVertexStmt(b.buffer[:b.currentIndex])
 	} else {
-		stmt = b.batchMgr.MakeEdgeStmt(b.buffer[:b.currentIndex])
+		stmt, err = b.batchMgr.MakeEdgeStmt(b.buffer[:b.currentIndex])
+	}
+
+	if err != nil {
+		stmt = "THERE ARE SOME ERRORS"
 	}
 
 	b.clientRequestCh <- base.ClientRequest{

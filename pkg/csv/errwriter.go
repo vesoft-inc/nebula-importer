@@ -3,6 +3,7 @@ package csv
 import (
 	"encoding/csv"
 	"os"
+	"strings"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
@@ -41,7 +42,8 @@ func (w *ErrWriter) Write(data []base.Data) {
 			case base.DELETE:
 				record = append(record, "-")
 			default:
-				logger.Fatalf("Error data type: %s", d.Type)
+				logger.Errorf("Error data type: %s, data: %s", d.Type, strings.Join(d.Record, ","))
+				continue
 			}
 			record = append(record, d.Record...)
 			w.writer.Write(record)

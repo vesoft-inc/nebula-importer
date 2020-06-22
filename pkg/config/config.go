@@ -380,17 +380,19 @@ func (s *Schema) validateAndReset(prefix string) error {
 	return err
 }
 
-func (v *VID) ParseFunction(str string) {
+func (v *VID) ParseFunction(str string) (err error) {
 	i := strings.Index(str, "(")
 	j := strings.Index(str, ")")
+	err = nil
 	if i < 0 && j < 0 {
 		v.Function = nil
 	} else if i > 0 && j > i {
 		function := strings.ToLower(str[i+1 : j])
 		v.Function = &function
 	} else {
-		logger.Fatalf("Invalid function format: %s", str)
+		err = fmt.Errorf("Invalid function format: %s", str)
 	}
+	return
 }
 
 func (v *VID) String(vid string) string {
@@ -435,11 +437,11 @@ func (r *Rank) validateAndReset(prefix string, defaultVal int) error {
 	return nil
 }
 
-func (e *Edge) FormatValues(record base.Record) string {
+func (e *Edge) FormatValues(record base.Record) (string, error) {
 	var cells []string
 	for i, prop := range e.Props {
 		if c, err := prop.FormatValue(record); err != nil {
-			logger.Fatalf("edge: %s, column: %d, error: %v", e.String(), i, err)
+			return "", fmt.Errorf("edge: %s, column: %d, error: %v", e.String(), i, err)
 		} else {
 			cells = append(cells, c)
 		}
@@ -461,7 +463,7 @@ func (e *Edge) FormatValues(record base.Record) string {
 	} else {
 		dstVID = record[*e.DstVID.Index]
 	}
-	return fmt.Sprintf(" %s->%s%s:(%s) ", srcVID, dstVID, rank, strings.Join(cells, ","))
+	return fmt.Sprintf(" %s->%s%s:(%s) ", srcVID, dstVID, rank, strings.Join(cells, ",")), nil
 }
 
 func (e *Edge) maxIndex() int {
@@ -564,10 +566,14 @@ func (e *Edge) validateAndReset(prefix string) error {
 	return nil
 }
 
-func (v *Vertex) FormatValues(record base.Record) string {
+func (v *Vertex) FormatValues(record base.Record) (string, error) {
 	var cells []string
 	for _, tag := range v.Tags {
-		cells = append(cells, tag.FormatValues(record))
+		str, err := tag.FormatValues(record)
+		if err != nil {
+			return "", err
+		}
+		cells = append(cells, str)
 	}
 	var vid string
 	if v.VID.Function != nil {
@@ -575,7 +581,7 @@ func (v *Vertex) FormatValues(record base.Record) string {
 	} else {
 		vid = record[*v.VID.Index]
 	}
-	return fmt.Sprintf(" %s: (%s)", vid, strings.Join(cells, ","))
+	return fmt.Sprintf(" %s: (%s)", vid, strings.Join(cells, ",")), nil
 }
 
 func (v *Vertex) maxIndex() int {
@@ -671,22 +677,22 @@ func (p *Prop) validateAndReset(prefix string, val int) error {
 		p.Index = &val
 	} else {
 		if *p.Index < 0 {
-			logger.Fatalf("Invalid prop index: %d, name: %s, type: %s", *p.Index, *p.Name, *p.Type)
+			return fmt.Errorf("Invalid prop index: %d, name: %s, type: %s", *p.Index, *p.Name, *p.Type)
 		}
 	}
 	return nil
 }
 
-func (t *Tag) FormatValues(record base.Record) string {
+func (t *Tag) FormatValues(record base.Record) (string, error) {
 	var cells []string
 	for _, p := range t.Props {
 		if c, err := p.FormatValue(record); err != nil {
-			logger.Fatalf("tag: %v, error: %v", *t, err)
+			return "", fmt.Errorf("tag: %v, error: %v", *t, err)
 		} else {
 			cells = append(cells, c)
 		}
 	}
-	return strings.Join(cells, ",")
+	return strings.Join(cells, ","), nil
 }
 
 func (t *Tag) validateAndReset(prefix string, start int) error {

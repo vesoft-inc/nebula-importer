@@ -32,7 +32,7 @@ func (w *WebServer) newTaskId() string {
 	return fmt.Sprintf("%d", tid)
 }
 
-func (w *WebServer) Start() {
+func (w *WebServer) Start() error {
 	m := http.NewServeMux()
 	w.taskMgr = newTaskMgr()
 
@@ -78,13 +78,15 @@ func (w *WebServer) Start() {
 	}
 
 	logger.Infof("Starting http server on %d", w.Port)
-	w.listenAndServe()
+	return w.listenAndServe()
 }
 
-func (w *WebServer) listenAndServe() {
+func (w *WebServer) listenAndServe() error {
 	if err := w.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		logger.Fatal(err)
+		logger.Error(err)
+		return err
 	}
+	return nil
 }
 
 type errResult struct {

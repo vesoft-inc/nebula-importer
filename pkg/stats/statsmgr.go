@@ -86,7 +86,7 @@ func (s *StatsMgr) startWorker(numReadingFiles int) {
 					s.DoneCh <- true
 				}
 			default:
-				logger.Fatalf("Error stats type: %s", stat.Type)
+				logger.Errorf("Error stats type: %s", stat.Type)
 			}
 		}
 	}

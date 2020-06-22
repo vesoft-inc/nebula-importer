@@ -3,7 +3,7 @@
 
 default: build
 
-build: clean
+build: clean fmt
 	@cd cmd; \
 	go build -mod vendor -o nebula-importer; \
 	mv nebula-importer ..;
@@ -15,3 +15,6 @@ clean:
 test:
 	docker-compose up --exit-code-from importer; \
 	docker-compose down -v;
+
+fmt:
+	@find . -path vendor -prune -type f -iname '*.go' -exec go fmt {} \;
