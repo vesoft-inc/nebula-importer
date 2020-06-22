@@ -49,7 +49,9 @@ func New(fileIdx int, file *config.File, cleanup bool, clientRequestChs []chan b
 		}
 		reader.BatchMgr = NewBatchMgr(file.Schema, *file.BatchSize, clientRequestChs, errCh)
 		if !reader.WithHeader {
-			reader.BatchMgr.InitSchema(strings.Split(file.Schema.String(), ","))
+			if err := reader.BatchMgr.InitSchema(strings.Split(file.Schema.String(), ",")); err != nil {
+				return nil, err
+			}
 		}
 		return &reader, nil
 	default:
@@ -150,7 +152,7 @@ func (r *FileReader) Read() error {
 
 		if err == nil {
 			if data.Type == base.HEADER {
-				r.BatchMgr.InitSchema(data.Record)
+				err = r.BatchMgr.InitSchema(data.Record)
 				r.startLog()
 			} else {
 				if *r.File.InOrder {

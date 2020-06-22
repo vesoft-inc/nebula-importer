@@ -1,6 +1,7 @@
 package reader
 
 import (
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"regexp"
@@ -56,7 +57,8 @@ func (bm *BatchMgr) Done() {
 	}
 }
 
-func (bm *BatchMgr) InitSchema(header base.Record) {
+func (bm *BatchMgr) InitSchema(header base.Record) (err error) {
+	err = nil
 	if bm.initializedSchema {
 		logger.Info("Batch manager schema has been initialized!")
 		return
@@ -66,16 +68,16 @@ func (bm *BatchMgr) InitSchema(header base.Record) {
 		for _, h := range strings.Split(hh, "/") {
 			switch c := strings.ToUpper(h); {
 			case c == base.LABEL_LABEL:
-				logger.Fatalf("Invalid schema: %v", header)
+				err = fmt.Errorf("Invalid schema: %v", header)
 			case strings.HasPrefix(c, base.LABEL_VID):
 				*bm.Schema.Vertex.VID.Index = i
-				bm.Schema.Vertex.VID.ParseFunction(c)
+				err = bm.Schema.Vertex.VID.ParseFunction(c)
 			case strings.HasPrefix(c, base.LABEL_SRC_VID):
 				*bm.Schema.Edge.SrcVID.Index = i
-				bm.Schema.Edge.SrcVID.ParseFunction(c)
+				err = bm.Schema.Edge.SrcVID.ParseFunction(c)
 			case strings.HasPrefix(c, base.LABEL_DST_VID):
 				*bm.Schema.Edge.DstVID.Index = i
-				bm.Schema.Edge.DstVID.ParseFunction(c)
+				err = bm.Schema.Edge.DstVID.ParseFunction(c)
 			case c == base.LABEL_RANK:
 				if bm.Schema.Edge.Rank == nil {
 					rank := i
@@ -95,6 +97,7 @@ func (bm *BatchMgr) InitSchema(header base.Record) {
 	}
 
 	bm.generateInsertStmtPrefix()
+	return
 }
 
 func (bm *BatchMgr) addVertexTags(r string, i int) {
@@ -219,9 +222,9 @@ func getBatchId(idStr string, numChans int) uint32 {
 	return h.Sum32() % uint32(numChans)
 }
 
-func makeStmt(batch []base.Data, f func([]base.Data) string) string {
+func makeStmt(batch []base.Data, f func([]base.Data) (string, error)) (string, error) {
 	if len(batch) == 0 {
-		logger.Fatal("Make stmt for empty batch")
+		return "", errors.New("Make stmt for empty batch")
 	}
 
 	if len(batch) == 1 {
@@ -232,19 +235,27 @@ func makeStmt(batch []base.Data, f func([]base.Data) string) string {
 	lastIdx, length := 0, len(batch)
 	for i := 1; i < length; i++ {
 		if batch[i-1].Type != batch[i].Type {
-			builder.WriteString(f(batch[lastIdx:i]))
+			str, err := f(batch[lastIdx:i])
+			if err != nil {
+				return "", err
+			}
+			builder.WriteString(str)
 			lastIdx = i
 		}
 	}
-	builder.WriteString(f(batch[lastIdx:]))
-	return builder.String()
+	str, err := f(batch[lastIdx:])
+	if err != nil {
+		return "", err
+	}
+	builder.WriteString(str)
+	return builder.String(), nil
 }
 
-func (m *BatchMgr) MakeVertexStmt(batch []base.Data) string {
+func (m *BatchMgr) MakeVertexStmt(batch []base.Data) (string, error) {
 	return makeStmt(batch, m.makeVertexBatchStmt)
 }
 
-func (m *BatchMgr) makeVertexBatchStmt(batch []base.Data) string {
+func (m *BatchMgr) makeVertexBatchStmt(batch []base.Data) (string, error) {
 	length := len(batch)
 	switch batch[length-1].Type {
 	case base.INSERT:
@@ -252,17 +263,20 @@ func (m *BatchMgr) makeVertexBatchStmt(batch []base.Data) string {
 	case base.DELETE:
 		return m.makeVertexDeleteStmt(batch)
 	default:
-		logger.Fatalf("Invalid data type: %s", batch[length-1].Type)
-		return ""
+		return "", fmt.Errorf("Invalid data type: %s", batch[length-1].Type)
 	}
 }
 
-func (m *BatchMgr) makeVertexInsertStmt(data []base.Data) string {
+func (m *BatchMgr) makeVertexInsertStmt(data []base.Data) (string, error) {
 	var builder strings.Builder
 	builder.WriteString(m.InsertStmtPrefix)
 	batchSize := len(data)
 	for i := 0; i < batchSize; i++ {
-		builder.WriteString(m.Schema.Vertex.FormatValues(data[i].Record))
+		str, err := m.Schema.Vertex.FormatValues(data[i].Record)
+		if err != nil {
+			return "", err
+		}
+		builder.WriteString(str)
 		if i < batchSize-1 {
 			builder.WriteString(",")
 		} else {
@@ -270,46 +284,50 @@ func (m *BatchMgr) makeVertexInsertStmt(data []base.Data) string {
 		}
 	}
 
-	return builder.String()
+	return builder.String(), nil
 }
 
-func (m *BatchMgr) makeVertexDeleteStmt(data []base.Data) string {
+func (m *BatchMgr) makeVertexDeleteStmt(data []base.Data) (string, error) {
 	var builder strings.Builder
 	for _, d := range data {
 		// TODO: delete vertex in batch
 		builder.WriteString(fmt.Sprintf("DELETE VERTEX %s;", d.Record[*m.Schema.Vertex.VID.Index]))
 	}
-	return builder.String()
+	return builder.String(), nil
 }
 
-func (m *BatchMgr) MakeEdgeStmt(batch []base.Data) string {
+func (m *BatchMgr) MakeEdgeStmt(batch []base.Data) (string, error) {
 	return makeStmt(batch, m.makeEdgeBatchStmt)
 }
 
-func (m *BatchMgr) makeEdgeBatchStmt(batch []base.Data) string {
+func (m *BatchMgr) makeEdgeBatchStmt(batch []base.Data) (string, error) {
 	length := len(batch)
 	switch batch[length-1].Type {
 	case base.INSERT:
 		return m.makeEdgeInsertStmt(batch)
 	case base.DELETE:
-		logger.Fatal("Unsupported delete edge")
+		return "", fmt.Errorf("Unsupported delete edge")
 	default:
-		logger.Fatalf("Invalid data type: %s", batch[length-1].Type)
+		return "", fmt.Errorf("Invalid data type: %s", batch[length-1].Type)
 	}
-	return ""
+	return "", nil
 }
 
-func (m *BatchMgr) makeEdgeInsertStmt(batch []base.Data) string {
+func (m *BatchMgr) makeEdgeInsertStmt(batch []base.Data) (string, error) {
 	var builder strings.Builder
 	builder.WriteString(m.InsertStmtPrefix)
 	batchSize := len(batch)
 	for i := 0; i < batchSize; i++ {
-		builder.WriteString(m.Schema.Edge.FormatValues(batch[i].Record))
+		str, err := m.Schema.Edge.FormatValues(batch[i].Record)
+		if err != nil {
+			return "", err
+		}
+		builder.WriteString(str)
 		if i < batchSize-1 {
 			builder.WriteString(",")
 		} else {
 			builder.WriteString(";")
 		}
 	}
-	return builder.String()
+	return builder.String(), nil
 }
