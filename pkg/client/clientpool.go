@@ -106,7 +106,7 @@ func (p *ClientPool) Init() error {
 		}
 	}
 
-	stmt := fmt.Sprintf("USE %s;", p.space)
+	stmt := fmt.Sprintf("USE `%s`;", p.space)
 	for i := 0; i < p.concurrency; i++ {
 		if err := p.exec(i, stmt); err != nil {
 			return err
