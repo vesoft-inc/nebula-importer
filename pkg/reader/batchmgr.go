@@ -135,7 +135,7 @@ func (bm *BatchMgr) generateInsertStmtPrefix() {
 	if bm.Schema.IsVertex() {
 		builder.WriteString("INSERT VERTEX ")
 		for i, tag := range bm.Schema.Vertex.Tags {
-			builder.WriteString(fmt.Sprintf("%s(%s)", *tag.Name, bm.GeneratePropsString(tag.Props)))
+			builder.WriteString(fmt.Sprintf("`%s`(%s)", *tag.Name, bm.GeneratePropsString(tag.Props)))
 			if i < len(bm.Schema.Vertex.Tags)-1 {
 				builder.WriteString(",")
 			}
@@ -143,7 +143,7 @@ func (bm *BatchMgr) generateInsertStmtPrefix() {
 		builder.WriteString(" VALUES ")
 	} else {
 		edge := bm.Schema.Edge
-		builder.WriteString(fmt.Sprintf("INSERT EDGE %s(%s) VALUES ", *edge.Name, bm.GeneratePropsString(edge.Props)))
+		builder.WriteString(fmt.Sprintf("INSERT EDGE `%s`(%s) VALUES ", *edge.Name, bm.GeneratePropsString(edge.Props)))
 	}
 	bm.InsertStmtPrefix = builder.String()
 }
@@ -151,7 +151,9 @@ func (bm *BatchMgr) generateInsertStmtPrefix() {
 func (bm *BatchMgr) GeneratePropsString(props []*config.Prop) string {
 	var builder strings.Builder
 	for i, prop := range props {
+		builder.WriteString("`")
 		builder.WriteString(*prop.Name)
+		builder.WriteString("`")
 		if i < len(props)-1 {
 			builder.WriteString(",")
 		}

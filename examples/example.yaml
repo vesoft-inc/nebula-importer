@@ -20,7 +20,6 @@ clientSettings:
       CREATE TAG course(name string, credits int);
       CREATE TAG building(name string);
       CREATE TAG student(name string, age int, gender string);
-      CREATE TAG child_mental_health(years string, historical_data string, target string);
       CREATE EDGE follow(likeness double);
       CREATE EDGE choose(grade int);
     afterPeriod: 8s
@@ -193,28 +192,27 @@ files:
         name: follow
         withRanking: true
 
-  - path: https://data.ok.gov/sites/default/files/res_child_mental_health_treatment_w929-ctrc.csv
+  - path: https://raw.githubusercontent.com/vesoft-inc/nebula-importer/master/examples/follow.csv
+    failDataPath: ./err/follow_http.csv
     batchSize: 2
+    limit: 3
     type: csv
     csv:
       withHeader: false
       withLabel: false
-      delimiter: ","
     schema:
-      type: vertex
-      vertex:
-        vid:
+      type: edge
+      edge:
+        name: follow
+        srcVID:
           index: 0
           function: hash
-        tags:
-          - name: child_mental_health
-            props:
-              - name: years
-                type: string
-                index: 0
-              - name: historical_data
-                type: string
-                index: 1
-              - name: target
-                type: string
-                index: 2
+        dstVID:
+          index: 1
+          function: uuid
+        rank:
+          index: 2
+        props:
+          - name: likeness
+            type: double
+            index: 3
