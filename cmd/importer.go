@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
@@ -16,6 +17,16 @@ var port = flag.Int("port", -1, "HTTP server port")
 var callback = flag.String("callback", "", "HTTP server callback address")
 
 func main() {
+	errCode := 0
+	defer func() {
+		// Just for filebeat log fetcher to differentiate following logs from others
+		time.Sleep(2 * time.Millisecond)
+		log.Println("--- END OF NEBULA IMPORTER ---")
+		os.Exit(errCode)
+	}()
+
+	log.Println("--- START OF NEBULA IMPORTER ---")
+
 	flag.Parse()
 
 	if port != nil && *port > 0 && callback != nil && *callback != "" {
@@ -37,7 +48,8 @@ func main() {
 		if err != nil {
 			e := err.(errors.ImporterError)
 			log.Println(e.ErrMsg.Error())
-			os.Exit(e.ErrCode)
+			errCode = e.ErrCode
+			return
 		}
 
 		runner := &cmd.Runner{}
@@ -46,7 +58,8 @@ func main() {
 		if runner.Error() != nil {
 			e := runner.Error().(errors.ImporterError)
 			log.Println(e.ErrMsg.Error())
-			os.Exit(e.ErrCode)
+			errCode = e.ErrCode
+			return
 		}
 	}
 }
