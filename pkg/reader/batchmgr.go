@@ -318,7 +318,6 @@ func (m *BatchMgr) makeEdgeBatchStmt(batch []base.Data) (string, error) {
 	default:
 		return "", fmt.Errorf("Invalid data type: %s", batch[length-1].Type)
 	}
-	return "", nil
 }
 
 func (m *BatchMgr) makeEdgeInsertStmt(batch []base.Data) (string, error) {

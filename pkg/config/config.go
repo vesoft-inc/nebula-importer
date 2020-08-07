@@ -589,11 +589,13 @@ func (e *Edge) validateAndReset(prefix string) error {
 func (v *Vertex) FormatValues(record base.Record) (string, error) {
 	var cells []string
 	for _, tag := range v.Tags {
-		str, err := tag.FormatValues(record)
+		str, noProps, err := tag.FormatValues(record)
 		if err != nil {
 			return "", err
 		}
-		cells = append(cells, str)
+		if !noProps {
+			cells = append(cells, str)
+		}
 	}
 	var vid string
 	if v.VID.Function != nil {
@@ -703,16 +705,21 @@ func (p *Prop) validateAndReset(prefix string, val int) error {
 	return nil
 }
 
-func (t *Tag) FormatValues(record base.Record) (string, error) {
+func (t *Tag) FormatValues(record base.Record) (string, bool, error) {
 	var cells []string
+	noProps := true
 	for _, p := range t.Props {
+		if p == nil {
+			continue
+		}
+		noProps = false
 		if c, err := p.FormatValue(record); err != nil {
-			return "", fmt.Errorf("tag: %v, error: %v", *t, err)
+			return "", noProps, fmt.Errorf("tag: %v, error: %v", *t, err)
 		} else {
 			cells = append(cells, c)
 		}
 	}
-	return strings.Join(cells, ","), nil
+	return strings.Join(cells, ","), noProps, nil
 }
 
 func (t *Tag) validateAndReset(prefix string, start int) error {
