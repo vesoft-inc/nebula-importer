@@ -21,8 +21,8 @@ Before you start Nebula Importer, ensure:
 Currently, there are three ways to deploy **Nebula Graph**:
 
 1. [nebula-docker-compose](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose")
-2. [rpm package](https://github.com/vesoft-inc/nebula/tree/master/docs/manual-EN/3.build-develop-and-administration/3.deploy-and-administrations/deployment)
-3. [from source](https://github.com/vesoft-inc/nebula/blob/master/docs/manual-EN/3.build-develop-and-administration/1.build/1.build-source-code.md)
+2. [rpm package](https://docs.nebula-graph.io/manual-EN/3.build-develop-and-administration/2.install/1.install-with-rpm-deb/)
+3. [from source](https://docs.nebula-graph.io/manual-EN/3.build-develop-and-administration/1.build/1.build-source-code/)
 
 > The quickest way to deploy **Nebula Graph** is using [`docker-compose`](https://github.com/vesoft-inc/nebula-docker-compose).
 
