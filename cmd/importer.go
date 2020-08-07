@@ -20,7 +20,7 @@ func main() {
 	errCode := 0
 	defer func() {
 		// Just for filebeat log fetcher to differentiate following logs from others
-		time.Sleep(10)
+		time.Sleep(10*time.Second)
 		log.Println("--- END OF NEBULA IMPORTER ---")
 		os.Exit(errCode)
 	}()
