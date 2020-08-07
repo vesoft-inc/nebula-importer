@@ -22,6 +22,8 @@ clientSettings:
       CREATE TAG student(name string, age int, gender string);
       CREATE EDGE follow(likeness double);
       CREATE EDGE choose(grade int);
+      CREATE TAG course_no_props();
+      CREATE EDGE follow_no_props();
     afterPeriod: 8s
   preStop:
     commands: |
@@ -216,3 +218,38 @@ files:
           - name: likeness
             type: double
             index: 3
+
+  - path: ./course.csv
+    failDataPath: ./err/course-empty-props.csv
+    batchSize: 2
+    inOrder: true
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+      delimiter: ","
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          index: 0
+        tags:
+          - name: course_no_props
+
+  - path: ./follow.csv
+    failDataPath: ./err/follow-empty-props.csv
+    batchSize: 2
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+      delimiter: ","
+    schema:
+      type: edge
+      edge:
+        name: follow_no_props
+        withRanking: false
+        dstVID:
+          index: 1
+        srcVID:
+          index: 0

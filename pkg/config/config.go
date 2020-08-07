@@ -359,6 +359,26 @@ func (s *Schema) String() string {
 	}
 }
 
+func (s *Schema) CollectEmptyPropsTagNames() []string {
+	if !s.IsVertex() || s.Vertex == nil {
+		return nil
+	}
+	var tagNames []string
+	for _, tag := range s.Vertex.Tags {
+		if len(tag.Props) == 0 {
+			tagNames = append(tagNames, *tag.Name)
+			continue
+		}
+		for _, prop := range tag.Props {
+			if prop != nil {
+				continue
+			}
+		}
+		tagNames = append(tagNames, *tag.Name)
+	}
+	return tagNames
+}
+
 func (s *Schema) validateAndReset(prefix string) error {
 	var err error = nil
 	switch strings.ToLower(*s.Type) {
