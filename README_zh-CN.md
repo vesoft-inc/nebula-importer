@@ -16,8 +16,8 @@ Nebula Importer 是一款 [Nebula Graph](https://github.com/vesoft-inc/nebula) �
 在使用 Nebula Importer 之前，首先需要部署 **Nebula Graph** 的服务，并且在其中创建好对应的 `space`、`tag` 和 `edge` 元数据信息。目前有三种部署方式：
 
 1. [nebula-docker-compose](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose")
-2. [rpm 包安装](https://github.com/vesoft-inc/nebula/tree/master/docs/manual-EN/3.build-develop-and-administration/3.deploy-and-administrations/deployment)
-3. [源码编译安装](https://github.com/vesoft-inc/nebula/blob/master/docs/manual-EN/3.build-develop-and-administration/1.build/1.build-source-code.md)
+2. [rpm 包安装](https://docs.nebula-graph.com.cn/manual-CN/3.build-develop-and-administration/2.install/1.install-with-rpm-deb/)
+3. [源码编译安装](https://docs.nebula-graph.com.cn/manual-CN/3.build-develop-and-administration/1.build/1.build-source-code/)
 
 > 如果想在本地快速试用 **Nebula Graph**，推荐使用 `docker-compose` 部署。
 
