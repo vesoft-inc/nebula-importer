@@ -6,8 +6,6 @@
 </div>
 
 [![test](https://github.com/vesoft-inc/nebula-importer/workflows/test/badge.svg)](https://github.com/vesoft-inc/nebula-importer/actions?workflow=test)
-[![star this repo](http://githubbadges.com/star.svg?user=vesoft-inc&repo=nebula-importer&style=default)](https://github.com/vesoft-inc/nebula-importer)
-[![fork this repo](http://githubbadges.com/fork.svg?user=vesoft-inc&repo=nebula-importer&style=default)](https://github.com/vesoft-inc/nebula-importer/fork)
 
 ## 介绍
 

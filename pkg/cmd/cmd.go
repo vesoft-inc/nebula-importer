@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/client"
@@ -30,14 +29,9 @@ func (r *Runner) Error() error {
 }
 
 func (r *Runner) Run(yaml *config.YAMLConfig) {
-	now := time.Now()
 	defer func() {
 		if re := recover(); re != nil {
 			r.errs = append(r.errs, errors.Wrap(errors.UnknownError, fmt.Errorf("%v", re)))
-		} else {
-			if len(r.errs) == 0 {
-				logger.Infof("Finish import data, consume time: %.2fs", time.Since(now).Seconds())
-			}
 		}
 	}()
 

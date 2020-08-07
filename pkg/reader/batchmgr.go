@@ -13,17 +13,19 @@ import (
 )
 
 type BatchMgr struct {
-	Schema            *config.Schema
-	Batches           []*Batch
-	InsertStmtPrefix  string
-	initializedSchema bool
+	Schema             *config.Schema
+	Batches            []*Batch
+	InsertStmtPrefix   string
+	initializedSchema  bool
+	emptyPropsTagNames []string
 }
 
 func NewBatchMgr(schema *config.Schema, batchSize int, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) *BatchMgr {
 	bm := BatchMgr{
-		Schema:            &config.Schema{},
-		Batches:           make([]*Batch, len(clientRequestChs)),
-		initializedSchema: false,
+		Schema:             &config.Schema{},
+		Batches:            make([]*Batch, len(clientRequestChs)),
+		initializedSchema:  false,
+		emptyPropsTagNames: schema.CollectEmptyPropsTagNames(),
 	}
 
 	bm.Schema.Type = schema.Type
@@ -94,6 +96,10 @@ func (bm *BatchMgr) InitSchema(header base.Record) (err error) {
 				}
 			}
 		}
+	}
+
+	for _, tagName := range bm.emptyPropsTagNames {
+		bm.getOrCreateVertexTagByName(tagName)
 	}
 
 	bm.generateInsertStmtPrefix()
@@ -312,7 +318,6 @@ func (m *BatchMgr) makeEdgeBatchStmt(batch []base.Data) (string, error) {
 	default:
 		return "", fmt.Errorf("Invalid data type: %s", batch[length-1].Type)
 	}
-	return "", nil
 }
 
 func (m *BatchMgr) makeEdgeInsertStmt(batch []base.Data) (string, error) {

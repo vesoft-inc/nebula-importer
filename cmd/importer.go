@@ -20,7 +20,7 @@ func main() {
 	errCode := 0
 	defer func() {
 		// Just for filebeat log fetcher to differentiate following logs from others
-		time.Sleep(10*time.Second)
+		time.Sleep(1 * time.Second)
 		log.Println("--- END OF NEBULA IMPORTER ---")
 		os.Exit(errCode)
 	}()
@@ -53,13 +53,21 @@ func main() {
 		}
 
 		runner := &cmd.Runner{}
-		runner.Run(conf)
 
-		if runner.Error() != nil {
-			e := runner.Error().(errors.ImporterError)
-			log.Println(e.ErrMsg.Error())
-			errCode = e.ErrCode
-			return
+		{
+			now := time.Now()
+			defer func() {
+				time.Sleep(500 * time.Millisecond)
+				if runner.Error() != nil {
+					e := runner.Error().(errors.ImporterError)
+					errCode = e.ErrCode
+					log.Println(e.ErrMsg.Error())
+				} else {
+					log.Printf("Finish import data, consume time: %.2fs", time.Since(now).Seconds())
+				}
+			}()
+
+			runner.Run(conf)
 		}
 	}
 }
