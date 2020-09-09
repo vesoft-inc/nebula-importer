@@ -220,11 +220,11 @@ Take edge type `choose` for example:
 200,102,3
 ```
 
+The first two columns indicate source vertex and dest vertex ID, the third is the property, corresponding to choose.likeness in the configuration file. (If ranking is included, the third column should be rankings. The properties should follow behind ranking column.)
+
 ### Data With Header
 
 If the `csv.withHeader` is set to `false`, the CSV file only contains the data (no descriptions of the first row). Example of vertices and edges are as follow:
-
-The first two columns indicate source vertex and dest vertex ID, the third is the property, corresponding to choose.likeness in the configuration file. (If ranking is included, the third column should be rankings. The properties should follow behind ranking column.)
 
 ## CSV Data Example
 
