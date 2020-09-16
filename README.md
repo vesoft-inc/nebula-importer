@@ -14,7 +14,7 @@ Nebula Importer is a CSV importing tool for [Nebula Graph](https://github.com/ve
 Before you start Nebula Importer, make sure that:
 
 * Nebula Graph is deployed.
-* A schema, composed of spac, tags, and edge types is created.
+* A schema, composed of space, tags, and edge types, is created.
 
 Currently, there are three methods to deploy Nebula Graph:
 
