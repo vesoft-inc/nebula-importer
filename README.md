@@ -59,7 +59,7 @@ $ docker run --rm -ti \
 * `{your-config-file}`: Replace with the absolute path of the local YAML configuration file.
 * `{your-csv-data-dir}`: Replace with the absolute path of the local CSV data file.
 
-> **NOTE**: We recommend that you use the relative paths in the  `files.path` file. If you use the local absolute path, check how the path is mapped to Docker carefully.
+> **NOTE**: We recommend that you use the relative paths in the `files.path` file. If you use the local absolute path, check how the path is mapped to Docker carefully.
 
 ## Prepare the configuration file
 
