@@ -30,7 +30,7 @@ Nebula Importer 是一款 [Nebula Graph](https://github.com/vesoft-inc/nebula) �
 
 ### 源码编译方式
 
-Nebula Importer 使用 **>=1.13** 版本的 Go 语言编译，所以首先确保在系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
+Nebula Importer 使用 **1.13** 或更新版本的 Go 语言编译，所以首先确保在系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
 
 使用 `git` 克隆该仓库到本地，进入 `nebula-importer/` 目录，运行 `make build`。
 
@@ -101,7 +101,7 @@ clientSettings:
 - `clientSettings.concurrency`：**可选**。表示 Nebula Graph Client 的并发度，即同 Nebula Graph Server 的连接数，默认为 10。
 - `clientSettings.channelBufferSize`：**可选**。表示每个 Nebula Graph Client 对应的缓存队列 (channel) 的 buffer 大小，默认为 128。
 - `clientSettings.space`：**必填**。指定所有的数据文件将要导入到哪个 `space`。请不要同时向多个 space 批量导入数据，这样反而性能更低。
-- `clientSettings.connection`：**必填**。配置 Nebula Graph Server 的 `user`，`password` 和 `address` 信息。
+- `clientSettings.connection`：**必填**。配置 Nebula Graph Server 的 `user`、`password` 和 `address` 信息。
 - `clientSettings.postStart`：**可选**。配置连接 Nebula Graph Server 之后，在插入数据之前执行的一些操作。
   - `clientSettings.postStart.commands`：定义连接 Nebula Graph Server 之后的一些命令脚本。
   - `clientSettings.postStart.afterPeriod`：定义执行上述命令之后到真正插入数据之前的间隔。
@@ -132,7 +132,7 @@ files:
 
 #### 数据文件
 
-一个数据文件中只能存放一种顶点或者边，不同 schema 的顶点或者边数据需要放置在不同的文件中。
+一个数据文件中只能存放一种点或者边，不同 schema 的点或者边数据需要放置在不同的文件中。
 
 - `path`：**必填**。指定数据文件的存放路径，如果使用相对路径，则会拼接当前配置文件的目录和 `path`。
 - `failDataPath`：**必填**。指定插入失败的数据输出的文件，以便后面补写出错数据。
@@ -153,7 +153,7 @@ files:
 
 ##### `schema.vertex`
 
-**必填**。描述插入顶点的 schema 信息，比如 tags。
+**必填**。描述插入点的 schema 信息，比如 tags。
 
 ```yaml
 schema:
@@ -177,9 +177,9 @@ schema:
 
 ##### `schema.vertex.vid`
 
-**可选**。描述顶点 VID 所在的列和使用的函数。
+**可选**。描述点 VID 所在的列和使用的函数。
 
-- `index`：**可选**。在 CSV 文件中的列标，从 0 开始计数。默认值 0 。
+- `index`：**可选**。在 CSV 文件中的列标，从 0 开始计数。默认值 0。
 - `function`：**可选**。用来生成 VID 时的函数，有 `hash` 和 `uuid` 两种函数可选。
 
 ##### `schema.vertex.tags`
@@ -188,9 +188,9 @@ schema:
 
 对于每一个 TAG，有以下两个属性:
 
-- `name`：TAG 的名字。
+- `name`：TAG 的名称。
 - `props`：TAG 的属性字段数组，每个属性字段又由如下两个字段构成：
-  - `name`：**必填**。属性名字，同 Nebula Graph 中创建的 TAG 的属性名字一致。
+  - `name`：**必填**。属性名称，同 Nebula Graph 中创建的 TAG 的属性名称一致。
   - `type`：**必填**。属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp` 和 `string` 几种类型。
   - `index`：**可选**。在 CSV 文件中的列标。
 
@@ -221,11 +221,11 @@ schema:
 
 含有如下字段：
 
-- `name`：**必填**。边的名字，同 Nebula Graph 中创建的 edge 名字一致。
+- `name`：**必填**。边的名称，同 Nebula Graph 中创建的 edge 名称一致。
 - `srcVID`：**可选**。边的起点信息，含有的 `index` 和 `function` 意义同上述 `vertex.vid`。
 - `dstVID`：**可选**。边的终点信息，含有的 `index` 和 `function` 意义同上述 `vertex.vid`。
 - `rank`：**可选**。边的 rank 信息，含有的 `index` 表示该值所在的列。
-- `props`：**必填**。描述同上述顶点，同样需要注意跟数据文件中列的排列顺序一致。
+- `props`：**必填**。描述同上述点，同样需要注意跟数据文件中列的排列顺序一致。
 
 所有配置的选项解释见[表格](docs/configuration-reference.md)。
 
@@ -235,18 +235,18 @@ schema:
 
 ### 没有 header 的数据格式
 
-如果在上述配置中的 `csv.withHeader` 配置为 `false`，那么 CSV 文件中只含有数据（不含有第一行描述信息）。对于顶点和边的数据示例如下：
+如果在上述配置中的 `csv.withHeader` 配置为 `false`，那么 CSV 文件中只含有数据（不含有第一行描述信息）。对于点和边的数据示例如下：
 
-#### 顶点示例
+#### 点示例
 
-example 中 course 顶点的样例数据：
+example 中 course 点的样例数据：
 
 ```csv
 101,Math,3,No5
 102,English,6,No11
 ```
 
-第一列为顶点的 `VID`。后面三列为属性值，分别按序对应配置文件中的 course.name、course.credits 和 building.name（见 `vertex.tags.props`）。
+第一列为点的 `VID`。后面三列为属性值，分别按序对应配置文件中的 course.name、course.credits 和 building.name（见 `vertex.tags.props`）。
 
 #### 边示例
 
@@ -265,24 +265,24 @@ example 中 choose 类型的边的样例数据：
 
 每一列的格式为 `<tag_name/edge_name>.<prop_name>:<prop_type>`：
 
-- `<tag_name/edge_name>` 表示 TAG 或者 EDGE 的名字。
-- `<prop_name>` 表示属性名字。
+- `<tag_name/edge_name>` 表示 TAG 或者 EDGE 的名称。
+- `<prop_name>` 表示属性名称。
 - `<prop_type>` 表示属性类型。可以是 `bool`、`int`、`float`、`double`、`string` 和 `timestamp`，不设置默认为 `string`。
 
 在上述的 `<prop_type>` 字段中有如下几个关键词含有特殊语义：
 
-- `:VID` 表示顶点的 VID
+- `:VID` 表示点的 VID
 - `:SRC_VID` 表示边的起点的 VID
 - `:DST_VID` 表示边的终点的 VID
 - `:RANK` 表示边的 rank 值
 - `:IGNORE` 表示忽略这一列
 - `:LABEL` 表示插入/删除 `+/-` 的标记列
 
-> 如果 csv 文件中含有 header 描述信息，那么工具就按照会 header 来解析每行数据的 schema，并忽略 YAML 中的 `props`。
+> **注意**：如果 csv 文件中含有 header 描述信息，那么工具就按照会 header 来解析每行数据的 schema，并忽略 YAML 中的 `props`。
 
-#### 含有 header 的顶点 csv 文件示例
+#### 含有 header 的点 csv 文件示例
 
-example 中 course 顶点的示例：
+example 中 course 点的示例：
 
 ```csv
 :LABEL,:VID,course.name,building.name:string,:IGNORE,course.credits:int
@@ -309,7 +309,7 @@ example 中 course 顶点的示例：
 "uuid(""English"")"
 ```
 
-在 `:VID` 这列除了常见的整数值（例如 123），还可以使用 `hash` 和 `uuid` 两个 built-in function 来自动计算生成顶点的 VID（例如 hash("Math")）。
+在 `:VID` 这列除了常见的整数值（例如 123），还可以使用 `hash` 和 `uuid` 两个内置函数来自动计算生成点的 VID（例如 hash("Math")）。
 
 > 需要注意的是在 CSV 文件中对双引号(")的转义处理。如 `hash("Math")` 要写成 `"hash(""Math"")"`。
 
@@ -321,9 +321,9 @@ Math,1,3
 English,2,6
 ```
 
-可以指明 `:IGNORE` 表示忽略第二列不需要导入。此外，除了 `:LABEL` 这列之外，其他的列都可按任意顺序排列。这样对于一个比较大的 CSV 文件，可以通过设置 header 来灵活的选取自己需要的列。
+可以指明 `:IGNORE` 表示忽略第二列不需要导入。此外，除了 `:LABEL` 这列之外，其他的列都可按任意顺序排列。这样对于一个比较大的 CSV 文件，可以通过设置 header 来灵活地选取自己需要的列。
 
-> 因为 VERTEX 可以含有多个不同的 TAG，所以在指定列的 header 时要加上 TAG 名字（例如必须是 `course.credits`，不能简写为 `credits`）。
+> **注意**：因为 VERTEX 可以含有多个不同的 TAG，所以在指定列的 header 时要加上 TAG 名称（例如必须是 `course.credits`，不能简写为 `credits`）。
 
 #### 含有 header 的边 csv 文件示例
 
@@ -335,11 +335,11 @@ example 中 follow 边的示例：
 200,85.6,201,1
 ```
 
-可以看到，例子中边的起点为 `:SRC_VID`（在第 4 列），边的终点为 `:DST_VID`（在第 1 列），边上的属性为 `follow.likeness:double`（在第 2 列），边的 rank 字段对应`:RANK`（在第 5 列，如果不指定导入 `:RANK` 则系统默认为 0）。
+可以看到，例子中边的起点为 `:SRC_VID`（在第 4 列），边的终点为 `:DST_VID`（在第 1 列），边上的属性为 `follow.likeness:double`（在第 2 列），边的 rank 字段对应 `:RANK`（在第 5 列，如果不指定导入 `:RANK` 则系统默认为 0）。
 
 #### Label（可选）
 
 - `+` 表示插入
 - `-` 表示删除
 
-边 CSV 文件 header 中也可以指定 label，和顶点原理相同。
+边 CSV 文件 header 中也可以指定 label，和点原理相同。
