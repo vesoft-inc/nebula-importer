@@ -138,7 +138,7 @@ One CSV file can only store one type of vertex or edge. Vertices and edges of th
 * `failDataPath`: **Required**. Specifies the path for data that failed in inserting so that the failed data are reinserted.
 * `batchSize`: **Optional**. Specifies the batch size of the inserted data. The default value is 128.
 * `limit`: **Optional**. Limits the max data reading rows.
-* `inOrder`: **Optional**. Whether to insert data in the files order. If you do not specify it, you avoid the decrease in importing rate caused by the data skew.
+* `inOrder`: **Optional**. Whether to insert the data rows in the file in order. If you do not specify it, you avoid the decrease in importing rate caused by the data skew.
 
 * `type & csv`: **Required**. Specifies the file type. Currently, only CSV is supported. Specify whether to include the header and the inserted and deleted labels in the CSV file.
   * `withHeader`: The default value is false. The format of the header is described in the following section.
