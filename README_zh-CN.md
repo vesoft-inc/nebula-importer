@@ -103,7 +103,7 @@ clientSettings:
 - `clientSettings.space`：**必填**。指定所有的数据文件将要导入到哪个 `space`。请不要同时向多个 space 批量导入数据，这样反而性能更低。
 - `clientSettings.connection`：**必填**。配置 Nebula Graph Server 的 `user`、`password` 和 `address` 信息。
 - `clientSettings.postStart`：**可选**。配置连接 Nebula Graph Server 之后，在插入数据之前执行的一些操作。
-  - `clientSettings.postStart.commands`：定义连接 Nebula Graph Server 之后的一些命令脚本。
+  - `clientSettings.postStart.commands`：定义连接 Nebula Graph Server 之后的一些命令。
   - `clientSettings.postStart.afterPeriod`：定义执行上述命令之后到真正插入数据之前的间隔。
 - `clientSettings.preStop`：**可选**。配置断开 Nebula Graph Server 连接之前执行的一些操作。
   - `clientSettings.preStop.commands`：定义断开连接 Nebula Graph Server 之前的一些命令脚本。

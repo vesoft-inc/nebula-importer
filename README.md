@@ -103,7 +103,7 @@ clientSettings:
 * `clientSettings.space`: **Required**. Specifies which `space` the data is imported into. Do not import data to multiple spaces at the same time because it causes a performance problem.
 * `clientSettings.connection`: **Required**. Configures the `user`, `password`, and `address` information for Nebula Graph Server.
 * `clientSettings.postStart`: **Optional**. Stores the operations that are performed after the Nebula Graph Server is connected and before any data is inserted.
-  * `clientSettings.postStart.commands`: Defines a script composed of some commands that will run when Nebula Graph Server is connected.
+  * `clientSettings.postStart.commands`: Defines some commands that will run when Nebula Graph Server is connected.
   * `clientSettings.postStart.afterPeriod`: Defines the interval between running the preceding commands and inserting data to Nebula Graph Server.
 * `clientSettings.preStop`: **Optional**. Configures the operations before disconnecting Nebula Graph Server.
   * `clientSettings.preStop.commands`: Defines some command scripts before disconnecting Nebula Graph Server.
