@@ -1,7 +1,5 @@
 # nebula-go
 
-[![star this repo](http://githubbadges.com/star.svg?user=vesoft-inc&repo=nebula-go&style=default)](https://github.com/vesoft-inc/nebula-go)
-[![fork this repo](http://githubbadges.com/fork.svg?user=vesoft-inc&repo=nebula-go&style=default)](https://github.com/vesoft-inc/nebula-go/fork)
 ![build status](https://github.com/vesoft-inc/nebula-go/workflows/build/badge.svg)
 ![test status](https://github.com/vesoft-inc/nebula-go/workflows/test/badge.svg)
 
@@ -12,8 +10,10 @@ Please be careful do not to modify the files in the graph directory, these codes
 ## Install
 
 ```shell
-$ go get -u -v github.com/vesoft-inc/nebula-go
+$ go get -u -v github.com/vesoft-inc/nebula-go@master
 ```
+
+If you get a message like `cannot use path@version syntax in GOPATH mode`, see the instructions below for [enabling go modules](#enabling-go-modules).
 
 ## Usage example
 
@@ -42,10 +42,27 @@ func main() {
   if err != nil {
     log.Fatal(err)
   }
-  
-  if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
+
+  if nebula.IsError(resp) {
     log.Printf("ErrorCode: %v, ErrorMsg: %s", resp.GetErrorCode(), resp.GetErrorMsg())
   }
-  
 }
 ```
+
+## Enabling go modules
+
+Dependency management tools are built into go 1.11+ in the form of [go modules](https://github.com/golang/go/wiki/Modules).
+If you are using go 1.11 or 1.12 and are working with a project located within `$GOPATH`, you need to do:
+
+```sh
+export GO111MODULE=on
+```
+
+Ensure your project has a `go.mod` file defined at the root of your project.
+If you do not already have one, `go mod init` will create one for you:
+
+```sh
+go mod init
+```
+
+And then try to get dependencies of `github.com/vesoft-inc/nebula-go` in your go module by simply `go get -u -v github.com/vesoft-inc/nebula-go@master`.
