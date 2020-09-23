@@ -17,4 +17,4 @@ test:
 	docker-compose down -v;
 
 fmt:
-	@find . -path vendor -prune -type f -iname '*.go' -exec go fmt {} \;
+	@go mod tidy && find . -path ./vendor -prune -o -type f -iname '*.go' -exec go fmt {} \;

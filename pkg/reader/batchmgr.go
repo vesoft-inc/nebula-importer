@@ -296,12 +296,11 @@ func (m *BatchMgr) makeVertexInsertStmt(data []base.Data) (string, error) {
 }
 
 func (m *BatchMgr) makeVertexDeleteStmt(data []base.Data) (string, error) {
-	var builder strings.Builder
+	var idList []string
 	for _, d := range data {
-		// TODO: delete vertex in batch
-		builder.WriteString(fmt.Sprintf("DELETE VERTEX %s;", d.Record[*m.Schema.Vertex.VID.Index]))
+		idList = append(idList, d.Record[*m.Schema.Vertex.VID.Index])
 	}
-	return builder.String(), nil
+	return fmt.Sprintf("DELETE VERTEX %s;", strings.Join(idList, ",")), nil
 }
 
 func (m *BatchMgr) MakeEdgeStmt(batch []base.Data) (string, error) {
@@ -314,7 +313,7 @@ func (m *BatchMgr) makeEdgeBatchStmt(batch []base.Data) (string, error) {
 	case base.INSERT:
 		return m.makeEdgeInsertStmt(batch)
 	case base.DELETE:
-		return "", fmt.Errorf("Unsupported delete edge")
+		return m.makeEdgeDeleteStmt(batch)
 	default:
 		return "", fmt.Errorf("Invalid data type: %s", batch[length-1].Type)
 	}
@@ -337,4 +336,25 @@ func (m *BatchMgr) makeEdgeInsertStmt(batch []base.Data) (string, error) {
 		}
 	}
 	return builder.String(), nil
+}
+
+func (m *BatchMgr) makeEdgeDeleteStmt(batch []base.Data) (string, error) {
+	var idList []string
+	for _, d := range batch {
+		var id string
+		if m.Schema.Edge.Rank != nil {
+			id = fmt.Sprintf("%s->%s@%s",
+				d.Record[*m.Schema.Edge.SrcVID.Index],
+				d.Record[*m.Schema.Edge.DstVID.Index],
+				d.Record[*m.Schema.Edge.Rank.Index],
+			)
+		} else {
+			id = fmt.Sprintf("%s->%s",
+				d.Record[*m.Schema.Edge.SrcVID.Index],
+				d.Record[*m.Schema.Edge.DstVID.Index],
+			)
+		}
+		idList = append(idList, id)
+	}
+	return fmt.Sprintf("DELETE EDGE %s %s;", *m.Schema.Edge.Name, strings.Join(idList, ",")), nil
 }

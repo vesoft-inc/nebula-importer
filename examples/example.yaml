@@ -74,13 +74,37 @@ files:
   - path: ./course-with-header.csv
     failDataPath: ./err/course-with-header.csv
     batchSize: 2
-    inOrder: false
+    inOrder: true
     type: csv
     csv:
       withHeader: true
       withLabel: true
     schema:
       type: vertex
+
+  - path: ./follow-with-label.csv
+    failDataPath: ./err/follow-with-label.csv
+    batchSize: 2
+    inOrder: true
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: true
+    schema:
+      type: edge
+      edge:
+        name: follow
+        withRanking: true
+        srcVID:
+          index: 0
+        dstVID:
+          index: 2
+        rank:
+          index: 3
+        props:
+          - name: likeness
+            type: double
+            index: 1
 
   - path: ./follow.csv
     failDataPath: ./err/follow.csv
