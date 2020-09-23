@@ -254,6 +254,10 @@ func (c *NebulaClientConnection) validateAndReset(prefix string) error {
 	return nil
 }
 
+func (f *File) IsInOrder() bool {
+	return (f.InOrder != nil && *f.InOrder) || (f.CSV != nil && f.CSV.WithLabel != nil && *f.CSV.WithLabel)
+}
+
 func (f *File) validateAndReset(dir, prefix string) error {
 	if f.Path == nil {
 		return fmt.Errorf("Please configure file path in: %s.path", prefix)

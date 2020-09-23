@@ -70,7 +70,7 @@ func (p *ClientPool) exec(i int, stmt string) error {
 		return fmt.Errorf("Client(%d) fails to execute commands (%s), error: %s", i, stmt, err.Error())
 	}
 
-	if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
+	if nebula.IsError(resp) {
 		return fmt.Errorf("Client(%d) fails to execute commands (%s), response error code: %v, message: %s",
 			i, stmt, resp.GetErrorCode(), resp.GetErrorMsg())
 	}
@@ -140,7 +140,7 @@ func (p *ClientPool) startWorker(i int) {
 		var resp *graph.ExecutionResponse = nil
 		for retry := p.retry; retry > 0; retry-- {
 			resp, err = p.Conns[i].Execute(data.Stmt)
-			if err == nil && resp.GetErrorCode() == graph.ErrorCode_SUCCEEDED {
+			if err == nil && !nebula.IsError(resp) {
 				break
 			}
 			time.Sleep(1 * time.Second)
@@ -149,7 +149,7 @@ func (p *ClientPool) startWorker(i int) {
 		if err != nil {
 			err = fmt.Errorf("Client %d fail to execute: %s, Error: %s", i, data.Stmt, err.Error())
 		} else {
-			if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
+			if nebula.IsError(resp) {
 				err = fmt.Errorf("Client %d fail to execute: %s, ErrMsg: %s, ErrCode: %v", i, data.Stmt, resp.GetErrorMsg(), resp.GetErrorCode())
 			}
 		}
