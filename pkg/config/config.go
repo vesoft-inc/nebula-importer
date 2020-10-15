@@ -510,7 +510,7 @@ func (e *Edge) FormatValues(record base.Record) (string, error) {
 		dstVID = fmt.Sprintf("%s(%q)", *e.DstVID.Function, record[*e.DstVID.Index])
 	} else {
 		dstVID = record[*e.DstVID.Index]
-		if err := checkVidFormat(srcVID); err != nil {
+		if err := checkVidFormat(dstVID); err != nil {
 			return "", err
 		}
 	}
