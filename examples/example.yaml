@@ -106,6 +106,32 @@ files:
             type: double
             index: 1
 
+  - path: ./follow-with-label-and-str-vid.csv
+    failDataPath: ./err/follow-with-label-and-str-vid.csv
+    batchSize: 2
+    inOrder: true
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: true
+    schema:
+      type: edge
+      edge:
+        name: follow
+        withRanking: true
+        srcVID:
+          index: 0
+          function: hash
+        dstVID:
+          index: 2
+          function: hash
+        rank:
+          index: 3
+        props:
+          - name: likeness
+            type: double
+            index: 1
+
   - path: ./follow.csv
     failDataPath: ./err/follow.csv
     batchSize: 2
@@ -168,6 +194,31 @@ files:
         vid:
           index: 1
           function: hash
+        tags:
+          - name: student
+            props:
+              - name: age
+                type: int
+                index: 2
+              - name: name
+                type: string
+                index: 1
+              - name: gender
+                type: string
+
+  - path: ./student-with-label-and-str-vid.csv
+    failDataPath: ./err/student_label_str_vid.csv
+    batchSize: 2
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: true
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          index: 1
+          function: uuid
         tags:
           - name: student
             props:

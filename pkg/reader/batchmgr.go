@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"hash/fnv"
-	"regexp"
 	"strings"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
@@ -201,19 +200,12 @@ func (bm *BatchMgr) parseProperty(r string) (columnName, columnType string) {
 	}
 }
 
-var re = regexp.MustCompile(`^([+-]?\d+|hash\("(.+)"\)|uuid\("(.+)"\))$`)
-
 func (bm *BatchMgr) Add(data base.Data) error {
 	var vid string
 	if bm.Schema.IsVertex() {
 		vid = data.Record[*bm.Schema.Vertex.VID.Index]
 	} else {
 		vid = data.Record[*bm.Schema.Edge.SrcVID.Index]
-	}
-	if !re.MatchString(vid) {
-		err := fmt.Errorf("Invalid vid format: %s", vid)
-		bm.Batches[0].SendErrorData(data, err)
-		return err
 	}
 	batchIdx := getBatchId(vid, len(bm.Batches))
 	bm.Batches[batchIdx].Add(data)
@@ -298,7 +290,11 @@ func (m *BatchMgr) makeVertexInsertStmt(data []base.Data) (string, error) {
 func (m *BatchMgr) makeVertexDeleteStmt(data []base.Data) (string, error) {
 	var idList []string
 	for _, d := range data {
-		idList = append(idList, d.Record[*m.Schema.Vertex.VID.Index])
+		vid, err := m.Schema.Vertex.VID.FormatValue(d.Record)
+		if err != nil {
+			return "", err
+		}
+		idList = append(idList, vid)
 	}
 	return fmt.Sprintf("DELETE VERTEX %s;", strings.Join(idList, ",")), nil
 }
@@ -342,17 +338,19 @@ func (m *BatchMgr) makeEdgeDeleteStmt(batch []base.Data) (string, error) {
 	var idList []string
 	for _, d := range batch {
 		var id string
+		srcVid, err := m.Schema.Edge.SrcVID.FormatValue(d.Record)
+		if err != nil {
+			return "", err
+		}
+		dstVid, err := m.Schema.Edge.DstVID.FormatValue(d.Record)
+		if err != nil {
+			return "", err
+		}
 		if m.Schema.Edge.Rank != nil {
-			id = fmt.Sprintf("%s->%s@%s",
-				d.Record[*m.Schema.Edge.SrcVID.Index],
-				d.Record[*m.Schema.Edge.DstVID.Index],
-				d.Record[*m.Schema.Edge.Rank.Index],
-			)
+			rank := d.Record[*m.Schema.Edge.Rank.Index]
+			id = fmt.Sprintf("%s->%s@%s", srcVid, dstVid, rank)
 		} else {
-			id = fmt.Sprintf("%s->%s",
-				d.Record[*m.Schema.Edge.SrcVID.Index],
-				d.Record[*m.Schema.Edge.DstVID.Index],
-			)
+			id = fmt.Sprintf("%s->%s", srcVid, dstVid)
 		}
 		idList = append(idList, id)
 	}

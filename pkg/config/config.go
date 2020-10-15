@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -427,6 +428,17 @@ func (v *VID) String(vid string) string {
 	}
 }
 
+func (v *VID) FormatValue(record base.Record) (string, error) {
+	if len(record) <= *v.Index {
+		return "", fmt.Errorf("vid index(%d) out of range record length(%d)", *v.Index, len(record))
+	}
+	if v.Function == nil || *v.Function == "" {
+		return record[*v.Index], nil
+	} else {
+		return fmt.Sprintf("%s(%q)", *v.Function, record[*v.Index]), nil
+	}
+}
+
 func (v *VID) checkFunction(prefix string) error {
 	if v.Function != nil {
 		switch strings.ToLower(*v.Function) {
@@ -461,6 +473,15 @@ func (r *Rank) validateAndReset(prefix string, defaultVal int) error {
 	return nil
 }
 
+var re = regexp.MustCompile(`^([+-]?\d+|hash\("(.+)"\)|uuid\("(.+)"\))$`)
+
+func checkVidFormat(vid string) error {
+	if !re.MatchString(vid) {
+		return fmt.Errorf("Invalid vid format: %s", vid)
+	}
+	return nil
+}
+
 func (e *Edge) FormatValues(record base.Record) (string, error) {
 	var cells []string
 	for i, prop := range e.Props {
@@ -480,12 +501,18 @@ func (e *Edge) FormatValues(record base.Record) (string, error) {
 		srcVID = fmt.Sprintf("%s(%q)", *e.SrcVID.Function, record[*e.SrcVID.Index])
 	} else {
 		srcVID = record[*e.SrcVID.Index]
+		if err := checkVidFormat(srcVID); err != nil {
+			return "", err
+		}
 	}
 	var dstVID string
 	if e.DstVID.Function != nil {
 		dstVID = fmt.Sprintf("%s(%q)", *e.DstVID.Function, record[*e.DstVID.Index])
 	} else {
 		dstVID = record[*e.DstVID.Index]
+		if err := checkVidFormat(dstVID); err != nil {
+			return "", err
+		}
 	}
 	return fmt.Sprintf(" %s->%s%s:(%s) ", srcVID, dstVID, rank, strings.Join(cells, ",")), nil
 }
@@ -606,6 +633,9 @@ func (v *Vertex) FormatValues(record base.Record) (string, error) {
 		vid = fmt.Sprintf("%s(%q)", *v.VID.Function, record[*v.VID.Index])
 	} else {
 		vid = record[*v.VID.Index]
+		if err := checkVidFormat(vid); err != nil {
+			return "", err
+		}
 	}
 	return fmt.Sprintf(" %s: (%s)", vid, strings.Join(cells, ",")), nil
 }
