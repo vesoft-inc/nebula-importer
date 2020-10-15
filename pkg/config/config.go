@@ -430,7 +430,7 @@ func (v *VID) String(vid string) string {
 
 func (v *VID) FormatValue(record base.Record) (string, error) {
 	if len(record) <= *v.Index {
-		return "", fmt.Errorf("record length: %d, vid index: %d", len(record), *v.Index)
+		return "", fmt.Errorf("vid index(%d) out of range record length(%d)", *v.Index, len(record))
 	}
 	if v.Function == nil || *v.Function == "" {
 		return record[*v.Index], nil
