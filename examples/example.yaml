@@ -106,6 +106,32 @@ files:
             type: double
             index: 1
 
+  - path: ./follow-with-label-and-str-vid.csv
+    failDataPath: ./err/follow-with-label-and-str-vid.csv
+    batchSize: 2
+    inOrder: true
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: true
+    schema:
+      type: edge
+      edge:
+        name: follow
+        withRanking: true
+        srcVID:
+          index: 0
+          function: hash
+        dstVID:
+          index: 2
+          function: hash
+        rank:
+          index: 3
+        props:
+          - name: likeness
+            type: double
+            index: 1
+
   - path: ./follow.csv
     failDataPath: ./err/follow.csv
     batchSize: 2
