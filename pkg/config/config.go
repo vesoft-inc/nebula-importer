@@ -433,7 +433,7 @@ func (v *VID) FormatValue(record base.Record) (string, error) {
 		return "", fmt.Errorf("vid index(%d) out of range record length(%d)", *v.Index, len(record))
 	}
 	if v.Function == nil || *v.Function == "" {
-		return record[*v.Index], nil
+		return fmt.Sprintf("%q", record[*v.Index]), nil
 	} else {
 		return fmt.Sprintf("%s(%q)", *v.Function, record[*v.Index]), nil
 	}
@@ -473,7 +473,7 @@ func (r *Rank) validateAndReset(prefix string, defaultVal int) error {
 	return nil
 }
 
-var re = regexp.MustCompile(`^([+-]?\d+|hash\("(.+)"\)|uuid\("(.+)"\))$`)
+var re = regexp.MustCompile(`^("[^"\r\n]+"|hash\("(.+)"\)|uuid\("(.+)"\))$`)
 
 func checkVidFormat(vid string) error {
 	if !re.MatchString(vid) {
@@ -500,7 +500,7 @@ func (e *Edge) FormatValues(record base.Record) (string, error) {
 		//TODO(yee): differentiate string and integer column type, find and compare src/dst vertex column with property
 		srcVID = fmt.Sprintf("%s(%q)", *e.SrcVID.Function, record[*e.SrcVID.Index])
 	} else {
-		srcVID = record[*e.SrcVID.Index]
+		srcVID = fmt.Sprintf("%q", record[*e.SrcVID.Index])
 		if err := checkVidFormat(srcVID); err != nil {
 			return "", err
 		}
@@ -509,7 +509,7 @@ func (e *Edge) FormatValues(record base.Record) (string, error) {
 	if e.DstVID.Function != nil {
 		dstVID = fmt.Sprintf("%s(%q)", *e.DstVID.Function, record[*e.DstVID.Index])
 	} else {
-		dstVID = record[*e.DstVID.Index]
+		dstVID = fmt.Sprintf("%q", record[*e.DstVID.Index])
 		if err := checkVidFormat(dstVID); err != nil {
 			return "", err
 		}
@@ -630,14 +630,14 @@ func (v *Vertex) FormatValues(record base.Record) (string, error) {
 	}
 	var vid string
 	if v.VID.Function != nil {
-		vid = fmt.Sprintf("%s(\"%q\")", *v.VID.Function, record[*v.VID.Index])
+		vid = fmt.Sprintf("%s(%q)", *v.VID.Function, record[*v.VID.Index])
 	} else {
-		vid = record[*v.VID.Index]
+		vid = fmt.Sprintf("%q", record[*v.VID.Index])
 		if err := checkVidFormat(vid); err != nil {
 			return "", err
 		}
 	}
-	return fmt.Sprintf(" \"%s\": (%s)", vid, strings.Join(cells, ",")), nil
+	return fmt.Sprintf(" %s: (%s)", vid, strings.Join(cells, ",")), nil
 }
 
 func (v *Vertex) maxIndex() int {
