@@ -630,14 +630,14 @@ func (v *Vertex) FormatValues(record base.Record) (string, error) {
 	}
 	var vid string
 	if v.VID.Function != nil {
-		vid = fmt.Sprintf("%s(%q)", *v.VID.Function, record[*v.VID.Index])
+		vid = fmt.Sprintf("%s(\"%q\")", *v.VID.Function, record[*v.VID.Index])
 	} else {
 		vid = record[*v.VID.Index]
 		if err := checkVidFormat(vid); err != nil {
 			return "", err
 		}
 	}
-	return fmt.Sprintf(" %s: (%s)", vid, strings.Join(cells, ",")), nil
+	return fmt.Sprintf(" \"%s\": (%s)", vid, strings.Join(cells, ",")), nil
 }
 
 func (v *Vertex) maxIndex() int {
