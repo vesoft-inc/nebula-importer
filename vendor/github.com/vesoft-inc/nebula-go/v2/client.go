@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/facebook/fbthrift/thrift/lib/go/thrift"
-	graph "github.com/vesoft-inc/nebula-go/nebula/graph"
+	graph "github.com/vesoft-inc/nebula-go/v2/nebula/graph"
 )
 
 type GraphOptions struct {
@@ -65,7 +65,7 @@ func (client *GraphClient) Connect(username, password string) error {
 		return err
 	}
 
-	resp, err := client.graph.Authenticate(username, password)
+	resp, err := client.graph.Authenticate([]byte(username), []byte(password))
 	if err != nil {
 		log.Printf("Authentication fails, %s", err.Error())
 		if e := client.graph.Close(); e != nil {
@@ -75,8 +75,8 @@ func (client *GraphClient) Connect(username, password string) error {
 	}
 
 	if resp.GetErrorCode() != graph.ErrorCode_SUCCEEDED {
-		log.Printf("Authentication fails, ErrorCode: %v, ErrorMsg: %s", resp.GetErrorCode(), resp.GetErrorMsg())
-		return fmt.Errorf(resp.GetErrorMsg())
+		log.Printf("Authentication fails, ErrorCode: %v, ErrorMsg: %s", resp.GetErrorCode(), string(resp.GetErrorMsg()))
+		return fmt.Errorf(string(resp.GetErrorMsg()))
 	}
 
 	client.sessionID = resp.GetSessionID()
@@ -96,7 +96,7 @@ func (client *GraphClient) Disconnect() {
 }
 
 func (client *GraphClient) Execute(stmt string) (*graph.ExecutionResponse, error) {
-	return client.graph.Execute(client.sessionID, stmt)
+	return client.graph.Execute(client.sessionID, []byte(stmt))
 }
 
 func (client *GraphClient) GetSessionID() int64 {

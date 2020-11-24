@@ -3,7 +3,7 @@ package client
 import (
 	"time"
 
-	nebula "github.com/vesoft-inc/nebula-go"
+	nebula "github.com/vesoft-inc/nebula-go/v2"
 )
 
 func NewNebulaConnection(addr, user, password string) (*nebula.GraphClient, error) {
