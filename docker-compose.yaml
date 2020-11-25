@@ -112,13 +112,14 @@ services:
     restart: on-failure
 
   importer:
-    image: vesoft/nebula-console:nightly
+    image: vesoft/nebula-console:v2-preview-nightly
     volumes:
       - .:/usr/local/nebula/importer:rw
+    working_dir: /usr/local/nebula
     entrypoint:
-      - ./importer/ci/bootstrap.sh
-      - "172.29.3.1"
-      - "3699"
+       - ./importer/ci/bootstrap.sh
+       - "172.29.3.1"
+       - "3699"
     depends_on:
       - graphd1
       - graphd2
