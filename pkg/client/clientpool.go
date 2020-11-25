@@ -106,6 +106,14 @@ func (p *ClientPool) Init() error {
 		}
 	}
 
+	beforePeriodWaitSeconds := "10s"
+	logger.Infof("[Start]Wait for BeforePeriod. Reason: Metad and Storaged need some time to process" +
+		" the postStart commands. The following 'Use xxx' command will fail. Wait %s.",
+		beforePeriodWaitSeconds)
+	beforePeriod, _ := time.ParseDuration(beforePeriodWaitSeconds)
+	time.Sleep(beforePeriod)
+	logger.Infof("[Done]Wait for BeforePeriod.")
+
 	stmt := fmt.Sprintf("USE `%s`;", p.space)
 	for i := 0; i < p.concurrency; i++ {
 		if err := p.exec(i, stmt); err != nil {
