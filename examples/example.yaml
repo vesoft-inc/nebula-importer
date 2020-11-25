@@ -5,11 +5,11 @@ clientSettings:
   retry: 3
   concurrency: 2 # number of graph clients
   channelBufferSize: 1
-  space: test
+  space: importer_test
   connection:
     user: root
     password: nebula
-    address: 172.29.3.1:3699,172.29.3.2:3699
+    address: graphd1:3699,graphd2:3699
   postStart:
     commands: |
       UPDATE CONFIGS storage:wal_ttl=3600;
@@ -44,6 +44,7 @@ files:
       vertex:
         vid:
           index: 0
+          type: string
         tags:
           - name: student
             props:

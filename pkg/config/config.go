@@ -51,6 +51,7 @@ type Prop struct {
 type VID struct {
 	Index    *int    `json:"index" yaml:"index"`
 	Function *string `json:"function" yaml:"function"`
+	Type     *string `json:"type" yaml:"type"`
 }
 
 type Rank struct {
@@ -411,9 +412,18 @@ func (v *VID) ParseFunction(str string) (err error) {
 	err = nil
 	if i < 0 && j < 0 {
 		v.Function = nil
+		defaultVidType := "string"
+		v.Type = &defaultVidType
 	} else if i > 0 && j > i {
-		function := strings.ToLower(str[i+1 : j])
-		v.Function = &function
+		strs := strings.ToLower(str[i+1 : j])
+		fnType := strings.Split(strs, ",")
+		if len(fnType) > 1 {
+			v.Function = &fnType[0]
+			v.Type = &fnType[1]
+		} else {
+			v.Function = nil
+			v.Type = &fnType[0]
+		}
 	} else {
 		err = fmt.Errorf("Invalid function format: %s", str)
 	}
@@ -422,9 +432,9 @@ func (v *VID) ParseFunction(str string) (err error) {
 
 func (v *VID) String(vid string) string {
 	if v.Function == nil || *v.Function == "" {
-		return vid
+		return fmt.Sprintf("%s(%s)", vid, *v.Type)
 	} else {
-		return fmt.Sprintf("%s(%s)", vid, *v.Function)
+		return fmt.Sprintf("%s(%s,%s)", vid, *v.Function, *v.Type)
 	}
 }
 
@@ -433,7 +443,15 @@ func (v *VID) FormatValue(record base.Record) (string, error) {
 		return "", fmt.Errorf("vid index(%d) out of range record length(%d)", *v.Index, len(record))
 	}
 	if v.Function == nil || *v.Function == "" {
-		return fmt.Sprintf("%q", record[*v.Index]), nil
+		vid := record[*v.Index]
+		if err := checkVidFormat(vid); err != nil {
+			return "", err
+		}
+		if *v.Type == "string" {
+			return fmt.Sprintf("%q", vid), nil
+		} else {
+			return vid, nil
+		}
 	} else {
 		return fmt.Sprintf("%s(%q)", *v.Function, record[*v.Index]), nil
 	}
@@ -461,6 +479,16 @@ func (v *VID) validateAndReset(prefix string, defaultVal int) error {
 	if err := v.checkFunction(prefix); err != nil {
 		return err
 	}
+	if v.Type != nil {
+		vidType := strings.TrimSpace(strings.ToLower(*v.Type))
+		if vidType != "string" && vidType != "int" {
+			return fmt.Errorf("vid type must be `string' or `int', now is %s", vidType)
+		}
+	} else {
+		vidType := "string"
+		v.Type = &vidType
+		logger.Warnf("Not set %s.Type, reset to default value `%s'", prefix, *v.Type)
+	}
 	return nil
 }
 
@@ -474,7 +502,7 @@ func (r *Rank) validateAndReset(prefix string, defaultVal int) error {
 	return nil
 }
 
-var re = regexp.MustCompile(`^([+-]?\d+|hash\(".+"\)|uuid\(".+"\)|".+")$`)
+var re = regexp.MustCompile(`^([+-]?\d+|hash\(".+"\)|uuid\(".+"\)|".+"|.+)$`)
 
 func checkVidFormat(vid string) error {
 	if !re.MatchString(vid) {
@@ -496,24 +524,13 @@ func (e *Edge) FormatValues(record base.Record) (string, error) {
 	if e.Rank != nil && e.Rank.Index != nil {
 		rank = fmt.Sprintf("@%s", record[*e.Rank.Index])
 	}
-	var srcVID string
-	if e.SrcVID.Function != nil {
-		//TODO(yee): differentiate string and integer column type, find and compare src/dst vertex column with property
-		srcVID = fmt.Sprintf("%s(%q)", *e.SrcVID.Function, record[*e.SrcVID.Index])
-	} else {
-		srcVID = fmt.Sprintf("%q", record[*e.SrcVID.Index])
-		if err := checkVidFormat(srcVID); err != nil {
-			return "", err
-		}
+	srcVID, err := e.SrcVID.FormatValue(record)
+	if err != nil {
+		return "", err
 	}
-	var dstVID string
-	if e.DstVID.Function != nil {
-		dstVID = fmt.Sprintf("%s(%q)", *e.DstVID.Function, record[*e.DstVID.Index])
-	} else {
-		dstVID = fmt.Sprintf("%q", record[*e.DstVID.Index])
-		if err := checkVidFormat(dstVID); err != nil {
-			return "", err
-		}
+	dstVID, err := e.DstVID.FormatValue(record)
+	if err != nil {
+		return "", err
 	}
 	return fmt.Sprintf(" %s->%s%s:(%s) ", srcVID, dstVID, rank, strings.Join(cells, ",")), nil
 }
@@ -629,14 +646,9 @@ func (v *Vertex) FormatValues(record base.Record) (string, error) {
 			cells = append(cells, str)
 		}
 	}
-	var vid string
-	if v.VID.Function != nil {
-		vid = fmt.Sprintf("%s(%q)", *v.VID.Function, record[*v.VID.Index])
-	} else {
-		vid = fmt.Sprintf("%q", record[*v.VID.Index])
-		if err := checkVidFormat(vid); err != nil {
-			return "", err
-		}
+	vid, err := v.VID.FormatValue(record)
+	if err != nil {
+		return "", err
 	}
 	return fmt.Sprintf(" %s: (%s)", vid, strings.Join(cells, ",")), nil
 }
