@@ -121,10 +121,10 @@ files:
         withRanking: true
         srcVID:
           index: 0
-          function: hash
+          # function: hash
         dstVID:
           index: 2
-          function: hash
+          # function: hash
         rank:
           index: 3
         props:
@@ -193,7 +193,7 @@ files:
       vertex:
         vid:
           index: 1
-          function: hash
+          # function: hash
         tags:
           - name: student
             props:
@@ -218,7 +218,7 @@ files:
       vertex:
         vid:
           index: 1
-          function: uuid
+          # function: uuid
         tags:
           - name: student
             props:
@@ -245,10 +245,10 @@ files:
         name: follow
         srcVID:
           index: 0
-          function: hash
+          # function: hash
         dstVID:
           index: 1
-          function: uuid
+          # function: uuid
         rank:
           index: 2
         props:
@@ -284,10 +284,10 @@ files:
         name: follow
         srcVID:
           index: 0
-          function: hash
+          # function: hash
         dstVID:
           index: 1
-          function: uuid
+          # function: uuid
         rank:
           index: 2
         props:
