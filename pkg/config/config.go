@@ -474,7 +474,7 @@ func (r *Rank) validateAndReset(prefix string, defaultVal int) error {
 	return nil
 }
 
-var re = regexp.MustCompile(`^("[^"\r\n]+"|\(string\)[\t ]*hash\("(.+)"\))$`)
+var re = regexp.MustCompile(`^([+-]?\d+|hash\(".+"\)|uuid\(".+"\)|".+")$`)
 
 func checkVidFormat(vid string) error {
 	if !re.MatchString(vid) {
