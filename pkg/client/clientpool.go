@@ -114,7 +114,9 @@ func (p *ClientPool) Init() error {
 		go func(i int) {
 			if p.postStart != nil {
 				afterPeriod, _ := time.ParseDuration(*p.postStart.AfterPeriod)
+				logger.Infof("[Start]Wait for afterPeriod. concurrency: %d", i)
 				time.Sleep(afterPeriod)
+				logger.Infof("[Done]Wait for afterPeriod. concurrency: %d", i)
 			}
 			p.startWorker(i)
 		}(i)
