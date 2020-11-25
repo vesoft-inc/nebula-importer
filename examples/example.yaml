@@ -25,7 +25,7 @@ clientSettings:
       CREATE TAG course_no_props();
       CREATE TAG building_no_props();
       CREATE EDGE follow_no_props();
-    afterPeriod: 30s
+    afterPeriod: 8s
   preStop:
     commands: |
       UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };
