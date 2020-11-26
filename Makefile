@@ -5,6 +5,12 @@ default: build
 
 build: clean fmt
 	@cd cmd; \
+	go build -o nebula-importer; \
+	mv nebula-importer ..;
+	@echo "nebula-importer has been outputed to $$(pwd)/nebula-importer";
+
+vendorbuild: clean fmt
+	@cd cmd; \
 	go build -mod vendor -o nebula-importer; \
 	mv nebula-importer ..;
 	@echo "nebula-importer has been outputed to $$(pwd)/nebula-importer";
