@@ -16,7 +16,7 @@ cd nebula-console
 go build -o nebula-console
 
 cd /usr/local/nebula/importer/cmd
-go build -mod vendor -o ../../nebula-importer
+go build -o ../../nebula-importer
 cd /usr/local/nebula
 
 until echo "quit" | /usr/local/nebula/nebula-console/nebula-console -u user -p password --addr=$addr --port=$port &> /dev/null; do
