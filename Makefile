@@ -9,7 +9,10 @@ build: clean fmt
 	mv nebula-importer ..;
 	@echo "nebula-importer has been outputed to $$(pwd)/nebula-importer";
 
-vendorbuild: clean fmt
+vendor: clean fmt
+	@cd cmd; go mod vendor
+
+vendorbuild: vendor
 	@cd cmd; \
 	go build -mod vendor -o nebula-importer; \
 	mv nebula-importer ..;
