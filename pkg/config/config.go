@@ -601,7 +601,7 @@ func (e *Edge) validateAndReset(prefix string) error {
 		}
 	} else {
 		index := 0
-		e.SrcVID = &VID{Index: &index}
+		e.SrcVID = &VID{Index: &index, Type: &kDefaultVidType}
 	}
 	if e.DstVID != nil {
 		if err := e.DstVID.validateAndReset(fmt.Sprintf("%s.dstVID", prefix), 1); err != nil {
@@ -609,7 +609,7 @@ func (e *Edge) validateAndReset(prefix string) error {
 		}
 	} else {
 		index := 1
-		e.DstVID = &VID{Index: &index}
+		e.DstVID = &VID{Index: &index, Type: &kDefaultVidType}
 	}
 	start := 2
 	if e.Rank != nil {
@@ -703,7 +703,7 @@ func (v *Vertex) validateAndReset(prefix string) error {
 		}
 	} else {
 		index := 0
-		v.VID = &VID{Index: &index}
+		v.VID = &VID{Index: &index, Type: &kDefaultVidType}
 	}
 	j := 1
 	for i := range v.Tags {
