@@ -2,11 +2,12 @@ package client
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
-	nebula "github.com/vesoft-inc/nebula-go/v2"
-	"github.com/vesoft-inc/nebula-go/v2/nebula/graph"
+	nebula "github.com/vesoft-inc/nebula-clients/go"
+	"github.com/vesoft-inc/nebula-clients/go/nebula/graph"
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
@@ -19,33 +20,56 @@ type ClientPool struct {
 	postStart   *config.NebulaPostStart
 	preStop     *config.NebulaPreStop
 	statsCh     chan<- base.Stats
-	Conns       []*nebula.GraphClient
+	pool        *nebula.ConnectionPool
+	Sessions    []*nebula.Session
 	requestChs  []chan base.ClientRequest
 }
 
 func NewClientPool(settings *config.NebulaClientSettings, statsCh chan<- base.Stats) (*ClientPool, error) {
+	addrs := strings.Split(*settings.Connection.Address, ",")
+	var hosts []nebula.HostAddress
+	for _, addr := range addrs {
+		hostPort := strings.Split(addr, ":")
+		if len(hostPort) != 2 {
+			return nil, fmt.Errorf("Invalid address: %s", addr)
+		}
+		port, err := strconv.Atoi(hostPort[1])
+		if err != nil {
+			return nil, err
+		}
+		hostAddr := nebula.HostAddress{Host: hostPort[0], Port: port}
+		hosts = append(hosts, hostAddr)
+	}
+	conf := nebula.PoolConfig{
+		TimeOut:         0,
+		IdleTime:        0,
+		MaxConnPoolSize: len(addrs) * *settings.Concurrency,
+		MinConnPoolSize: 1,
+	}
+	connPool, err := nebula.NewConnectionPool(hosts, conf, logger.NebulaLogger{})
+	if err != nil {
+		return nil, err
+	}
 	pool := ClientPool{
 		space:     *settings.Space,
 		postStart: settings.PostStart,
 		preStop:   settings.PreStop,
 		statsCh:   statsCh,
+		pool:      connPool,
 	}
-	addrs := strings.Split(*settings.Connection.Address, ",")
 	pool.retry = *settings.Retry
 	pool.concurrency = (*settings.Concurrency) * len(addrs)
-	pool.Conns = make([]*nebula.GraphClient, pool.concurrency)
+	pool.Sessions = make([]*nebula.Session, pool.concurrency)
 	pool.requestChs = make([]chan base.ClientRequest, pool.concurrency)
 
 	j := 0
-	for _, addr := range addrs {
+	for k := 0; k < len(addrs); k++ {
 		for i := 0; i < *settings.Concurrency; i++ {
-			if conn, err := NewNebulaConnection(strings.TrimSpace(addr), *settings.Connection.User, *settings.Connection.Password); err != nil {
+			if pool.Sessions[j], err = pool.pool.GetSession(*settings.Connection.User, *settings.Connection.Password); err != nil {
 				return nil, err
-			} else {
-				pool.Conns[j] = conn
-				pool.requestChs[j] = make(chan base.ClientRequest, *settings.ChannelBufferSize)
-				j++
 			}
+			pool.requestChs[j] = make(chan base.ClientRequest, *settings.ChannelBufferSize)
+			j++
 		}
 	}
 
@@ -53,8 +77,8 @@ func NewClientPool(settings *config.NebulaClientSettings, statsCh chan<- base.St
 }
 
 func (p *ClientPool) getActiveConnIdx() int {
-	for i := range p.Conns {
-		if p.Conns[i] != nil {
+	for i := range p.Sessions {
+		if p.Sessions[i] != nil {
 			return i
 		}
 	}
@@ -65,7 +89,7 @@ func (p *ClientPool) exec(i int, stmt string) error {
 	if len(stmt) == 0 {
 		return nil
 	}
-	resp, err := p.Conns[i].Execute(stmt)
+	resp, err := p.Sessions[i].Execute(stmt)
 	if err != nil {
 		return fmt.Errorf("Client(%d) fails to execute commands (%s), error: %s", i, stmt, err.Error())
 	}
@@ -88,13 +112,14 @@ func (p *ClientPool) Close() {
 	}
 
 	for i := 0; i < p.concurrency; i++ {
-		if p.Conns[i] != nil {
-			p.Conns[i].Disconnect()
+		if p.Sessions[i] != nil {
+			p.Sessions[i].Release()
 		}
 		if p.requestChs[i] != nil {
 			close(p.requestChs[i])
 		}
 	}
+	p.pool.Close()
 }
 
 func (p *ClientPool) Init() error {
@@ -106,20 +131,7 @@ func (p *ClientPool) Init() error {
 		}
 	}
 
-	beforePeriodWaitSeconds := "10s"
-	logger.Infof("[Start]Wait for BeforePeriod. Reason: Metad and Storaged need some time to process" +
-		" the postStart commands. The following 'Use xxx' command will fail. Wait %s.",
-		beforePeriodWaitSeconds)
-
-	beforePeriod, _ := time.ParseDuration(beforePeriodWaitSeconds)
-	time.Sleep(beforePeriod)
-	logger.Infof("[Done]Wait for BeforePeriod.")
-
-	stmt := fmt.Sprintf("USE `%s`;", p.space)
 	for i := 0; i < p.concurrency; i++ {
-		if err := p.exec(i, stmt); err != nil {
-			return err
-		}
 		go func(i int) {
 			if p.postStart != nil {
 				afterPeriod, _ := time.ParseDuration(*p.postStart.AfterPeriod)
@@ -132,6 +144,11 @@ func (p *ClientPool) Init() error {
 }
 
 func (p *ClientPool) startWorker(i int) {
+	stmt := fmt.Sprintf("USE `%s`;", p.space)
+	if err := p.exec(i, stmt); err != nil {
+		logger.Error(err.Error())
+		return
+	}
 	for {
 		data, ok := <-p.requestChs[i]
 		if !ok {
@@ -148,7 +165,7 @@ func (p *ClientPool) startWorker(i int) {
 		var err error = nil
 		var resp *graph.ExecutionResponse = nil
 		for retry := p.retry; retry > 0; retry-- {
-			resp, err = p.Conns[i].Execute(data.Stmt)
+			resp, err = p.Sessions[i].Execute(data.Stmt)
 			if err == nil && !nebula.IsError(resp) {
 				break
 			}
