@@ -40,7 +40,12 @@ func NewClientPool(settings *config.NebulaClientSettings, statsCh chan<- base.St
 		hostAddr := nebula.HostAddress{Host: hostPort[0], Port: port}
 		hosts = append(hosts, hostAddr)
 	}
-	conf := nebula.GetDefaultConf()
+	conf := nebula.PoolConfig{
+		TimeOut:         0,
+		IdleTime:        0,
+		MaxConnPoolSize: len(addrs) * *settings.Concurrency,
+		MinConnPoolSize: 1,
+	}
 	connPool, err := nebula.NewConnectionPool(hosts, conf, logger.NebulaLogger{})
 	if err != nil {
 		return nil, err
@@ -126,20 +131,7 @@ func (p *ClientPool) Init() error {
 		}
 	}
 
-	beforePeriodWaitSeconds := "10s"
-	logger.Infof("[Start]Wait for BeforePeriod. Reason: Metad and Storaged need some time to process"+
-		" the postStart commands. The following 'Use xxx' command will fail. Wait %s.",
-		beforePeriodWaitSeconds)
-
-	beforePeriod, _ := time.ParseDuration(beforePeriodWaitSeconds)
-	time.Sleep(beforePeriod)
-	logger.Infof("[Done]Wait for BeforePeriod.")
-
-	stmt := fmt.Sprintf("USE `%s`;", p.space)
 	for i := 0; i < p.concurrency; i++ {
-		if err := p.exec(i, stmt); err != nil {
-			return err
-		}
 		go func(i int) {
 			if p.postStart != nil {
 				afterPeriod, _ := time.ParseDuration(*p.postStart.AfterPeriod)
@@ -152,6 +144,11 @@ func (p *ClientPool) Init() error {
 }
 
 func (p *ClientPool) startWorker(i int) {
+	stmt := fmt.Sprintf("USE `%s`;", p.space)
+	if err := p.exec(i, stmt); err != nil {
+		logger.Error(err.Error())
+		return
+	}
 	for {
 		data, ok := <-p.requestChs[i]
 		if !ok {

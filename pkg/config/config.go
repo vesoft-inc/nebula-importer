@@ -109,7 +109,14 @@ type YAMLConfig struct {
 	Files                []*File               `json:"files" yaml:"files"`
 }
 
-var supportedVersions []string = []string{"v1rc1", "v1rc2", "v1"}
+var (
+	kDefaultVidType   = "string"
+	kDefaultConnAddr  = "127.0.0.1:3699"
+	kDefaultUser      = "root"
+	kDefaultPassword  = "nebula"
+	kDefaultBatchSize = 128
+	supportedVersions = []string{"v1rc1", "v1rc2", "v1", "v2"}
+)
 
 func isSupportedVersion(ver string) bool {
 	for _, v := range supportedVersions {
@@ -237,20 +244,17 @@ func (n *NebulaClientSettings) validateAndReset(prefix string) error {
 
 func (c *NebulaClientConnection) validateAndReset(prefix string) error {
 	if c.Address == nil {
-		a := "127.0.0.1:3699"
-		c.Address = &a
+		c.Address = &kDefaultConnAddr
 		logger.Warnf("%s.address: %s", prefix, *c.Address)
 	}
 
 	if c.User == nil {
-		u := "user"
-		c.User = &u
+		c.User = &kDefaultUser
 		logger.Warnf("%s.user: %s", prefix, *c.User)
 	}
 
 	if c.Password == nil {
-		p := "password"
-		c.Password = &p
+		c.Password = &kDefaultPassword
 		logger.Warnf("%s.password: %s", prefix, *c.Password)
 	}
 	return nil
@@ -303,8 +307,7 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	}
 
 	if f.BatchSize == nil {
-		b := 128
-		f.BatchSize = &b
+		f.BatchSize = &kDefaultBatchSize
 		logger.Infof("Invalid batch size in file(%s), reset to %d", *f.Path, *f.BatchSize)
 	}
 
@@ -412,8 +415,7 @@ func (v *VID) ParseFunction(str string) (err error) {
 	err = nil
 	if i < 0 && j < 0 {
 		v.Function = nil
-		defaultVidType := "string"
-		v.Type = &defaultVidType
+		v.Type = &kDefaultVidType
 	} else if i > 0 && j > i {
 		strs := strings.ToLower(str[i+1 : j])
 		fnType := strings.Split(strs, ",")
@@ -485,8 +487,7 @@ func (v *VID) validateAndReset(prefix string, defaultVal int) error {
 			return fmt.Errorf("vid type must be `string' or `int', now is %s", vidType)
 		}
 	} else {
-		vidType := "string"
-		v.Type = &vidType
+		v.Type = &kDefaultVidType
 		logger.Warnf("Not set %s.Type, reset to default value `%s'", prefix, *v.Type)
 	}
 	return nil
