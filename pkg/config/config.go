@@ -433,7 +433,7 @@ func (v *VID) FormatValue(record base.Record) (string, error) {
 		return "", fmt.Errorf("vid index(%d) out of range record length(%d)", *v.Index, len(record))
 	}
 	if v.Function == nil || *v.Function == "" {
-		return record[*v.Index], nil
+		return fmt.Sprintf("%q", record[*v.Index]), nil
 	} else {
 		return fmt.Sprintf("%s(%q)", *v.Function, record[*v.Index]), nil
 	}
@@ -442,6 +442,7 @@ func (v *VID) FormatValue(record base.Record) (string, error) {
 func (v *VID) checkFunction(prefix string) error {
 	if v.Function != nil {
 		switch strings.ToLower(*v.Function) {
+		// FIXME: uuid is not supported in nebula-graph-v2, and hash returns int which is not the valid vid type.
 		case "", "hash", "uuid":
 		default:
 			return fmt.Errorf("Invalid %s.function: %s, only following values are supported: \"\", hash, uuid", prefix, *v.Function)
@@ -473,7 +474,7 @@ func (r *Rank) validateAndReset(prefix string, defaultVal int) error {
 	return nil
 }
 
-var re = regexp.MustCompile(`^([+-]?\d+|hash\("(.+)"\)|uuid\("(.+)"\))$`)
+var re = regexp.MustCompile(`^("[^"\r\n]+"|\(string\)[\t ]*hash\("(.+)"\))$`)
 
 func checkVidFormat(vid string) error {
 	if !re.MatchString(vid) {
@@ -500,7 +501,7 @@ func (e *Edge) FormatValues(record base.Record) (string, error) {
 		//TODO(yee): differentiate string and integer column type, find and compare src/dst vertex column with property
 		srcVID = fmt.Sprintf("%s(%q)", *e.SrcVID.Function, record[*e.SrcVID.Index])
 	} else {
-		srcVID = record[*e.SrcVID.Index]
+		srcVID = fmt.Sprintf("%q", record[*e.SrcVID.Index])
 		if err := checkVidFormat(srcVID); err != nil {
 			return "", err
 		}
@@ -509,7 +510,7 @@ func (e *Edge) FormatValues(record base.Record) (string, error) {
 	if e.DstVID.Function != nil {
 		dstVID = fmt.Sprintf("%s(%q)", *e.DstVID.Function, record[*e.DstVID.Index])
 	} else {
-		dstVID = record[*e.DstVID.Index]
+		dstVID = fmt.Sprintf("%q", record[*e.DstVID.Index])
 		if err := checkVidFormat(dstVID); err != nil {
 			return "", err
 		}
@@ -632,7 +633,7 @@ func (v *Vertex) FormatValues(record base.Record) (string, error) {
 	if v.VID.Function != nil {
 		vid = fmt.Sprintf("%s(%q)", *v.VID.Function, record[*v.VID.Index])
 	} else {
-		vid = record[*v.VID.Index]
+		vid = fmt.Sprintf("%q", record[*v.VID.Index])
 		if err := checkVidFormat(vid); err != nil {
 			return "", err
 		}

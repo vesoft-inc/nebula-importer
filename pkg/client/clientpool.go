@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	nebula "github.com/vesoft-inc/nebula-go"
-	"github.com/vesoft-inc/nebula-go/nebula/graph"
+	nebula "github.com/vesoft-inc/nebula-go/v2"
+	"github.com/vesoft-inc/nebula-go/v2/nebula/graph"
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
@@ -105,6 +105,15 @@ func (p *ClientPool) Init() error {
 			}
 		}
 	}
+
+	beforePeriodWaitSeconds := "10s"
+	logger.Infof("[Start]Wait for BeforePeriod. Reason: Metad and Storaged need some time to process" +
+		" the postStart commands. The following 'Use xxx' command will fail. Wait %s.",
+		beforePeriodWaitSeconds)
+
+	beforePeriod, _ := time.ParseDuration(beforePeriodWaitSeconds)
+	time.Sleep(beforePeriod)
+	logger.Infof("[Done]Wait for BeforePeriod.")
 
 	stmt := fmt.Sprintf("USE `%s`;", p.space)
 	for i := 0; i < p.concurrency; i++ {
