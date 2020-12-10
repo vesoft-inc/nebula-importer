@@ -24,7 +24,7 @@ func Info(v ...interface{}) {
 }
 
 func Infof(format string, v ...interface{}) {
-	infoWithSkip(2, fmt.Sprintf(format, fmt.Sprintf(format, v...)))
+	infoWithSkip(2, fmt.Sprintf(format, v...))
 }
 
 func Warn(v ...interface{}) {
