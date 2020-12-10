@@ -1,0 +1,5 @@
+:LABEL,:VID(string),course.name,building.name:string,:IGNORE,course.credits:int
++,English,English,"No11
+B\",2,6
++,Math,Math,No5,1,3
+-,Math,Math,No5,1,3

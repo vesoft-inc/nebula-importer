@@ -4,7 +4,6 @@
 *.dll
 *.so
 *.dylib
-nebula-importer
 
 # Test binary, build with `go test -c`
 *.test
@@ -15,4 +14,6 @@ nebula-importer
 # macOS
 .DS_Store
 
-examples/err/
+err/
+vendor/
+nebula-importer
