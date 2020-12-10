@@ -66,12 +66,12 @@ $ docker run --rm -ti \
 Nebula Importer 通过 YAML 配置文件来描述要导入的文件信息、Nebula Graph 的 server 信息等。[这里](examples/)有一个配置文件的参考样例和对应的数据文件格式。接下来逐一解释各个选项的含义：
 
 ```yaml
-version: v1
+version: v2
 description: example
 removeTempFiles: false
 ```
 
-- `version`：**必填**。表示配置文件的版本，默认值为 `v1`。
+- `version`：**必填**。表示配置文件的版本，默认值为 `v2`。
 - `description`：**可选**。对当前配置文件的描述信息。
 - `removeTempFiles`：**可选**。是否删除生成的临时日志和错误数据文件，默认值为：`false`。
 - `clientSettings`：跟 Nebula Graph 服务端相关的配置均在该字段下配置。

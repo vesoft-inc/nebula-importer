@@ -1,4 +1,4 @@
-version: v1
+version: v2
 description: example
 removeTempFiles: false
 clientSettings:
@@ -270,7 +270,7 @@ files:
         name: follow
         withRanking: true
 
-  - path: https://raw.githubusercontent.com/vesoft-inc/nebula-importer/master/examples/follow.csv
+  - path: https://raw.githubusercontent.com/vesoft-inc/nebula-importer/master/examples/v2/follow.csv
     failDataPath: ./err/v2/follow_http.csv
     batchSize: 2
     limit: 3

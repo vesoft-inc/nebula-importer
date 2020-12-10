@@ -66,12 +66,12 @@ $ docker run --rm -ti \
 Nebula Importer uses the YAML configuration file to store information for the CSV files and Nebula Graph server. Here's an [example](examples/example.yaml) for the configuration file and the CSV file. You can find the explanation for each option in the following:
 
 ```yaml
-version: v1
+version: v2
 description: example
 removeTempFiles: false
 ```
 
-* `version`: **Required**. Indicates the configuration file version, the default value is `v1`.
+* `version`: **Required**. Indicates the configuration file version, the default value is `v2`.
 * `description`: **Optional**. Describes the configuration file.
 * `removeTempFiles`: **Optional**. Whether to delete the temporarily generated log and error data files. The default value is `false`.
 * `clientSettings`: Stores all the configurations related to the Nebula Graph service.
