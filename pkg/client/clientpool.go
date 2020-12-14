@@ -6,8 +6,7 @@ import (
 	"strings"
 	"time"
 
-	nebula "github.com/vesoft-inc/nebula-clients/go"
-	"github.com/vesoft-inc/nebula-clients/go/nebula/graph"
+	nebula "github.com/vesoft-inc/nebula-go"
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
@@ -94,7 +93,7 @@ func (p *ClientPool) exec(i int, stmt string) error {
 		return fmt.Errorf("Client(%d) fails to execute commands (%s), error: %s", i, stmt, err.Error())
 	}
 
-	if nebula.IsError(resp) {
+	if !resp.IsSucceed() {
 		return fmt.Errorf("Client(%d) fails to execute commands (%s), response error code: %v, message: %s",
 			i, stmt, resp.GetErrorCode(), resp.GetErrorMsg())
 	}
@@ -163,10 +162,10 @@ func (p *ClientPool) startWorker(i int) {
 		now := time.Now()
 
 		var err error = nil
-		var resp *graph.ExecutionResponse = nil
+		var resp *nebula.ResultSet = nil
 		for retry := p.retry; retry > 0; retry-- {
 			resp, err = p.Sessions[i].Execute(data.Stmt)
-			if err == nil && !nebula.IsError(resp) {
+			if err == nil && resp.IsSucceed() {
 				break
 			}
 			time.Sleep(1 * time.Second)
@@ -175,7 +174,7 @@ func (p *ClientPool) startWorker(i int) {
 		if err != nil {
 			err = fmt.Errorf("Client %d fail to execute: %s, Error: %s", i, data.Stmt, err.Error())
 		} else {
-			if nebula.IsError(resp) {
+			if !resp.IsSucceed() {
 				err = fmt.Errorf("Client %d fail to execute: %s, ErrMsg: %s, ErrCode: %v", i, data.Stmt, resp.GetErrorMsg(), resp.GetErrorCode())
 			}
 		}
@@ -187,7 +186,7 @@ func (p *ClientPool) startWorker(i int) {
 			}
 		} else {
 			timeInMs := time.Since(now).Nanoseconds() / 1e3
-			p.statsCh <- base.NewSuccessStats(int64(resp.GetLatencyInUs()), timeInMs, len(data.Data))
+			p.statsCh <- base.NewSuccessStats(int64(resp.GetLatency()), timeInMs, len(data.Data))
 		}
 	}
 }
