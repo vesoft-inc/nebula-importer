@@ -8,8 +8,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.6.1 h1:hDPOHmpOpP40lSULcqw7IrRb/u7w6RpDC9399XyoNd0=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/vesoft-inc/nebula-clients/go v0.0.0-20201124065101-e86652852b4c h1:bDxhSBwdnOosMERABPRnq3/P3KoTtzNK6tx2eKqvhSI=
-github.com/vesoft-inc/nebula-clients/go v0.0.0-20201124065101-e86652852b4c/go.mod h1:F/Qx0oOZ1IrUFU6Umn3l2Wqr1A9sRtHzZReDnzfOlp8=
+github.com/vesoft-inc/nebula-go v1.1.1-0.20201210100741-9439da5b6180 h1:0P37NUiuEdQ16JtKBVH3zXQxyz7XsNFVM9/9H9WjxpA=
+github.com/vesoft-inc/nebula-go v1.1.1-0.20201210100741-9439da5b6180/go.mod h1:wxhWNoVVP0+TLETNwaIa93H9tOECxlEv4XH+/do22Qk=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.4 h1:/eiJrUcujPVeJ3xlSWaiNi3uSVmDGBK1pDHUHAnao1I=
