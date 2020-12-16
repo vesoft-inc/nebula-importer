@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   metad:
-    image: vesoft/nebula-metad:v2-preview-nightly
+    image: vesoft/nebula-metad:v2-nightly
     environment:
       USER: root
     command:
@@ -26,7 +26,7 @@ services:
     restart: on-failure
 
   storaged:
-    image: vesoft/nebula-storaged:v2-preview-nightly
+    image: vesoft/nebula-storaged:v2-nightly
     environment:
       USER: root
     command:
@@ -53,7 +53,7 @@ services:
     restart: on-failure
 
   graphd1:
-    image: vesoft/nebula-graphd:v2-preview-nightly
+    image: vesoft/nebula-graphd:v2-nightly
     environment:
       USER: root
     command:
@@ -80,7 +80,7 @@ services:
     restart: on-failure
 
   graphd2:
-    image: vesoft/nebula-graphd:v2-preview-nightly
+    image: vesoft/nebula-graphd:v2-nightly
     environment:
       USER: root
     command:

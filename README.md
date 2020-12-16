@@ -32,12 +32,35 @@ After configuring the YAML file and preparing the CSV files to be imported, you 
 
 Nebula Importer is compiled with Go **1.13** or later, so make sure that Go is installed on your system. See the Go [installation document](docs/golang-install-en.md) for the installation and configuration tutorial.
 
-Use `git` to clone the repository to your machine. Go to the `nebula-importer/` directory and run the `make build` command.
+1. Clone the repository
 
-``` bash
-$ git clone https://github.com/vesoft-inc/nebula-importer.git
+  * For Nebula Graph 1.x, clone the `v1` branch.
+
+  ``` bash
+  $ git clone --branch v1 https://github.com/vesoft-inc/nebula-importer.git
+  ```
+
+  * For Nebula Graph 2.x, clone the `master` branch.
+
+  ``` bash
+  $ git clone https://github.com/vesoft-inc/nebula-importer.git
+  ```
+
+2. Go to the `nebula-importer` directory.
+
+```
 $ cd nebula-importer
+```
+
+3. Build the source code.
+
+```
 $ make build
+```
+
+4. Start the service
+
+```
 $ ./nebula-importer --config /path/to/yaml/config/file
 ```
 
@@ -45,19 +68,32 @@ The `--config` option in the preceding command is used to pass the path of the Y
 
 ### From Docker
 
-If you are using Docker, you don't have to install Go locally. Pull the [Docker image](https://hub.docker.com/r/vesoft/nebula-importer) for Nebula Importer. Mount the local configuration file and the CSV data files into the container and you are done. Follow these steps:
+If you are using Docker, you don't have to install Go locally. Pull the [Docker image](https://hub.docker.com/r/vesoft/nebula-importer) for Nebula Importer. Mount the local configuration file and the CSV data files into the container and you are done. 
+
+1. For Nebula Graph 1.x:
 
 ```bash
 $ docker run --rm -ti \
     --network=host \
     -v {your-config-file}:{your-config-file} \
     -v {your-csv-data-dir}:{your-csv-data-dir} \
-    vesoft/nebula-importer
+    vesoft/nebula-importer:v1
     --config {your-config-file}
 ```
 
-* `{your-config-file}`: Replace with the absolute path of the local YAML configuration file.
-* `{your-csv-data-dir}`: Replace with the absolute path of the local CSV data file.
+2. For Nebula Graph 2.x:
+
+```bash
+$ docker run --rm -ti \
+    --network=host \
+    -v {your-config-file}:{your-config-file} \
+    -v {your-csv-data-dir}:{your-csv-data-dir} \
+    vesoft/nebula-importer:v2
+    --config {your-config-file}
+```
+
+- `{your-config-file}`: Replace with the absolute path of the local YAML configuration file.
+- `{your-csv-data-dir}`: Replace with the absolute path of the local CSV data file.
 
 > **NOTE**: We recommend that you use the relative paths in the `files.path` file. If you use the local absolute path, check how the path is mapped to Docker carefully.
 
