@@ -143,7 +143,7 @@ One CSV file can only store one type of vertex or edge. Vertices and edges of th
 * `type & csv`: **Required**. Specifies the file type. Currently, only CSV is supported. Specify whether to include the header and the inserted and deleted labels in the CSV file.
   * `withHeader`: The default value is false. The format of the header is described in the following section.
   * `withLabel`: The default value is false. The format of the label is described in the following section.
-  * `delimiter`: **Optional**. Specify the delimiter for the CSV files. The default value is `","`.
+  * `delimiter`: **Optional**. Specify the delimiter for the CSV files. The default value is `","`. And only a 1-character string delimiter is supported.
 
 #### `schema`
 
