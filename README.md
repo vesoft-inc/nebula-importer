@@ -43,7 +43,7 @@ Nebula Importer is compiled with Go **1.13** or later, so make sure that Go is i
   * For Nebula Graph 2.x, clone the `master` branch.
 
   ``` bash
-  $ git clone https://github.com/vesoft-inc/nebula-importer.git
+  $ git clone --branch v2 https://github.com/vesoft-inc/nebula-importer.git
   ```
 
 2. Go to the `nebula-importer` directory.
