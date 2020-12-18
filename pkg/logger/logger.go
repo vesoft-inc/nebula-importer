@@ -20,81 +20,73 @@ func Init(path string) {
 }
 
 func Info(v ...interface{}) {
-	_, file, no, ok := runtime.Caller(1)
+	infoWithSkip(2, fmt.Sprint(v...))
+}
+
+func Infof(format string, v ...interface{}) {
+	infoWithSkip(2, fmt.Sprintf(format, v...))
+}
+
+func Warn(v ...interface{}) {
+	warnWithSkip(2, fmt.Sprint(v...))
+}
+
+func Warnf(format string, v ...interface{}) {
+	warnWithSkip(2, fmt.Sprintf(format, v...))
+}
+
+func Error(v ...interface{}) {
+	errorWithSkip(2, fmt.Sprint(v...))
+}
+
+func Errorf(format string, v ...interface{}) {
+	errorWithSkip(2, fmt.Sprintf(format, v...))
+}
+
+func Fatal(v ...interface{}) {
+	fatalWithSkip(2, fmt.Sprint(v...))
+}
+
+func Fatalf(format string, v ...interface{}) {
+	fatalWithSkip(2, fmt.Sprintf(format, v...))
+}
+
+func infoWithSkip(skip int, msg string) {
+	_, file, no, ok := runtime.Caller(skip)
 	if ok {
 		file = filepath.Base(file)
-		logger.Printf("[INFO] %s:%d: %s", file, no, fmt.Sprint(v...))
+		logger.Printf("[INFO] %s:%d: %s", file, no, msg)
 	} else {
 		logger.Fatalf("Fail to get caller info of logger.Info")
 	}
 }
 
-func Infof(format string, v ...interface{}) {
-	_, file, no, ok := runtime.Caller(1)
+func warnWithSkip(skip int, msg string) {
+	_, file, no, ok := runtime.Caller(skip)
 	if ok {
 		file = filepath.Base(file)
-		logger.Printf("[INFO] %s:%d: %s", file, no, fmt.Sprintf(format, v...))
-	} else {
-		logger.Fatalf("Fail to get caller info of logger.Infof")
-	}
-}
-
-func Warn(v ...interface{}) {
-	_, file, no, ok := runtime.Caller(1)
-	if ok {
-		file = filepath.Base(file)
-		logger.Printf("[WARN] %s:%d: %s", file, no, fmt.Sprint(v...))
+		logger.Printf("[WARN] %s:%d: %s", file, no, msg)
 	} else {
 		logger.Fatalf("Fail to get caller info of logger.Warn")
 	}
 }
 
-func Warnf(format string, v ...interface{}) {
-	_, file, no, ok := runtime.Caller(1)
+func errorWithSkip(skip int, msg string) {
+	_, file, no, ok := runtime.Caller(skip)
 	if ok {
 		file = filepath.Base(file)
-		logger.Printf("[WARN] %s:%d: %s", file, no, fmt.Sprintf(format, v...))
-	} else {
-		logger.Fatalf("Fail to get caller info of logger.Warnf")
-	}
-}
-
-func Error(v ...interface{}) {
-	_, file, no, ok := runtime.Caller(1)
-	if ok {
-		file = filepath.Base(file)
-		logger.Printf("[ERROR] %s:%d: %s", file, no, fmt.Sprint(v...))
+		logger.Printf("[ERROR] %s:%d: %s", file, no, msg)
 	} else {
 		logger.Fatalf("Fail to get caller info of logger.Error")
 	}
 }
 
-func Errorf(format string, v ...interface{}) {
-	_, file, no, ok := runtime.Caller(1)
+func fatalWithSkip(skip int, msg string) {
+	_, file, no, ok := runtime.Caller(skip)
 	if ok {
 		file = filepath.Base(file)
-		logger.Printf("[ERROR] %s:%d: %s", file, no, fmt.Sprintf(format, v...))
-	} else {
-		logger.Fatalf("Fail to get caller info of logger.Errorf")
-	}
-}
-
-func Fatal(v ...interface{}) {
-	_, file, no, ok := runtime.Caller(1)
-	if ok {
-		file = filepath.Base(file)
-		logger.Fatalf("[FATAL] %s:%d: %s", file, no, fmt.Sprint(v...))
+		logger.Fatalf("[FATAL] %s:%d: %s", file, no, msg)
 	} else {
 		logger.Fatalf("Fail to get caller info of logger.Fatal")
-	}
-}
-
-func Fatalf(format string, v ...interface{}) {
-	_, file, no, ok := runtime.Caller(1)
-	if ok {
-		file = filepath.Base(file)
-		logger.Fatalf("[FATAL] %s:%d: %s", file, no, fmt.Sprintf(format, v...))
-	} else {
-		logger.Fatalf("Fail to get caller info of logger.Fatalf")
 	}
 }

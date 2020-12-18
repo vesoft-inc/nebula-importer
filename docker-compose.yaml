@@ -1,19 +1,19 @@
 version: '3.4'
 services:
   metad:
-    image: vesoft/nebula-metad:nightly
+    image: vesoft/nebula-metad:v2-nightly
     environment:
       USER: root
     command:
-      - --meta_server_addrs=172.29.1.1:45500
-      - --local_ip=172.29.1.1
-      - --ws_ip=172.29.1.1
+      - --meta_server_addrs=metad:45500
+      - --local_ip=metad
+      - --ws_ip=metad
       - --port=45500
     volumes:
       - metadata:/usr/local/nebula/data/meta
       - logsdata:/usr/local/nebula/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://172.29.1.1:11000/status"]
+      test: ["CMD", "curl", "-f", "http://metad:11000/status"]
       interval: 15s
       timeout: 10s
       retries: 3
@@ -23,17 +23,16 @@ services:
       - 11002
     networks:
       nebula-net:
-        ipv4_address: 172.29.1.1
     restart: on-failure
 
   storaged:
-    image: vesoft/nebula-storaged:nightly
+    image: vesoft/nebula-storaged:v2-nightly
     environment:
       USER: root
     command:
-      - --meta_server_addrs=172.29.1.1:45500
-      - --local_ip=172.29.2.1
-      - --ws_ip=172.29.2.1
+      - --meta_server_addrs=metad:45500
+      - --local_ip=storaged
+      - --ws_ip=storaged
       - --port=44500
     volumes:
       - storagedata:/usr/local/nebula/data/storage
@@ -41,7 +40,7 @@ services:
     depends_on:
       - metad
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://172.29.2.1:12000/status"]
+      test: ["CMD", "curl", "-f", "http://storaged:12000/status"]
       interval: 15s
       timeout: 10s
       retries: 3
@@ -51,24 +50,23 @@ services:
       - 12002
     networks:
       nebula-net:
-        ipv4_address: 172.29.2.1
     restart: on-failure
 
   graphd1:
-    image: vesoft/nebula-graphd:nightly
+    image: vesoft/nebula-graphd:v2-nightly
     environment:
       USER: root
     command:
-      - --meta_server_addrs=172.29.1.1:45500
+      - --meta_server_addrs=metad:45500
       - --port=3699
-      - --ws_ip=172.29.3.1
+      - --ws_ip=graphd1
       - --log_dir=/usr/local/nebula/logs1
     volumes:
       - logsdata:/usr/local/nebula/logs1
     depends_on:
       - metad
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://172.29.3.1:13000/status"]
+      test: ["CMD", "curl", "-f", "http://graphd1:13000/status"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -79,17 +77,16 @@ services:
       - 13002
     networks:
       nebula-net:
-        ipv4_address: 172.29.3.1
     restart: on-failure
 
   graphd2:
-    image: vesoft/nebula-graphd:nightly
+    image: vesoft/nebula-graphd:v2-nightly
     environment:
       USER: root
     command:
-      - --meta_server_addrs=172.29.1.1:45500
+      - --meta_server_addrs=metad:45500
       - --port=3699
-      - --ws_ip=172.29.3.2
+      - --ws_ip=graphd2
       - --log_dir=/usr/local/nebula/logs2
       - --enable_authorize=true
     volumes:
@@ -97,7 +94,7 @@ services:
     depends_on:
       - metad
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://172.29.3.2:13000/status"]
+      test: ["CMD", "curl", "-f", "http://graphd2:13000/status"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -108,30 +105,25 @@ services:
       - 13002
     networks:
       nebula-net:
-        ipv4_address: 172.29.3.2
     restart: on-failure
 
   importer:
-    image: vesoft/nebula-console:nightly
+    image: golang:alpine
     volumes:
       - .:/usr/local/nebula/importer:rw
+    working_dir: /usr/local/nebula
     entrypoint:
       - ./importer/ci/bootstrap.sh
-      - "172.29.3.1"
+      - "graphd1"
       - "3699"
     depends_on:
       - graphd1
       - graphd2
     networks:
       nebula-net:
-        ipv4_address: 172.29.4.1
 
 networks:
   nebula-net:
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.29.0.0/16
 
 volumes:
   storagedata:
