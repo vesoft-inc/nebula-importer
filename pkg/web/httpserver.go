@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 
@@ -12,6 +15,7 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
+	"gopkg.in/yaml.v2"
 )
 
 type WebServer struct {
@@ -173,16 +177,43 @@ func (w *WebServer) badRequest(resp http.ResponseWriter, msg string) {
 }
 
 func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
-	if req.Body == nil {
-		w.badRequest(resp, "nil request body")
+	tid := w.newTaskId()
+	rootPath := "./tasks/" + tid + "/"
+
+	req.ParseMultipartForm(32 << 20)
+	files := req.MultipartForm.File["data"]
+	if len(files) == 0 {
+		w.badRequest(resp, "import data not found")
 		return
 	}
-	defer req.Body.Close()
+	for _, _file := range files {
+		file, err := _file.Open()
+		if err == nil {
+			os.MkdirAll(rootPath, os.ModePerm)
+			cur, _ := os.Create(rootPath + _file.Filename)
+			defer cur.Close()
+			_, errdata := io.Copy(cur, file)
+			if errdata != nil {
+				w.badRequest(resp, "save import data failed")
+				return
+			}
+		}
+	}
+	_conf := req.MultipartForm.Value["config"]
+	if len(_conf) == 0 {
+		w.badRequest(resp, "import config not found")
+		return
+	}
+	ioutil.WriteFile(rootPath+"import.config", []byte(_conf[0]), 0777)
 
 	var conf config.YAMLConfig
-	if err := json.NewDecoder(req.Body).Decode(&conf); err != nil {
+	if err := yaml.Unmarshal([]byte(_conf[0]), &conf); err != nil {
 		w.badRequest(resp, err.Error())
 		return
+	}
+	*conf.LogPath = rootPath + "import.log"
+	for _, conffile := range conf.Files {
+		*conffile.Path = rootPath + *conffile.Path
 	}
 
 	if err := conf.ValidateAndReset(""); err != nil {
@@ -191,7 +222,7 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	runner := &cmd.Runner{}
-	tid := w.newTaskId()
+
 	w.taskMgr.put(tid, runner)
 	t := task{
 		errResult: errResult{ErrCode: 0},
@@ -222,6 +253,7 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 		}
 		w.callback(&body)
 		w.taskMgr.del(tid)
+		os.RemoveAll("./tasks/" + tid)
 	}(tid)
 
 	if b, err := json.Marshal(t); err != nil {
