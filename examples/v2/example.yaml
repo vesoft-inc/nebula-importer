@@ -392,26 +392,3 @@ files:
           index: 1
         srcVID:
           index: 0
-
-  - path: ./v1/choose-hex.csv
-    batchSize: 2
-    inOrder: false
-    type: csv
-    csv:
-      withHeader: false
-      withLabel: false
-    schema:
-      type: edge
-      edge:
-        name: choose
-        withRanking: false
-        srcVID:
-          index: 0
-          type: int
-        dstVID:
-          index: 1
-          type: int
-        props:
-          - name: grade
-            type: int
-            int: 2

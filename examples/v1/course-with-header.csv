@@ -1,5 +1,5 @@
-:LABEL,:VID,course.name,building.name:string,:IGNORE,course.credits:int
+:LABEL,:VID(int),course.name,building.name:string,:IGNORE,course.credits:int
 +,"hash(""English"")",English,"No11
 B\",2,6
-+,"uuid(""Math"")",Math,No5,1,3
--,"uuid(""Math"")",Math,No5,1,3
++,"hash(""Math"")",Math,No5,1,3
+-,"hash(""Math"")",Math,No5,1,3

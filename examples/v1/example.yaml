@@ -44,6 +44,10 @@ files:
       edge:
         name: choose
         withRanking: false
+        srcVID:
+          type: int
+        dstVID:
+          type: int
         props:
           - name: grade
             type: int
@@ -59,6 +63,8 @@ files:
     schema:
       type: vertex
       vertex:
+        vid:
+          type: int
         tags:
           - name: course
             props:
@@ -97,8 +103,10 @@ files:
         withRanking: true
         srcVID:
           index: 0
+          type: int
         dstVID:
           index: 2
+          type: int
         rank:
           index: 3
         props:
@@ -121,10 +129,12 @@ files:
         withRanking: true
         srcVID:
           index: 0
-          # function: hash
+          type: int
+          function: hash
         dstVID:
           index: 2
-          # function: hash
+          type: int
+          function: hash
         rank:
           index: 3
         props:
@@ -144,6 +154,10 @@ files:
       edge:
         name: follow
         withRanking: true
+        srcVID:
+          type: int
+        dstVID:
+          type: int
         props:
           - name: likeness
             type: double
@@ -171,6 +185,8 @@ files:
     schema:
       type: vertex
       vertex:
+        vid:
+          type: int
         tags:
           - name: student
             props:
@@ -193,7 +209,7 @@ files:
       vertex:
         vid:
           index: 1
-          # function: hash
+          function: hash
         tags:
           - name: student
             props:
@@ -218,7 +234,8 @@ files:
       vertex:
         vid:
           index: 1
-          # function: uuid
+          function: hash
+          type: int
         tags:
           - name: student
             props:
@@ -246,9 +263,11 @@ files:
         srcVID:
           index: 0
           # function: hash
+          type: int
         dstVID:
           index: 1
           # function: uuid
+          type: int
         rank:
           index: 2
         props:
@@ -284,10 +303,12 @@ files:
         name: follow
         srcVID:
           index: 0
-          # function: hash
+          function: hash
+          type: int
         dstVID:
           index: 1
-          # function: uuid
+          function: hash
+          type: int
         rank:
           index: 2
         props:
@@ -309,6 +330,7 @@ files:
       vertex:
         vid:
           index: 0
+          type: int
         tags:
           - name: course_no_props
 
@@ -326,6 +348,7 @@ files:
       vertex:
         vid:
           index: 0
+          type: int
         tags:
           - name: course_no_props
           - name: building_no_props
@@ -344,6 +367,7 @@ files:
       vertex:
         vid:
           index: 0
+          type: int
         tags:
           - name: course_no_props
           - name: building
@@ -366,6 +390,7 @@ files:
       vertex:
         vid:
           index: 0
+          type: int
         tags:
           - name: building
             props:
@@ -390,8 +415,33 @@ files:
         withRanking: false
         dstVID:
           index: 1
+          type: int
         srcVID:
           index: 0
+          type: int
+
+  - path: ./choose-hex.csv
+    batchSize: 2
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: choose
+        withRanking: false
+        srcVID:
+          index: 0
+          type: int
+        dstVID:
+          index: 1
+          type: int
+        props:
+          - name: grade
+            type: int
+            int: 2
 
   - path: ./choose-hex.csv
     batchSize: 2

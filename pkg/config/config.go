@@ -418,7 +418,7 @@ func (v *VID) ParseFunction(str string) (err error) {
 		v.Type = &kDefaultVidType
 	} else if i > 0 && j > i {
 		strs := strings.ToLower(str[i+1 : j])
-		fnType := strings.Split(strs, ",")
+		fnType := strings.Split(strs, "+")
 		if len(fnType) > 1 {
 			v.Function = &fnType[0]
 			v.Type = &fnType[1]
@@ -436,7 +436,7 @@ func (v *VID) String(vid string) string {
 	if v.Function == nil || *v.Function == "" {
 		return fmt.Sprintf("%s(%s)", vid, *v.Type)
 	} else {
-		return fmt.Sprintf("%s(%s,%s)", vid, *v.Function, *v.Type)
+		return fmt.Sprintf("%s(%s+%s)", vid, *v.Function, *v.Type)
 	}
 }
 
@@ -503,7 +503,7 @@ func (r *Rank) validateAndReset(prefix string, defaultVal int) error {
 	return nil
 }
 
-var re = regexp.MustCompile(`^([+-]?\d+|0[x|X]?\d+|hash\(".+"\)|uuid\(".+"\)|".+")$`)
+var re = regexp.MustCompile(`^([+-]?[^0]\d+|0[xX0-7]\d+|hash\(".+"\)|uuid\(".+"\)|".+")$`)
 
 func checkVidFormat(vid string) error {
 	if !re.MatchString(vid) {
