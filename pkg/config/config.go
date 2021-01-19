@@ -446,7 +446,7 @@ func (v *VID) FormatValue(record base.Record) (string, error) {
 	}
 	if v.Function == nil || *v.Function == "" {
 		vid := record[*v.Index]
-		if err := checkVidFormat(vid); err != nil {
+		if err := checkVidFormat(vid, *v.Type == "int"); err != nil {
 			return "", err
 		}
 		if *v.Type == "string" {
@@ -503,10 +503,10 @@ func (r *Rank) validateAndReset(prefix string, defaultVal int) error {
 	return nil
 }
 
-var re = regexp.MustCompile(`^([+-]?[^0]\d+|0[xX0-7]\d+|hash\(".+"\)|uuid\(".+"\)|".+")$`)
+var re = regexp.MustCompile(`^([+-]?[^0]\d+|0[xX0-7]\d+|hash\(".+"\)|uuid\(".+"\))$`)
 
-func checkVidFormat(vid string) error {
-	if !re.MatchString(vid) {
+func checkVidFormat(vid string, isInt bool) error {
+	if isInt && !re.MatchString(vid) {
 		return fmt.Errorf("Invalid vid format: %s", vid)
 	}
 	return nil
