@@ -32,7 +32,7 @@ clientSettings:
       UPDATE CONFIGS storage:wal_ttl=86400;
 logPath: ./err/test.log
 files:
-  - path: ./v2/choose.csv
+  - path: ./choose.csv
     batchSize: 2
     inOrder: false
     type: csv
@@ -48,8 +48,8 @@ files:
           - name: grade
             type: int
 
-  - path: ./v2/course.csv
-    failDataPath: ./err/v2/course.csv
+  - path: ./course.csv
+    failDataPath: ./err/course.csv
     batchSize: 2
     inOrder: true
     type: csv
@@ -71,8 +71,8 @@ files:
               - name: name
                 type: string
 
-  - path: ./v2/course-with-header.csv
-    failDataPath: ./err/v2/course-with-header.csv
+  - path: ./course-with-header.csv
+    failDataPath: ./err/course-with-header.csv
     batchSize: 2
     inOrder: true
     type: csv
@@ -82,8 +82,8 @@ files:
     schema:
       type: vertex
 
-  - path: ./v2/follow-with-label.csv
-    failDataPath: ./err/v2/follow-with-label.csv
+  - path: ./follow-with-label.csv
+    failDataPath: ./err/follow-with-label.csv
     batchSize: 2
     inOrder: true
     type: csv
@@ -106,8 +106,8 @@ files:
             type: double
             index: 1
 
-  - path: ./v2/follow-with-label-and-str-vid.csv
-    failDataPath: ./err/v2/follow-with-label-and-str-vid.csv
+  - path: ./follow-with-label-and-str-vid.csv
+    failDataPath: ./err/follow-with-label-and-str-vid.csv
     batchSize: 2
     inOrder: true
     type: csv
@@ -132,8 +132,8 @@ files:
             type: double
             index: 1
 
-  - path: ./v2/follow.csv
-    failDataPath: ./err/v2/follow.csv
+  - path: ./follow.csv
+    failDataPath: ./err/follow.csv
     batchSize: 2
     type: csv
     csv:
@@ -148,8 +148,8 @@ files:
           - name: likeness
             type: double
 
-  - path: ./v2/follow-with-header.csv
-    failDataPath: ./err/v2/follow-with-header.csv
+  - path: ./follow-with-header.csv
+    failDataPath: ./err/follow-with-header.csv
     batchSize: 2
     type: csv
     csv:
@@ -161,8 +161,8 @@ files:
         name: follow
         withRanking: true
 
-  - path: ./v2/student.csv
-    failDataPath: ./err/v2/student.csv
+  - path: ./student.csv
+    failDataPath: ./err/student.csv
     batchSize: 2
     type: csv
     csv:
@@ -181,8 +181,8 @@ files:
               - name: gender
                 type: string
 
-  - path: ./v2/student.csv
-    failDataPath: ./err/v2/student_index.csv
+  - path: ./student.csv
+    failDataPath: ./err/student_index.csv
     batchSize: 2
     type: csv
     csv:
@@ -206,8 +206,8 @@ files:
               - name: gender
                 type: string
 
-  - path: ./v2/student-with-label-and-str-vid.csv
-    failDataPath: ./err/v2/student_label_str_vid.csv
+  - path: ./student-with-label-and-str-vid.csv
+    failDataPath: ./err/student_label_str_vid.csv
     batchSize: 2
     type: csv
     csv:
@@ -231,8 +231,8 @@ files:
               - name: gender
                 type: string
 
-  - path: ./v2/follow.csv
-    failDataPath: ./err/v2/follow_index.csv
+  - path: ./follow.csv
+    failDataPath: ./err/follow_index.csv
     batchSize: 2
     limit: 3
     type: csv
@@ -256,8 +256,8 @@ files:
             type: double
             index: 3
 
-  - path: ./v2/follow-delimiter.csv
-    failDataPath: ./err/v2/follow-delimiter.csv
+  - path: ./follow-delimiter.csv
+    failDataPath: ./err/follow-delimiter.csv
     batchSize: 2
     type: csv
     csv:
@@ -271,7 +271,7 @@ files:
         withRanking: true
 
   - path: https://raw.githubusercontent.com/vesoft-inc/nebula-importer/master/examples/v2/follow.csv
-    failDataPath: ./err/v2/follow_http.csv
+    failDataPath: ./err/follow_http.csv
     batchSize: 2
     limit: 3
     type: csv
@@ -295,8 +295,8 @@ files:
             type: double
             index: 3
 
-  - path: ./v2/course.csv
-    failDataPath: ./err/v2/course-empty-props.csv
+  - path: ./course.csv
+    failDataPath: ./err/course-empty-props.csv
     batchSize: 2
     inOrder: true
     type: csv
@@ -312,8 +312,8 @@ files:
         tags:
           - name: course_no_props
 
-  - path: ./v2/course.csv
-    failDataPath: ./err/v2/course-multi-empty-props.csv
+  - path: ./course.csv
+    failDataPath: ./err/course-multi-empty-props.csv
     batchSize: 2
     inOrder: true
     type: csv
@@ -330,8 +330,8 @@ files:
           - name: course_no_props
           - name: building_no_props
 
-  - path: ./v2/course.csv
-    failDataPath: ./err/v2/course-mix-empty-props.csv
+  - path: ./course.csv
+    failDataPath: ./err/course-mix-empty-props.csv
     batchSize: 2
     inOrder: true
     type: csv
@@ -352,8 +352,8 @@ files:
                 type: string
                 index: 3
 
-  - path: ./v2/course.csv
-    failDataPath: ./err/v2/course-mix-empty-props-2.csv
+  - path: ./course.csv
+    failDataPath: ./err/course-mix-empty-props-2.csv
     batchSize: 2
     inOrder: true
     type: csv
@@ -375,8 +375,8 @@ files:
           - name: course_no_props
 
 
-  - path: ./v2/follow.csv
-    failDataPath: ./err/v2/follow-empty-props.csv
+  - path: ./follow.csv
+    failDataPath: ./err/follow-empty-props.csv
     batchSize: 2
     type: csv
     csv:
