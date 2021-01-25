@@ -34,6 +34,9 @@ func IsValidType(t string) bool {
 	case "float":
 	case "double":
 	case "bool":
+	case "date":
+	case "time":
+	case "datetime":
 	case "timestamp":
 	default:
 		return false
