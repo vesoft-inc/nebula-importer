@@ -7,6 +7,7 @@
 
 [![test](https://github.com/vesoft-inc/nebula-importer/workflows/test/badge.svg)](https://github.com/vesoft-inc/nebula-importer/actions?workflow=test)
 
+<!--
 ## 介绍
 
 Nebula Importer 是一款 [Nebula Graph](https://github.com/vesoft-inc/nebula) 的 CSV 文件导入工具，其读取本地的 CSV 文件，然后写入到 Nebula Graph 图数据库中。
@@ -343,3 +344,5 @@ example 中 follow 边的示例：
 - `-` 表示删除
 
 边 CSV 文件 header 中也可以指定 label，和点原理相同。
+
+-->

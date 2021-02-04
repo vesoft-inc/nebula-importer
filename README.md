@@ -1,7 +1,9 @@
 <div align="center">
   <h1>Nebula Importer</h1>
   <div>
+    <!--
     <a href="https://github.com/vesoft-inc/nebula-importer/blob/master/README_zh-CN.md">中文</a>
+    -->
   </div>
 </div>
 
@@ -24,6 +26,15 @@ Currently, there are three methods to deploy Nebula Graph:
 
 > The quickest way to deploy Nebula Graph is using [Docker Compose](https://github.com/vesoft-inc/nebula-docker-compose).
 
+## **CAUTION**: Choose the correct branch
+
+The rpc protocols (i.e., thrift) in Nebula Graph 1.x and v2 are incompatible.
+
+Nebula Importer v1 branch can only connect to Nebula Graph 1.x.
+Nebula Importer master and v2 branch can only connect to Nebula Graph 2.x.
+
+> Do not mismatch.
+
 ## How to use
 
 After configuring the YAML file and preparing the CSV files to be imported, you can use this tool to batch write data to Nebula Graph.
@@ -40,10 +51,10 @@ Nebula Importer is compiled with Go **1.13** or later, so make sure that Go is i
   $ git clone --branch v1 https://github.com/vesoft-inc/nebula-importer.git
   ```
 
-  * For Nebula Graph 2.x, clone the `v2` branch.
+  * For Nebula Graph 2.x, clone the master branch.
 
   ``` bash
-  $ git clone --branch v2 https://github.com/vesoft-inc/nebula-importer.git
+  $ git clone https://github.com/vesoft-inc/nebula-importer.git
   ```
 
 2. Go to the `nebula-importer` directory.
