@@ -110,7 +110,7 @@ $ docker run --rm -ti \
 
 ## Prepare the configuration file
 
-Nebula Importer uses the YAML configuration file to store information for the CSV files and Nebula Graph server. Here's an [example](examples/example.yaml) for the configuration file and the CSV file. You can find the explanation for each option in the following:
+Nebula Importer uses the YAML configuration file to store information for the CSV files and Nebula Graph server. Here's an [example for v2](examples/v2/example.yaml) and an [example for v1](examples/v1/example.yaml) for the configuration file and the CSV file. You can find the explanation for each option in the following:
 
 ```yaml
 version: v2
