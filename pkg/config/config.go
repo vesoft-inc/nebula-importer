@@ -729,9 +729,9 @@ func (p *Prop) FormatValue(record base.Record) (string, error) {
 		return "", fmt.Errorf("Prop index %d out range %d of record(%v)", *p.Index, len(record), record)
 	}
 	r := record[*p.Index]
-	// if r == "" && *p.DefaultVal != "" {
-	// 	r = *p.DefaultVal
-	// }
+	if r == "" && *p.DefaultVal != "" {
+		r = *p.DefaultVal
+	}
 	if p.IsStringType() {
 		return fmt.Sprintf("%q", r), nil
 	}
