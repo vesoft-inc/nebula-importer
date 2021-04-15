@@ -43,9 +43,10 @@ type NebulaClientSettings struct {
 }
 
 type Prop struct {
-	Name  *string `json:"name" yaml:"name"`
-	Type  *string `json:"type" yaml:"type"`
-	Index *int    `json:"index" yaml:"index"`
+	Name       *string `json:"name" yaml:"name"`
+	Type       *string `json:"type" yaml:"type"`
+	Index      *int    `json:"index" yaml:"index"`
+	DefaultVal *string `json:"default" yaml:"default"`
 }
 
 type VID struct {
@@ -728,6 +729,9 @@ func (p *Prop) FormatValue(record base.Record) (string, error) {
 		return "", fmt.Errorf("Prop index %d out range %d of record(%v)", *p.Index, len(record), record)
 	}
 	r := record[*p.Index]
+	// if r == "" && *p.DefaultVal != "" {
+	// 	r = *p.DefaultVal
+	// }
 	if p.IsStringType() {
 		return fmt.Sprintf("%q", r), nil
 	}
@@ -735,7 +739,7 @@ func (p *Prop) FormatValue(record base.Record) (string, error) {
 }
 
 func (p *Prop) String(prefix string) string {
-	return fmt.Sprintf("%s.%s:%s", prefix, *p.Name, *p.Type)
+	return fmt.Sprintf("%s.%s:%s:%s", prefix, *p.Name, *p.Type, *p.DefaultVal)
 }
 
 func (p *Prop) validateAndReset(prefix string, val int) error {
@@ -749,6 +753,11 @@ func (p *Prop) validateAndReset(prefix string, val int) error {
 		if *p.Index < 0 {
 			return fmt.Errorf("Invalid prop index: %d, name: %s, type: %s", *p.Index, *p.Name, *p.Type)
 		}
+	}
+
+	if p.DefaultVal == nil {
+		v := ""
+		p.DefaultVal = &v
 	}
 	return nil
 }

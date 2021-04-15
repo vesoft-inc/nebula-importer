@@ -106,31 +106,33 @@ func (bm *BatchMgr) InitSchema(header base.Record) (err error) {
 }
 
 func (bm *BatchMgr) addVertexTags(r string, i int) {
-	columnName, columnType := bm.parseProperty(r)
+	columnName, columnType, defaultVal := bm.parseProperty(r)
 	tagName, prop := bm.parseTag(columnName)
 	if tagName == "" {
 		return
 	}
 	tag := bm.getOrCreateVertexTagByName(tagName)
 	p := config.Prop{
-		Name:  &prop,
-		Type:  &columnType,
-		Index: &i,
+		Name:       &prop,
+		Type:       &columnType,
+		Index:      &i,
+		DefaultVal: &defaultVal,
 	}
 	tag.Props = append(tag.Props, &p)
 }
 
 func (bm *BatchMgr) addEdgeProps(r string, i int) {
-	columnName, columnType := bm.parseProperty(r)
+	columnName, columnType, defaultVal := bm.parseProperty(r)
 	res := strings.SplitN(columnName, ".", 2)
 	prop := res[0]
 	if len(res) > 1 {
 		prop = res[1]
 	}
 	p := config.Prop{
-		Name:  &prop,
-		Type:  &columnType,
-		Index: &i,
+		Name:       &prop,
+		Type:       &columnType,
+		Index:      &i,
+		DefaultVal: &defaultVal,
 	}
 	bm.Schema.Edge.Props = append(bm.Schema.Edge.Props, &p)
 }
@@ -190,14 +192,25 @@ func (bm *BatchMgr) parseTag(s string) (tag, field string) {
 	return res[0], res[1]
 }
 
-func (bm *BatchMgr) parseProperty(r string) (columnName, columnType string) {
-	res := strings.SplitN(r, ":", 2)
+func (bm *BatchMgr) parseProperty(r string) (columnName, columnType, defaultVal string) {
+	res := strings.SplitN(r, ":", 3)
 
-	if len(res) == 1 || res[1] == "" || !base.IsValidType(res[1]) {
-		return res[0], "string"
+	if len(res) == 1 {
+		columnType = "string"
 	} else {
-		return res[0], res[1]
+		columnType = res[1]
 	}
+	if !base.IsValidType(columnType) {
+		columnType = "string"
+	}
+
+	if len(res) > 2 {
+		defaultVal = res[2]
+	} else {
+		defaultVal = ""
+	}
+
+	return res[0], columnType, defaultVal
 }
 
 func (bm *BatchMgr) Add(data base.Data) error {

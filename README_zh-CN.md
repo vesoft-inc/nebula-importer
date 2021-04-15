@@ -169,6 +169,7 @@ schema:
           - name: age
             type: int
             index: 2
+            default: 18
           - name: name
             type: string
             index: 1
@@ -194,6 +195,7 @@ schema:
   - `name`：**必填**。属性名称，同 Nebula Graph 中创建的 TAG 的属性名称一致。
   - `type`：**必填**。属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp` 和 `string` 几种类型。
   - `index`：**可选**。在 CSV 文件中的列标。
+  - `default`: **可选**。如果在csv文件中该列缺失的时候，使用该默认值
 
 > **注意**：上述 `props` 中的属性描述**顺序**必须同数据文件中的对应数据排列顺序一致。
 
