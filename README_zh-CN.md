@@ -1,70 +1,116 @@
+
+<p align="center">
+  <img src="https://github.com/vesoft-inc/nebula/raw/master/docs/logo.png"/>
+  <br> <a href="README.md">English</a> | 中文
+  <br>A distributed, scalable, lightning-fast graph database<br>
+</p>
 <div align="center">
   <h1>Nebula Importer</h1>
-  <div>
-    <a href="https://github.com/vesoft-inc/nebula-importer/blob/master/README.md">EN</a>
-  </div>
 </div>
+<p align="center">
+  <a href="http://githubbadges.com/star.svg?user=vesoft-inc&repo=nebula&style=default">
+    <img src="http://githubbadges.com/star.svg?user=vesoft-inc&repo=nebula&style=default" alt="nebula star"/>
+  </a>
+  <a href="http://githubbadges.com/fork.svg?user=vesoft-inc&repo=nebula-graph&style=default">
+    <img src="http://githubbadges.com/fork.svg?user=vesoft-inc&repo=nebula&style=default" alt="nebula fork"/>
+  </a>
+  <br>
+</p>
 
-[![test](https://github.com/vesoft-inc/nebula-importer/workflows/test/badge.svg)](https://github.com/vesoft-inc/nebula-importer/actions?workflow=test)
+Nebula Importer（简称Importer）是一款[Nebula Graph](https://github.com/vesoft-inc/nebula)的CSV文件导入工具。Importer可以读取本地的CSV文件，然后导入数据至Nebula Graph图数据库中。
 
-<!--
-## 介绍
+## 适用场景
 
-Nebula Importer 是一款 [Nebula Graph](https://github.com/vesoft-inc/nebula) 的 CSV 文件导入工具，其读取本地的 CSV 文件，然后写入到 Nebula Graph 图数据库中。
+Importer适用于将本地CSV文件的内容导入至Nebula Graph中。
 
-在使用 Nebula Importer 之前，首先请确保：
+## 优势
 
-- Nebula Graph 服务已部署。
-- 元数据信息 `space`、`tag` 和 `edge` 已创建好。
+- 轻量快捷：不需要复杂环境即可使用，快速导入数据。
 
-目前有三种部署方式：
+- 灵活筛选：通过配置文件可以实现对CSV文件数据的灵活筛选。
 
-1. [nebula-docker-compose](https://github.com/vesoft-inc/nebula-docker-compose "nebula-docker-compose")
-2. [rpm 包安装](https://docs.nebula-graph.com.cn/manual-CN/3.build-develop-and-administration/2.install/1.install-with-rpm-deb/)
-3. [源码编译安装](https://docs.nebula-graph.com.cn/manual-CN/3.build-develop-and-administration/1.build/1.build-source-code/)
+## 前提条件
 
-> 如果想在本地快速试用 Nebula Graph，推荐使用 `docker-compose` 部署。
+在使用Nebula Importer之前，请确保：
 
-## 如何使用
+- 已部署Nebula Graph服务。目前有三种部署方式：
+  
+  - [Docker Compose部署](https://docs.nebula-graph.com.cn/2.0/2.quick-start/2.deploy-nebula-graph-with-docker-compose/)（快速部署）
+  
+  - [RPM/DEB包安装](https://docs.nebula-graph.com.cn/2.0/4.deployment-and-installation/2.compile-and-install-nebula-graph/2.install-nebula-graph-by-rpm-or-deb/)
+  
+  - [源码编译安装](https://docs.nebula-graph.com.cn/2.0/4.deployment-and-installation/2.compile-and-install-nebula-graph/1.install-nebula-graph-by-compiling-the-source-code/)
 
-在完成 YAML 配置文件和（待导入）CSV 数据文件准备后，就可以使用本工具向 Nebula Graph 批量写入数据。
+- Nebula Graph中已创建Schema，包括图空间、标签和边类型，或者通过参数`clientSettings.postStart.commands`设置。
 
-### 源码编译方式
+- 运行Importer的机器已部署Golang环境。详情请参见[Golang 环境搭建](docs/golang-install.md)。
 
-Nebula Importer 使用 **1.13** 或更新版本的 Go 语言编译，所以首先确保在系统中安装了上述的 golang 运行环境。安装和配置教程参考[文档](docs/golang-install.md)。
+## 操作步骤
 
-使用 `git` 克隆该仓库到本地，进入 `nebula-importer/` 目录，运行 `make build`。
+配置yaml文件并准备好待导入的CSV文件，即可使用本工具向Nebula Graph批量写入数据。
 
-``` bash
-$ git clone https://github.com/vesoft-inc/nebula-importer.git
-$ cd nebula-importer
-$ make build
-$ ./nebula-importer --config /path/to/yaml/config/file
-```
+### 源码编译运行
 
-其中 `--config` 用来传入 YAML 配置文件的路径。
+1. 克隆仓库。
 
-### Docker 方式
+   ```bash
+   $ git clone --branch <branch> https://github.com/vesoft-inc/nebula-importer.git
+   ```
 
-使用 Docker 可以不必在本地安装 Go 语言环境。直接拉取 Nebula Importer 的[镜像](https://hub.docker.com/r/vesoft/nebula-importer)来导入。唯一要做的就是将本地配置文件和 CSV 数据文件挂载到容器中，如下所示：
+   >**说明**：请使用正确的分支。 
+   >
+   >Nebula Graph 1.x和2.x的rpc协议不同，因此：
+   >
+   >- Nebula Importer v1分支只能连接Nebula Graph 1.x。
+   >
+   >- Nebula Importer master分支和v2分支可以连接Nebula Graph 2.x。
+
+2. 进入目录`nebula-importer`。
+
+   ```bash
+   $ cd nebula-importer
+   ```
+
+3. 编译源码。
+
+   ```bash
+   $ make build
+   ```
+
+4. 启动服务。
+
+   ```bash
+   $ ./nebula-importer --config <yaml_config_file_path>
+   ```
+
+   >**说明**：yaml配置文件说明请参见[配置文件](#配置文件说明)。
+
+### Docker方式运行
+
+使用Docker可以不必在本地安装Go语言环境，只需要拉取Nebula Importer的[镜像](https://hub.docker.com/r/vesoft/nebula-importer)，并将本地配置文件和CSV数据文件挂载到容器中。命令如下：
 
 ```bash
 $ docker run --rm -ti \
     --network=host \
-    -v {your-config-file}:{your-config-file} \
-    -v {your-csv-data-dir}:{your-csv-data-dir} \
-    vesoft/nebula-importer
-    --config {your-config-file}
+    -v <config_file>:<config_file> \
+    -v <csv_data_dir>:<csv_data_dir> \
+    vesoft/nebula-importer:<version>
+    --config <config_file>
 ```
 
-- `{your-config-file}`：替换成本地 YAML 配置文件的绝对路径
-- `{your-csv-data-dir}`：替换成本地 CSV 数据文件的绝对路径
+- `<config_file>`：本地yaml配置文件的绝对路径。
+- `<csv_data_dir>`：本地CSV数据文件的绝对路径。
+- `<version>`：Nebula Graph 2.x请填写`v2`。
 
-> 注意：通常建议在 `files.path` 中使用相对路径。但如果在 `files.path` 中使用本地绝对路径，则需要小心检查这个路径映射到 Docker 中的对应路径。
+> **说明**：建议您使用相对路径。如果使用本地绝对路径，请检查路径映射到Docker中的路径。
 
-## 配置文件
+## 配置文件说明
 
-Nebula Importer 通过 YAML 配置文件来描述要导入的文件信息、Nebula Graph 的 server 信息等。[这里](examples/)有一个配置文件的参考样例和对应的数据文件格式。接下来逐一解释各个选项的含义：
+Nebula Importer通过yaml配置文件来描述待导入文件信息、Nebula Graph服务器信息等。您可以参考示例配置文件：[2.0配置文件](examples/v2/example.yaml)/[1.0配置文件](examples/v1/example.yaml)。下文将分类介绍配置文件内的字段。
+
+### 基本配置
+
+示例配置如下：
 
 ```yaml
 version: v2
@@ -72,10 +118,17 @@ description: example
 removeTempFiles: false
 ```
 
-- `version`：**必填**。表示配置文件的版本，默认值为 `v2`。
-- `description`：**可选**。对当前配置文件的描述信息。
-- `removeTempFiles`：**可选**。是否删除生成的临时日志和错误数据文件，默认值为：`false`。
-- `clientSettings`：跟 Nebula Graph 服务端相关的配置均在该字段下配置。
+|参数|默认值|是否必须|说明|
+|:---|:---|:---|:---|
+|`version`|v2|是|目标Nebula Graph的版本。|
+|`description`|example|否|配置文件的描述。|
+|`removeTempFiles`|false|否|是否删除临时生成的日志和错误数据文件。|
+
+### 客户端配置
+
+客户端配置存储客户端连接Nebula Graph相关的配置。
+
+示例配置如下：
 
 ```yaml
 clientSettings:
@@ -86,7 +139,7 @@ clientSettings:
   connection:
     user: user
     password: password
-    address: 192.168.8.1:3699,192.168.8.2:3699
+    address: 192.168.*.*:9669,192.168.*.*:9669
   postStart:
     commands: |
       UPDATE CONFIGS storage:wal_ttl=3600;
@@ -98,23 +151,26 @@ clientSettings:
       UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };
 ```
 
-- `clientSettings.retry`：**可选**。表示 Nebula Graph Client 的重试失败的 nGQL 请求次数，默认为 1。
-- `clientSettings.concurrency`：**可选**。表示 Nebula Graph Client 的并发度，即同 Nebula Graph Server 的连接数，默认为 10。
-- `clientSettings.channelBufferSize`：**可选**。表示每个 Nebula Graph Client 对应的缓存队列 (channel) 的 buffer 大小，默认为 128。
-- `clientSettings.space`：**必填**。指定所有的数据文件将要导入到哪个 `space`。请不要同时向多个 space 批量导入数据，这样反而性能更低。
-- `clientSettings.connection`：**必填**。配置 Nebula Graph Server 的 `user`、`password` 和 `address` 信息。
-- `clientSettings.postStart`：**可选**。配置连接 Nebula Graph Server 之后，在插入数据之前执行的一些操作。
-  - `clientSettings.postStart.commands`：定义连接 Nebula Graph Server 之后的一些命令。
-  - `clientSettings.postStart.afterPeriod`：定义执行上述命令之后到真正插入数据之前的间隔。
-- `clientSettings.preStop`：**可选**。配置断开 Nebula Graph Server 连接之前执行的一些操作。
-  - `clientSettings.preStop.commands`：定义断开连接 Nebula Graph Server 之前的一些命令脚本。
+|参数|默认值|是否必须|说明|
+|:---|:---|:---|:---|
+|`clientSettings.retry`|3|否|nGQL语句执行失败的重试次数。|
+|`clientSettings.concurrency`|10|否|Nebula Graph客户端并发数。|
+|`clientSettings.channelBufferSize`|128|否|每个Nebula Graph客户端的缓存队列大小。|
+|`clientSettings.space`|-|是|指定数据要导入的Nebula Graph图空间。不要同时导入多个空间，以免影响性能。|
+|`clientSettings.connection.user`|-|是|Nebula Graph的用户名。|
+|`clientSettings.connection.password`|-|是|Nebula Graph用户名对应的密码。|
+|`clientSettings.connection.address`|-|是|所有Graph服务的地址和端口。|
+|`clientSettings.postStart.commands`|-|否|配置连接Nebula Graph服务器之后，在插入数据之前执行的一些操作。|
+|`clientSettings.postStart.afterPeriod`|-|否|执行上述`commands`命令后到执行插入数据命令之间的间隔，例如`8s`。|
+|`clientSettings.preStop.commands`|-|否|配置断开Nebula Graph服务器连接之前执行的一些操作。|
 
-### 文件
+### 文件配置
 
-跟日志和数据文件相关的配置跟以下两个选项有关：
+文件配置存储数据文件和日志的相关配置，以及Schema的具体信息。
 
-- `logPath`：**可选**。指定导入过程中的错误等日志信息输出的文件路径，默认输出到 `/tmp/nebula-importer-{timestamp}.log` 中。
-- `files`：**必填**。数组类型，用来配置不同的数据文件。您也可以从 HTTP 链接导入数据，在文件路径中输入链接即可。
+#### 文件和日志配置
+
+示例配置如下：
 
 ```yaml
 logPath: ./err/test.log
@@ -131,30 +187,26 @@ files:
       delimiter: ","
 ```
 
-#### 数据文件
+|参数|默认值|是否必须|说明|
+|:---|:---|:---|:---|
+|`logPath`|`/tmp/nebula-importer-<timestamp>.log`|否|导入过程中的错误等日志信息输出的文件路径。|
+|`files.path`|`./student.csv`|是|数据文件的存放路径，如果使用相对路径，则会将路径和当前配置文件的目录拼接。|
+|`files.failDataPath`|`./err/student.csv`|是|插入失败的数据文件存放路径，以便后面补写数据。|
+|`files.batchSize`|128|否|单批次插入数据的语句数量。|
+|`files.limit`|-|否|读取数据的行数限制。|
+|`files.inOrder`|-|否|是否按顺序在文件中插入数据行。如果为`false`，可以避免数据倾斜导致的导入速率降低。|
+|`files.type`|-|是|文件类型。|
+|`files.csv.withHeader`|`false`|是|是否有表头。详情请参见[关于CSV文件表头](#关于csv文件表头header)。|
+|`files.csv.withLabel`|`false`|是|是否有LABEL。详情请参见[含有header的数据格式](#含有header的数据格式)|
+|`files.csv.delimiter`|`","`|是|指定csv文件的分隔符。只支持一个字符的字符串分隔符。|
 
-一个数据文件中只能存放一种点或者边，不同 schema 的点或者边数据需要放置在不同的文件中。
+#### Schema配置
 
-- `path`：**必填**。指定数据文件的存放路径，如果使用相对路径，则会拼接当前配置文件的目录和 `path`。
-- `failDataPath`：**必填**。指定插入失败的数据输出的文件，以便后面补写出错数据。
-- `batchSize`：**可选**。批量插入数据的条数，默认 128。
-- `limit`：**可选**。限制读取文件的行数。
-- `inOrder`：**可选**。是否按序插入文件中的每一行。如果不指定，可以避免数据倾斜导致的导入速率的下降。
-- `type` & `csv`：**必填**。指定文件的类型，目前只支持 CSV 文件导入。在 CSV 文件中可以指定是否含有文件头和插入、删除的标记。
-  - `withHeader`：默认是 `false`，文件头的格式在后面描述。
-  - `withLabel`：默认是 `false`，label 的格式也在后面描述。
-  - `delimiter`：**可选**。指定 CSV 文件的分隔符，默认是 `","`。目前只有单字符的分隔符被支持。
+Schema配置描述当前数据文件的Meta信息，Schema的类型分为点和边两类，可以同时配置多个点或边。
 
-#### `schema`
+- 点配置
 
-**必填**。描述当前数据文件的元数据信息。`schema.type` 只有两种取值：`vertex` 和 `edge`。
-
-- 当指定 `type: vertex` 时，需要在 `vertex` 字段中继续描述。
-- 当指定 `type: edge` 时，需要在 `edge` 字段中继续描述。
-
-##### `schema.vertex`
-
-**必填**。描述插入点的 schema 信息，比如 tags。
+示例配置如下：
 
 ```yaml
 schema:
@@ -176,30 +228,24 @@ schema:
             type: string
 ```
 
-##### `schema.vertex.vid`
+|参数|默认值|是否必须|说明|
+|:---|:---|:---|:---|
+|`files.schema.type`|-|是|Schema的类型，可选值为`vertex`和`edge`。|
+|`files.schema.vertex.vid.index`|0|否|点ID对应CSV文件中列的序号。|
+|`files.schema.vertex.vid.function`|-|否|通过函数生成点ID。支持的函数为`hash`和`uuid`。|
+|`files.schema.vertex.tags.name`|-|是|标签名称|
+|`files.schema.vertex.tags.props.name`|-|是|标签属性名称，必须和Nebula Graph中的标签属性一致。|
+|`files.schema.vertex.tags.props.type`|-|否|属性类型，支持`bool`、`int`、`float`、`double`、`timestamp`和`string`。|
+|`files.schema.vertex.tags.props.index`|-|否|属性对应CSV文件中列的序号。|
 
-**可选**。描述点 VID 所在的列和使用的函数。
+>**说明**：
+>
+>- 如果没有设置`index`字段，请确保`props`字段内的属性填写顺序和CSV文件内属性列的顺序一致。
+>- CSV文件中列的序号从0开始，即第一列的序号为0，第二列的序号为1。
 
-- `index`：**可选**。在 CSV 文件中的列标，从 0 开始计数。默认值 0。
-- `function`：**可选**。用来生成 VID 时的函数，有 `hash` 和 `uuid` 两种函数可选。
+- 边配置
 
-##### `schema.vertex.tags`
-
-**可选**。由于一个 VERTEX 可以含有多个 TAG，所以不同的 TAG 在 `schema.vertex.tags` 数组中给出。
-
-对于每一个 TAG，有以下两个属性:
-
-- `name`：TAG 的名称。
-- `props`：TAG 的属性字段数组，每个属性字段又由如下两个字段构成：
-  - `name`：**必填**。属性名称，同 Nebula Graph 中创建的 TAG 的属性名称一致。
-  - `type`：**必填**。属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp` 和 `string` 几种类型。
-  - `index`：**可选**。在 CSV 文件中的列标。
-
-> **注意**：上述 `props` 中的属性描述**顺序**必须同数据文件中的对应数据排列顺序一致。
-
-##### `schema.edge`
-
-**必填**。描述插入边的 schema 信息。
+示例配置如下：
 
 ```yaml
 schema:
@@ -220,129 +266,114 @@ schema:
         index: 3
 ```
 
-含有如下字段：
+|参数|默认值|是否必须|说明|
+|:---|:---|:---|:---|
+|`files.schema.type`|-|是|Schema的类型，可选值为`vertex`和`edge`。|
+|`files.schema.edge.name`|-|是|边类型名称。|
+|`files.schema.edge.srcVID.index`|-|否|边的起始点ID对应CSV文件中列的序号。|
+|`files.schema.edge.srcVID.function`|-|否|通过函数生成起始点ID。支持的函数为`hash`和`uuid`。|
+|`files.schema.edge.dstVID.index`|-|否|边的目的点ID对应CSV文件中列的序号。|
+|`files.schema.edge.dstVID.function`|-|否|通过函数生成目的点ID。支持的函数为`hash`和`uuid`。|
+|`files.schema.edge.rank.index`|-|否|边的rank值对应CSV文件中列的序号。|
+|`files.schema.edge.props.name`|-|是|边类型属性名称，必须和Nebula Graph中的边类型属性一致。|
+|`files.schema.edge.props.type`|-|否|属性类型，支持`bool`、`int`、`float`、`double`、`timestamp`和`string`。|
+|`files.schema.edge.props.index`|-|否|属性对应CSV文件中列的序号。|
 
-- `name`：**必填**。边的名称，同 Nebula Graph 中创建的 edge 名称一致。
-- `srcVID`：**可选**。边的起点信息，含有的 `index` 和 `function` 意义同上述 `vertex.vid`。
-- `dstVID`：**可选**。边的终点信息，含有的 `index` 和 `function` 意义同上述 `vertex.vid`。
-- `rank`：**可选**。边的 rank 信息，含有的 `index` 表示该值所在的列。
-- `props`：**必填**。描述同上述点，同样需要注意跟数据文件中列的排列顺序一致。
+>**说明**：
+>
+>- 如果没有设置`index`字段，请确保`props`字段内的属性填写顺序和CSV文件内属性列的顺序一致。
+>- CSV文件中列的序号从0开始，即第一列的序号为0，第二列的序号为1。
 
-所有配置的选项解释见[表格](docs/configuration-reference.md)。
+## 关于CSV文件表头（header）
 
-## 关于 CSV Header
+通常可以将CSV文件的第一行作为表头，添加特定的描述信息以指定每列的类型。
 
-通常还可以在 CSV 文件的第一行添加一些描述信息，以指定每列的类型。
+### 没有header的数据格式
 
-### 没有 header 的数据格式
+如果配置中的`withHeader`为`false`，表示CSV文件中只含有数据（不含第一行表头）。
 
-如果在上述配置中的 `csv.withHeader` 配置为 `false`，那么 CSV 文件中只含有数据（不含有第一行描述信息）。对于点和边的数据示例如下：
+没有header的CSV文件示例如下：
 
-#### 点示例
+- 点示例
 
-example 中 course 点的样例数据：
+  `example.yaml`中标签course的样例数据：
 
-```csv
-101,Math,3,No5
-102,English,6,No11
-```
+  ```csv
+  101,Math,3,No5
+  102,English,6,No11
+  ```
 
-第一列为点的 `VID`。后面三列为属性值，分别按序对应配置文件中的 course.name、course.credits 和 building.name（见 `vertex.tags.props`）。
+  第一列为点ID，后面三列为属性值，按顺序分别对应配置文件中的`course.name`、`course.credits`和`building.name`。
 
-#### 边示例
+- 边示例
 
-example 中 choose 类型的边的样例数据：
+  `example.yaml`中边类型choose的样例数据：
 
-```csv
-200,101,5
-200,102,3
-```
+  ```csv
+  200,101,5
+  200,102,3
+  ```
 
-前两列的数据分别为起点 VID 和终点 VID，第三列对应 choose.likeness 属性（如果边中含有 rank 字段，请在第三列放置 rank 的值。之后的列依次放置各属性）。
+  前两列的数据分别为起始点ID和目的点ID，第三列为属性值，对应`choose.likeness`。如果没有边中含有rank字段，请在第三列设置rank的值。之后的列依次设置各属性。
 
-### 含有 header 的数据格式
+  >**说明**：如果没有设置`index`字段且需要使用rank，请在第三列设置rank的值。之后的列依次设置各属性。
 
-如果配置文件中 `csv.withHeader` 设置为 `true`，那么对应的数据文件中的第一行即为 header 的描述。
+### 含有header的数据格式
 
-每一列的格式为 `<tag_name/edge_name>.<prop_name>:<prop_type>`：
+如果配置中的`withHeader`为`true`，表示CSV文件中第一行为表头，表头内容具有特殊含义。
 
-- `<tag_name/edge_name>` 表示 TAG 或者 EDGE 的名称。
-- `<prop_name>` 表示属性名称。
-- `<prop_type>` 表示属性类型。可以是 `bool`、`int`、`float`、`double`、`string` 和 `timestamp`，不设置默认为 `string`。
+每一列的格式为`<tag_name/edge_name>.<prop_name>:<prop_type>`：
 
-在上述的 `<prop_type>` 字段中有如下几个关键词含有特殊语义：
+- `<tag_name/edge_name>`：标签或者边类型的名称。
+- `<prop_name>`：属性名称。
+- `<prop_type>`：属性类型。支持`bool`、`int`、`float`、`double`、`timestamp`和`string`，默认为`string`。
 
-- `:VID` 表示点的 VID
-- `:SRC_VID` 表示边的起点的 VID
-- `:DST_VID` 表示边的终点的 VID
-- `:RANK` 表示边的 rank 值
-- `:IGNORE` 表示忽略这一列
-- `:LABEL` 表示插入/删除 `+/-` 的标记列
+除此之外，表头还有如下几个关键词有特殊语义：
 
-> **注意**：如果 csv 文件中含有 header 描述信息，那么工具就按照会 header 来解析每行数据的 schema，并忽略 YAML 中的 `props`。
+- `:VID`（必填）：点ID。可以用`:VID(type)`形式设置点ID的数据类型，例如`:VID(string)`或`:VID(int)`。除了常见的整数值（例如123），还可以使用`hash`和`uuid`两个内置函数来自动生成点ID。例如：
 
-#### 含有 header 的点 csv 文件示例
+  ```csv
+  :VID(string)
+  123,
+  "hash(""Math"")",
+  "uuid(""English"")"
+  ```
 
-example 中 course 点的示例：
+  >**说明**：双引号（"）在CSV文件中会被转义，例如`hash("Math")`必须写作`"hash(""Math"")"`。
 
-```csv
-:LABEL,:VID,course.name,building.name:string,:IGNORE,course.credits:int
-+,"hash(""Math"")",Math,No5,1,3
-+,"uuid(""English"")",English,"No11 B\",2,6
-```
+- `:SRC_VID`：边的起始点ID。
+- `:DST_VID`：边的目的点ID。
+- `:RANK`：边的rank值。
+- `:IGNORE`：插入数据时忽略这一列。
+- `:LABEL`（可选）：表示对该行进行插入（+）或删除（-）操作。例如：
 
-##### LABEL (可选）
+  ```csv
+  :LABEL,
+  +,
+  -,
+  ```
 
-```csv
-:LABEL,
-+,
--,
-```
+>**警告**：如果CSV文件中含有header，Importer就会按照header来解析每行数据的Schema，并忽略yaml文件中的`props`设置。
 
-表示该行为插入(+)或者删除(-)操作。
+含有header的CSV文件示例如下：
 
-##### :VID (必选）
+- 点示例
 
-```csv
-:VID
-123,
-"hash(""Math"")",
-"uuid(""English"")"
-```
+  ```csv
+  :LABEL,:VID,course.name,building.name:string,:IGNORE,course.credits:int
+  +,"hash(""Math"")",Math,No5,1,3
+  +,"uuid(""English"")",English,"No11 B\",2,6
+  ```
 
-在 `:VID` 这列除了常见的整数值（例如 123），还可以使用 `hash` 和 `uuid` 两个内置函数来自动计算生成点的 VID（例如 hash("Math")）。
+- 边示例
 
-> 需要注意的是在 CSV 文件中对双引号(")的转义处理。如 `hash("Math")` 要写成 `"hash(""Math"")"`。
+  ```csv
+  :DST_VID,follow.likeness:double,:SRC_VID,:RANK
+  201,92.5,200,0
+  200,85.6,201,1
+  ```
 
-##### 其他属性
-
-```csv
-course.name,:IGNORE,course.credits:int
-Math,1,3
-English,2,6
-```
-
-可以指明 `:IGNORE` 表示忽略第二列不需要导入。此外，除了 `:LABEL` 这列之外，其他的列都可按任意顺序排列。这样对于一个比较大的 CSV 文件，可以通过设置 header 来灵活地选取自己需要的列。
-
-> **注意**：因为 VERTEX 可以含有多个不同的 TAG，所以在指定列的 header 时要加上 TAG 名称（例如必须是 `course.credits`，不能简写为 `credits`）。
-
-#### 含有 header 的边 csv 文件示例
-
-example 中 follow 边的示例：
-
-```csv
-:DST_VID,follow.likeness:double,:SRC_VID,:RANK
-201,92.5,200,0
-200,85.6,201,1
-```
-
-可以看到，例子中边的起点为 `:SRC_VID`（在第 4 列），边的终点为 `:DST_VID`（在第 1 列），边上的属性为 `follow.likeness:double`（在第 2 列），边的 rank 字段对应 `:RANK`（在第 5 列，如果不指定导入 `:RANK` 则系统默认为 0）。
-
-#### Label（可选）
-
-- `+` 表示插入
-- `-` 表示删除
-
-边 CSV 文件 header 中也可以指定 label，和点原理相同。
-
--->
+>**说明**：
+>
+>- 除了`:LABEL`列之外的所有列都可以按任何顺序排序，因此针对较大的CSV文件，您可以灵活地设置header来选择需要的列。
+>- 因为一个点可以包含多个标签，所以在设置header时，必须添加标签名称。例如`course.credits`不能简写为`credits`。
