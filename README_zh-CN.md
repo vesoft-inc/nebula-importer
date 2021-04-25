@@ -35,7 +35,7 @@ Nebula Importer 使用 **1.13** 或更新版本的 Go 语言编译，所以首�
 使用 `git` 克隆该仓库到本地，进入 `nebula-importer/` 目录，运行 `make build`。
 
 ``` bash
-$ git clone https://github.com/vesoft-inc/nebula-importer.git
+$ git clone -b v1 https://github.com/vesoft-inc/nebula-importer.git
 $ cd nebula-importer
 $ make build
 $ ./nebula-importer --config /path/to/yaml/config/file
