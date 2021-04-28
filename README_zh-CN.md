@@ -394,9 +394,9 @@ schema:
 
   ```csv
   :LABEL,:VID,student.name,student.age,student.gender
-  +,x200,Monica,16,female,2
-  +,y201,Mike,18,male,5
-  +,z202,Jane,17,female,7
+  +,x200,Monica,16,female
+  +,y201,Mike,18,male
+  +,z202,Jane,17,female
   ```
 
 - 边示例
