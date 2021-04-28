@@ -9,7 +9,7 @@ clientSettings:
   connection:
     user: root
     password: nebula
-    address: graphd1:3699,graphd2:3699
+    address: graphd1_ip:9669,graphd2_ip:9669
   postStart:
     commands: |
       UPDATE CONFIGS storage:wal_ttl=3600;
