@@ -85,6 +85,34 @@ Importer适用于将本地CSV文件的内容导入至Nebula Graph中。
 
    >**说明**：yaml配置文件说明请参见[配置文件](#配置文件说明)。
 
+#### 无网络编译方式
+
+如果您的服务器不能联网，建议您在能联网的机器上将源码和各种以来打包上传到对应的服务器上编译即可，操作步骤如下：
+
+1. 克隆仓库。
+
+   ```bash
+   $ git clone --branch <branch> https://github.com/vesoft-inc/nebula-importer.git
+   ```
+
+2. 使用如下的命令下载并打包依赖的源码。
+
+   ```bash
+   $ cd nebula-importer
+   $ go mod vendor
+   $ cd .. && tar -zcvf nebula-importer.tar.gz nebula-importer
+   ```
+
+3. 将压缩包上传到不能联网的服务器上。
+
+4. 解压并编译。
+
+   ```bash
+   $ tar -zxvf nebula-importer.tar.gz 
+   $ cd nebula-importer
+   $ go build -mod vendor cmd/
+   ```
+
 ### Docker方式运行
 
 使用Docker可以不必在本地安装Go语言环境，只需要拉取Nebula Importer的[镜像](https://hub.docker.com/r/vesoft/nebula-importer)，并将本地配置文件和CSV数据文件挂载到容器中。命令如下：
@@ -103,6 +131,8 @@ $ docker run --rm -ti \
 - `<version>`：Nebula Graph 2.x请填写`v2`。
 
 > **说明**：建议您使用相对路径。如果使用本地绝对路径，请检查路径映射到Docker中的路径。
+
+
 
 ## 配置文件说明
 
@@ -296,25 +326,28 @@ schema:
 
 - 点示例
 
-  `example.yaml`中标签course的样例数据：
+  `student.csv`的样例数据：
 
   ```csv
-  101,Math,3,No5
-  102,English,6,No11
+  x200,Monica,16,female
+  y201,Mike,18,male
+  z202,Jane,17,female
   ```
 
-  第一列为点ID，后面三列为属性值，按顺序分别对应配置文件中的`course.name`、`course.credits`和`building.name`。
+  第一列为点ID，后面三列为属性值，按顺序分别对应配置文件中的`student.name`、`student.age`和`student.gender`。
 
 - 边示例
 
-  `example.yaml`中边类型choose的样例数据：
+  `choose.csv`的样例数据：
 
   ```csv
-  200,101,5
-  200,102,3
+  x200,x101,5
+  x200,y102,3
+  y201,y102,3
+  z202,y102,3
   ```
 
-  前两列的数据分别为起始点ID和目的点ID，第三列为属性值，对应`choose.likeness`。如果没有边中含有rank字段，请在第三列设置rank的值。之后的列依次设置各属性。
+  前两列的数据分别为起始点ID和目的点ID，第三列为属性值，对应`choose.grade`。
 
   >**说明**：如果没有设置`index`字段且需要使用rank，请在第三列设置rank的值。之后的列依次设置各属性。
 
@@ -360,20 +393,23 @@ schema:
 - 点示例
 
   ```csv
-  :LABEL,:VID,course.name,building.name:string,:IGNORE,course.credits:int
-  +,"hash(""Math"")",Math,No5,1,3
-  +,"uuid(""English"")",English,"No11 B\",2,6
+  :LABEL,:VID,student.name,student.age,student.gender
+  +,x200,Monica,16,female,2
+  +,y201,Mike,18,male,5
+  +,z202,Jane,17,female,7
   ```
 
 - 边示例
 
   ```csv
-  :DST_VID,follow.likeness:double,:SRC_VID,:RANK
-  201,92.5,200,0
-  200,85.6,201,1
+  :SRC_VID,:DST_VID,choose.grade:int
+  x200,x101,5
+  x200,y102,3
+  y201,y102,3
+  z202,y102,3
   ```
 
 >**说明**：
 >
 >- 除了`:LABEL`列之外的所有列都可以按任何顺序排序，因此针对较大的CSV文件，您可以灵活地设置header来选择需要的列。
->- 因为一个点可以包含多个标签，所以在设置header时，必须添加标签名称。例如`course.credits`不能简写为`credits`。
+>- 因为一个点可以包含多个标签，所以在设置header时，必须添加标签名称。例如`student.name`不能简写为`name`。
