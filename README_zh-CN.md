@@ -136,7 +136,7 @@ $ docker run --rm -ti \
 
 ## 配置文件说明
 
-Nebula Importer通过yaml配置文件来描述待导入文件信息、Nebula Graph服务器信息等。您可以参考示例配置文件：[2.0配置文件](examples/v2/example.yaml)/[1.0配置文件](examples/v1/example.yaml)。下文将分类介绍配置文件内的字段。
+Nebula Importer通过yaml配置文件来描述待导入文件信息、Nebula Graph服务器信息等。您可以参考示例配置文件：[无表头配置](docs/config-without-header.md)/[有表头配置](docs/config-with-header.md)。下文将分类介绍配置文件内的字段。
 
 ### 基本配置
 
@@ -205,8 +205,8 @@ clientSettings:
 ```yaml
 logPath: ./err/test.log
 files:
-  - path: ./student.csv
-    failDataPath: ./err/student.csv
+  - path: ./student_without_header.csv
+    failDataPath: ./err/studenterr.csv
     batchSize: 128
     limit: 10
     inOrder: false
@@ -219,15 +219,15 @@ files:
 
 |参数|默认值|是否必须|说明|
 |:---|:---|:---|:---|
-|`logPath`|`/tmp/nebula-importer-<timestamp>.log`|否|导入过程中的错误等日志信息输出的文件路径。|
-|`files.path`|`./student.csv`|是|数据文件的存放路径，如果使用相对路径，则会将路径和当前配置文件的目录拼接。|
-|`files.failDataPath`|`./err/student.csv`|是|插入失败的数据文件存放路径，以便后面补写数据。|
+|`logPath`|-|否|导入过程中的错误等日志信息输出的文件路径。|
+|`files.path`|-|是|数据文件的存放路径，如果使用相对路径，则会将路径和当前配置文件的目录拼接。|
+|`files.failDataPath`|-|是|插入失败的数据文件存放路径，以便后面补写数据。|
 |`files.batchSize`|128|否|单批次插入数据的语句数量。|
 |`files.limit`|-|否|读取数据的行数限制。|
 |`files.inOrder`|-|否|是否按顺序在文件中插入数据行。如果为`false`，可以避免数据倾斜导致的导入速率降低。|
 |`files.type`|-|是|文件类型。|
 |`files.csv.withHeader`|`false`|是|是否有表头。详情请参见[关于CSV文件表头](#关于csv文件表头header)。|
-|`files.csv.withLabel`|`false`|是|是否有LABEL。详情请参见[含有header的数据格式](#含有header的数据格式)|
+|`files.csv.withLabel`|`false`|是|是否有LABEL。详情请参见[有表头配置说明](docs/config-with-header.md)。|
 |`files.csv.delimiter`|`","`|是|指定csv文件的分隔符。只支持一个字符的字符串分隔符。|
 
 #### Schema配置
@@ -243,35 +243,31 @@ schema:
   type: vertex
   vertex:
     vid:
-      index: 1
-      function: hash
+      type: string
+      index: 0
     tags:
       - name: student
         props:
-          - name: age
-            type: int
-            index: 2
           - name: name
             type: string
             index: 1
+          - name: age
+            type: int
+            index: 2
           - name: gender
             type: string
+            index: 3
 ```
 
 |参数|默认值|是否必须|说明|
 |:---|:---|:---|:---|
 |`files.schema.type`|-|是|Schema的类型，可选值为`vertex`和`edge`。|
-|`files.schema.vertex.vid.index`|0|否|点ID对应CSV文件中列的序号。|
-|`files.schema.vertex.vid.function`|-|否|通过函数生成点ID。支持的函数为`hash`和`uuid`。|
-|`files.schema.vertex.tags.name`|-|是|标签名称|
+|`files.schema.vertex.vid.type`|-|否|点ID的数据类型，可选值为`int`和`string`。|
+|`files.schema.vertex.vid.index`|-|否|点ID对应CSV文件中列的序号。|
+|`files.schema.vertex.tags.name`|-|是|标签名称。|
 |`files.schema.vertex.tags.props.name`|-|是|标签属性名称，必须和Nebula Graph中的标签属性一致。|
-|`files.schema.vertex.tags.props.type`|-|否|属性类型，支持`bool`、`int`、`float`、`double`、`timestamp`和`string`。|
+|`files.schema.vertex.tags.props.type`|-|否|属性数据类型，支持`bool`、`int`、`float`、`double`、`timestamp`和`string`。|
 |`files.schema.vertex.tags.props.index`|-|否|属性对应CSV文件中列的序号。|
-
->**说明**：
->
->- 如果没有设置`index`字段，请确保`props`字段内的属性填写顺序和CSV文件内属性列的顺序一致。
->- CSV文件中列的序号从0开始，即第一列的序号为0，第二列的序号为1。
 
 - 边配置
 
@@ -281,18 +277,19 @@ schema:
 schema:
   type: edge
   edge:
-    name: choose
+    name: follow
+    withRanking: true
     srcVID:
+      type: string
       index: 0
-      function: hash
     dstVID:
+      type: string
       index: 1
-      function: uuid
     rank:
       index: 2
     props:
-      - name: grade
-        type: int
+      - name: degree
+        type: double
         index: 3
 ```
 
@@ -300,116 +297,21 @@ schema:
 |:---|:---|:---|:---|
 |`files.schema.type`|-|是|Schema的类型，可选值为`vertex`和`edge`。|
 |`files.schema.edge.name`|-|是|边类型名称。|
+|`files.schema.edge.srcVID.type`|-|否|边的起始点ID的数据类型。|
 |`files.schema.edge.srcVID.index`|-|否|边的起始点ID对应CSV文件中列的序号。|
-|`files.schema.edge.srcVID.function`|-|否|通过函数生成起始点ID。支持的函数为`hash`和`uuid`。|
+|`files.schema.edge.dstVID.type`|-|否|边的目的点ID的数据类型。|
 |`files.schema.edge.dstVID.index`|-|否|边的目的点ID对应CSV文件中列的序号。|
-|`files.schema.edge.dstVID.function`|-|否|通过函数生成目的点ID。支持的函数为`hash`和`uuid`。|
 |`files.schema.edge.rank.index`|-|否|边的rank值对应CSV文件中列的序号。|
 |`files.schema.edge.props.name`|-|是|边类型属性名称，必须和Nebula Graph中的边类型属性一致。|
 |`files.schema.edge.props.type`|-|否|属性类型，支持`bool`、`int`、`float`、`double`、`timestamp`和`string`。|
 |`files.schema.edge.props.index`|-|否|属性对应CSV文件中列的序号。|
 
->**说明**：
->
->- 如果没有设置`index`字段，请确保`props`字段内的属性填写顺序和CSV文件内属性列的顺序一致。
->- CSV文件中列的序号从0开始，即第一列的序号为0，第二列的序号为1。
+>**说明**：CSV文件中列的序号从0开始，即第一列的序号为0，第二列的序号为1。
 
 ## 关于CSV文件表头（header）
 
-通常可以将CSV文件的第一行作为表头，添加特定的描述信息以指定每列的类型。
+Importer根据CSV文件有无表头，需要对配置文件进行不同的设置，相关示例和说明请参见：
 
-### 没有header的数据格式
+- [无表头配置说明](docs/config-without-header.md)
 
-如果配置中的`withHeader`为`false`，表示CSV文件中只含有数据（不含第一行表头）。
-
-没有header的CSV文件示例如下：
-
-- 点示例
-
-  `student.csv`的样例数据：
-
-  ```csv
-  x200,Monica,16,female
-  y201,Mike,18,male
-  z202,Jane,17,female
-  ```
-
-  第一列为点ID，后面三列为属性值，按顺序分别对应配置文件中的`student.name`、`student.age`和`student.gender`。
-
-- 边示例
-
-  `choose.csv`的样例数据：
-
-  ```csv
-  x200,x101,5
-  x200,y102,3
-  y201,y102,3
-  z202,y102,3
-  ```
-
-  前两列的数据分别为起始点ID和目的点ID，第三列为属性值，对应`choose.grade`。
-
-  >**说明**：如果没有设置`index`字段且需要使用rank，请在第三列设置rank的值。之后的列依次设置各属性。
-
-### 含有header的数据格式
-
-如果配置中的`withHeader`为`true`，表示CSV文件中第一行为表头，表头内容具有特殊含义。
-
-每一列的格式为`<tag_name/edge_name>.<prop_name>:<prop_type>`：
-
-- `<tag_name/edge_name>`：标签或者边类型的名称。
-- `<prop_name>`：属性名称。
-- `<prop_type>`：属性类型。支持`bool`、`int`、`float`、`double`、`timestamp`和`string`，默认为`string`。
-
-除此之外，表头还有如下几个关键词有特殊语义：
-
-- `:VID`（必填）：点ID。可以用`:VID(type)`形式设置点ID的数据类型，例如`:VID(string)`或`:VID(int)`。除了常见的整数值（例如123），还可以使用`hash`和`uuid`两个内置函数来自动生成点ID。例如：
-
-  ```csv
-  :VID(string)
-  123,
-  "hash(""Math"")",
-  "uuid(""English"")"
-  ```
-
-  >**说明**：双引号（"）在CSV文件中会被转义，例如`hash("Math")`必须写作`"hash(""Math"")"`。
-
-- `:SRC_VID`：边的起始点ID。
-- `:DST_VID`：边的目的点ID。
-- `:RANK`：边的rank值。
-- `:IGNORE`：插入数据时忽略这一列。
-- `:LABEL`（可选）：表示对该行进行插入（+）或删除（-）操作。例如：
-
-  ```csv
-  :LABEL,
-  +,
-  -,
-  ```
-
->**警告**：如果CSV文件中含有header，Importer就会按照header来解析每行数据的Schema，并忽略yaml文件中的`props`设置。
-
-含有header的CSV文件示例如下：
-
-- 点示例
-
-  ```csv
-  :LABEL,:VID,student.name,student.age,student.gender
-  +,x200,Monica,16,female
-  +,y201,Mike,18,male
-  +,z202,Jane,17,female
-  ```
-
-- 边示例
-
-  ```csv
-  :SRC_VID,:DST_VID,choose.grade:int
-  x200,x101,5
-  x200,y102,3
-  y201,y102,3
-  z202,y102,3
-  ```
-
->**说明**：
->
->- 除了`:LABEL`列之外的所有列都可以按任何顺序排序，因此针对较大的CSV文件，您可以灵活地设置header来选择需要的列。
->- 因为一个点可以包含多个标签，所以在设置header时，必须添加标签名称。例如`student.name`不能简写为`name`。
+- [有表头配置说明](docs/config-with-header.md)

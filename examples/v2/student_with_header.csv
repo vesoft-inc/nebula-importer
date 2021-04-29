@@ -1,0 +1,4 @@
+:VID(string),student.name:string,student.age:int,student.gender:string
+student100,Monica,16,female
+student101,Mike,18,male
+student102,Jane,17,female
