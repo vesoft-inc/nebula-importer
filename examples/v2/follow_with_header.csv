@@ -1,0 +1,5 @@
+:SRC_VID(string),:DST_VID(string),:RANK,follow.degree:double
+student100,student101,0,92.5
+student101,student100,1,85.6
+student101,student102,2,93.2
+student100,student102,1,96.2
