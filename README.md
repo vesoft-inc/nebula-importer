@@ -1,13 +1,21 @@
+
+<p align="center">
+  <img src="https://github.com/vesoft-inc/nebula/raw/master/docs/logo.png"/>
+  <br> English | <a href="README_zh-CN.md">中文</a>
+  <br>A distributed, scalable, lightning-fast graph database<br>
+</p>
 <div align="center">
   <h1>Nebula Importer</h1>
-  <div>
-    <!--
-    <a href="https://github.com/vesoft-inc/nebula-importer/blob/master/README_zh-CN.md">中文</a>
-    -->
-  </div>
 </div>
-
-[![test](https://github.com/vesoft-inc/nebula-importer/workflows/test/badge.svg)](https://github.com/vesoft-inc/nebula-importer/actions?workflow=test)
+<p align="center">
+  <a href="http://githubbadges.com/star.svg?user=vesoft-inc&repo=nebula&style=default">
+    <img src="http://githubbadges.com/star.svg?user=vesoft-inc&repo=nebula&style=default" alt="nebula star"/>
+  </a>
+  <a href="http://githubbadges.com/fork.svg?user=vesoft-inc&repo=nebula-graph&style=default">
+    <img src="http://githubbadges.com/fork.svg?user=vesoft-inc&repo=nebula&style=default" alt="nebula fork"/>
+  </a>
+  <br>
+</p>
 
 ## Introduction
 
