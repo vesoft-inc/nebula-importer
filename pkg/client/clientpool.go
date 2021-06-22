@@ -122,12 +122,18 @@ func (p *ClientPool) Close() {
 }
 
 func (p *ClientPool) Init() error {
+	i := p.getActiveConnIdx()
+	if i == -1 {
+		return fmt.Errorf("no available session.")
+	}
 	if p.postStart != nil && p.postStart.Commands != nil {
-		if i := p.getActiveConnIdx(); i != -1 {
-			if err := p.exec(i, *p.postStart.Commands); err != nil {
-				return err
-			}
+		if err := p.exec(i, *p.postStart.Commands); err != nil {
+			return err
 		}
+	}
+	// pre-check for use space statement
+	if err := p.exec(i, fmt.Sprintf("USE `%s`;", p.space)); err != nil {
+		return err
 	}
 
 	for i := 0; i < p.concurrency; i++ {
