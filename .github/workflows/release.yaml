@@ -18,10 +18,13 @@ jobs:
           - windows
         arch:
           - amd64
+          - arm64
           - arm
         exclude:
           - os: darwin
             arch: arm
+          - os: windows
+            arch: arm64
     steps:
       - uses: actions/checkout@v2
       - name: setup-go 1.14
@@ -40,6 +43,7 @@ jobs:
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
         run: |
           cd cmd
           go build -o ../${{ steps.package-name.outputs.package_name }}
