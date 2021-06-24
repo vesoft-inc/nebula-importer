@@ -12,4 +12,5 @@ jobs:
         run: docker-compose up --exit-code-from importer
         timeout-minutes: 20
       - name: cleanup
+        if: ${{ always() }}
         run: docker-compose down -v
