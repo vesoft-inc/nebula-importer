@@ -23,7 +23,3 @@ func TestCsvWriter(t *testing.T) {
 		t.Fatal(w.Error())
 	}
 }
-
-func TestCsvReader(t *testing.T) {
-
-}
