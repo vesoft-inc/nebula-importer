@@ -10,3 +10,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: test importer
         run: docker-compose up --exit-code-from importer
+        timeout-minutes: 20
+      - name: cleanup
+        run: docker-compose down -v

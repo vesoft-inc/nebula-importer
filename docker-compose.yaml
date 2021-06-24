@@ -4,108 +4,121 @@ services:
     image: vesoft/nebula-metad:v2-nightly
     environment:
       USER: root
+      TZ: UTC
     command:
-      - --meta_server_addrs=metad:45500
+      - --meta_server_addrs=metad:9559
       - --local_ip=metad
       - --ws_ip=metad
-      - --port=45500
-    volumes:
-      - metadata:/usr/local/nebula/data/meta
-      - logsdata:/usr/local/nebula/logs
+      - --port=9559
+      - --ws_http_port=19559
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://metad:11000/status"]
+      test: ["CMD", "curl", "-f", "http://metad:19559/status"]
       interval: 15s
       timeout: 10s
       retries: 3
       start_period: 20s
     ports:
-      - 11000
-      - 11002
+      - 9559
+      - 19559
+      - 19560
     networks:
       nebula-net:
     restart: on-failure
+    cap_add:
+      - SYS_PTRACE
 
   storaged:
     image: vesoft/nebula-storaged:v2-nightly
     environment:
       USER: root
+      TZ: UTC
     command:
-      - --meta_server_addrs=metad:45500
+      - --meta_server_addrs=metad:9559
       - --local_ip=storaged
       - --ws_ip=storaged
-      - --port=44500
-    volumes:
-      - storagedata:/usr/local/nebula/data/storage
-      - logsdata:/usr/local/nebula/logs
+      - --port=9779
+      - --ws_http_port=19779
+      - --local_config=false
     depends_on:
       - metad
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://storaged:12000/status"]
+      test: ["CMD", "curl", "-f", "http://storaged:19779/status"]
       interval: 15s
       timeout: 10s
       retries: 3
       start_period: 20s
     ports:
-      - 12000
-      - 12002
+      - 9779
+      - 19779
+      - 19780
     networks:
       nebula-net:
     restart: on-failure
+    cap_add:
+      - SYS_PTRACE
 
   graphd1:
     image: vesoft/nebula-graphd:v2-nightly
     environment:
       USER: root
+      TZ: UTC
     command:
-      - --meta_server_addrs=metad:45500
-      - --port=3699
+      - --meta_server_addrs=metad:9559
+      - --local_ip=graphd1
       - --ws_ip=graphd1
-      - --log_dir=/usr/local/nebula/logs1
-    volumes:
-      - logsdata:/usr/local/nebula/logs1
+      - --port=9669
+      - --ws_http_port=19669
+      - --local_config=false
     depends_on:
       - metad
+      - storaged
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://graphd1:13000/status"]
+      test: ["CMD", "curl", "-f", "http://graphd1:19669/status"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 20s
     ports:
-      - 3699
-      - 13000
-      - 13002
+      - 9669
+      - 19669
+      - 19670
     networks:
       nebula-net:
     restart: on-failure
+    cap_add:
+      - SYS_PTRACE
 
   graphd2:
     image: vesoft/nebula-graphd:v2-nightly
     environment:
       USER: root
+      TZ: UTC
     command:
-      - --meta_server_addrs=metad:45500
-      - --port=3699
+      - --meta_server_addrs=metad:9559
+      - --local_ip=graphd1
       - --ws_ip=graphd2
-      - --log_dir=/usr/local/nebula/logs2
+      - --port=9669
+      - --ws_http_port=19669
       - --enable_authorize=true
-    volumes:
-      - logsdata:/usr/local/nebula/logs2
+      - --local_config=false
     depends_on:
       - metad
+      - storaged
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://graphd2:13000/status"]
+      test: ["CMD", "curl", "-f", "http://graphd2:19669/status"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 20s
     ports:
-      - 3699
-      - 13000
-      - 13002
+      - 9669
+      - 19669
+      - 19670
     networks:
       nebula-net:
     restart: on-failure
+    cap_add:
+      - SYS_PTRACE
 
   importer:
     image: golang:alpine
@@ -115,7 +128,7 @@ services:
     entrypoint:
       - ./importer/ci/bootstrap.sh
       - "graphd1"
-      - "3699"
+      - "9669"
     depends_on:
       - graphd1
       - graphd2
@@ -124,8 +137,3 @@ services:
 
 networks:
   nebula-net:
-
-volumes:
-  storagedata:
-  metadata:
-  logsdata:
