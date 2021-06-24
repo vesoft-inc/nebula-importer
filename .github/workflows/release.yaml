@@ -42,7 +42,7 @@ jobs:
           GOARCH: ${{ matrix.arch }}
         run: |
           cd cmd
-          go build -o ${{ steps.package-name.outputs.package_name }}
+          go build -o ../${{ steps.package-name.outputs.package_name }}
       - name: upload release asset
         uses: actions/upload-release-asset@v1
         env:
