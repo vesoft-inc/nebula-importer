@@ -111,7 +111,7 @@ type YAMLConfig struct {
 
 var (
 	kDefaultVidType   = "string"
-	kDefaultConnAddr  = "127.0.0.1:3699"
+	kDefaultConnAddr  = "127.0.0.1:9669"
 	kDefaultUser      = "root"
 	kDefaultPassword  = "nebula"
 	kDefaultBatchSize = 128

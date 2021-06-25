@@ -13,7 +13,7 @@
 | clientSettings.connection                     | Connection options of graph client                                        | -              |
 | clientSettings.connection.user                | Username                                                                  | user           |
 | clientSettings.connection.password            | Password                                                                  | password       |
-| clientSettings.connection.address             | Address of graph client                                                   | 127.0.0.1:3699 |
+| clientSettings.connection.address             | Address of graph client                                                   | 127.0.0.1:9669 |
 | clientSettings.postStart.commands             | Post scripts after connecting nebula                                      | ""             |
 | clientSettings.postStart.afterPeriod          | The period time between running post scripts and inserting data           | 0s             |
 | clientSettings.preStop.commands               | Prescripts before disconnecting nebula                                    | ""             |

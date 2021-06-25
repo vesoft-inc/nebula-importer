@@ -86,7 +86,7 @@ clientSettings:
   connection:
     user: user
     password: password
-    address: 192.168.8.1:3699,192.168.8.2:3699
+    address: 192.168.8.1:9669,192.168.8.2:9669
   postStart:
     commands: |
       UPDATE CONFIGS storage:wal_ttl=3600;
