@@ -131,6 +131,12 @@ func (p *ClientPool) Init() error {
 			return err
 		}
 	}
+
+	if p.postStart != nil {
+		afterPeriod, _ := time.ParseDuration(*p.postStart.AfterPeriod)
+		time.Sleep(afterPeriod)
+	}
+
 	// pre-check for use space statement
 	if err := p.exec(i, fmt.Sprintf("USE `%s`;", p.space)); err != nil {
 		return err
@@ -138,10 +144,6 @@ func (p *ClientPool) Init() error {
 
 	for i := 0; i < p.concurrency; i++ {
 		go func(i int) {
-			if p.postStart != nil {
-				afterPeriod, _ := time.ParseDuration(*p.postStart.AfterPeriod)
-				time.Sleep(afterPeriod)
-			}
 			p.startWorker(i)
 		}(i)
 	}
