@@ -216,6 +216,7 @@ schema:
           - name: age
             type: int
             index: 2
+            default: 1
           - name: name
             type: string
             index: 1
@@ -241,6 +242,7 @@ Each tag contains the following two properties:
   * `name`: **Required**. The property name, must be the same with the tag property in Nebula Graph.
   * `type`: **Optional**. The property type, currently `bool`, `int`, `float`, `double`, `timestamp`, and `string` are supported.
   * `index`: **Optional**. The column number in the CSV file.
+  * `default`: **Optional**. use this default value if the column is missing in CSV file
 
 > **NOTE**: The properties in the preceding `prop` parameter must be sorted in the **same** way as in the CSV data file.
 
