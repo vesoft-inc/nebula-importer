@@ -148,6 +148,23 @@ files:
           - name: likeness
             type: double
 
+  - path: ./glob-follow-*.csv
+    failDataPath: ./err/follow-glob.csv
+    batchSize: 2
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: follow
+        withRanking: true
+        props:
+          - name: likeness
+            type: double
+
+
   - path: ./follow-with-header.csv
     failDataPath: ./err/follow-with-header.csv
     batchSize: 2

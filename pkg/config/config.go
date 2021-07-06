@@ -183,6 +183,11 @@ func (config *YAMLConfig) ValidateAndReset(dir string) error {
 		return errors.New("There is no files in configuration")
 	}
 
+	//TODO(yuyu): check each item in config.Files
+	// if item is a directory, iter this directory and replace this directory config section by filename config section
+	if err := config.expandDirectoryToFiles(dir); err != nil {
+		logger.Errorf("%s", err)
+	}
 	for i := range config.Files {
 		if err := config.Files[i].validateAndReset(dir, fmt.Sprintf("files[%d]", i)); err != nil {
 			return err
@@ -785,4 +790,34 @@ func (t *Tag) validateAndReset(prefix string, start int) error {
 		}
 	}
 	return nil
+}
+
+// TODO(yuyu): discuss about the config schema for import by directory
+func (config *YAMLConfig) expandDirectoryToFiles(dir string) (err error) {
+	// change config.Files in its own iter is not a good idea, so save value and change it later
+	var newFiles []*File
+
+	for i := range config.Files {
+		if !base.HasHttpPrefix(*config.Files[i].Path) {
+			// treat all string as glob pattern
+			files, err := filepath.Glob(filepath.Join(dir, *config.Files[i].Path))
+			if err != nil || len(files) == 0 {
+				err = errors.New(fmt.Sprintf("error string: %s", *config.Files[i].Path))
+				logger.Errorf("%s", err)
+				return err
+			}
+
+			logger.Infof("query file from pattern: %s, result: %v", *config.Files[i].Path, files)
+			for j := range files {
+				eachConf := config.Files[i]
+				eachConf.Path = &files[j]
+				newFiles = append(newFiles, eachConf)
+			}
+		} else {
+			newFiles = append(newFiles, config.Files[i])
+		}
+	}
+	config.Files = newFiles
+
+	return err
 }
