@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	nebula "github.com/vesoft-inc/nebula-go"
+	nebula "github.com/vesoft-inc/nebula-go/v2"
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
@@ -122,20 +122,28 @@ func (p *ClientPool) Close() {
 }
 
 func (p *ClientPool) Init() error {
+	i := p.getActiveConnIdx()
+	if i == -1 {
+		return fmt.Errorf("no available session.")
+	}
 	if p.postStart != nil && p.postStart.Commands != nil {
-		if i := p.getActiveConnIdx(); i != -1 {
-			if err := p.exec(i, *p.postStart.Commands); err != nil {
-				return err
-			}
+		if err := p.exec(i, *p.postStart.Commands); err != nil {
+			return err
 		}
+	}
+
+	if p.postStart != nil {
+		afterPeriod, _ := time.ParseDuration(*p.postStart.AfterPeriod)
+		time.Sleep(afterPeriod)
+	}
+
+	// pre-check for use space statement
+	if err := p.exec(i, fmt.Sprintf("USE `%s`;", p.space)); err != nil {
+		return err
 	}
 
 	for i := 0; i < p.concurrency; i++ {
 		go func(i int) {
-			if p.postStart != nil {
-				afterPeriod, _ := time.ParseDuration(*p.postStart.AfterPeriod)
-				time.Sleep(afterPeriod)
-			}
 			p.startWorker(i)
 		}(i)
 	}

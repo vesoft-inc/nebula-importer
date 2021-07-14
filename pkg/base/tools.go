@@ -29,15 +29,8 @@ func FileExists(filename string) bool {
 
 func IsValidType(t string) bool {
 	switch strings.ToLower(t) {
-	case "string":
-	case "int":
-	case "float":
-	case "double":
-	case "bool":
-	case "date":
-	case "time":
-	case "datetime":
-	case "timestamp":
+	case "string", "int", "float", "double", "bool", "date", "time", "datetime", "timestamp":
+		break
 	default:
 		return false
 	}

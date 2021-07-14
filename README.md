@@ -1,7 +1,9 @@
 <div align="center">
   <h1>Nebula Importer</h1>
   <div>
+    <!--
     <a href="https://github.com/vesoft-inc/nebula-importer/blob/master/README_zh-CN.md">中文</a>
+    -->
   </div>
 </div>
 
@@ -24,6 +26,15 @@ Currently, there are three methods to deploy Nebula Graph:
 
 > The quickest way to deploy Nebula Graph is using [Docker Compose](https://github.com/vesoft-inc/nebula-docker-compose).
 
+## **CAUTION**: Choose the correct branch
+
+The rpc protocols (i.e., thrift) in Nebula Graph 1.x and v2 are incompatible.
+
+Nebula Importer v1 branch can only connect to Nebula Graph 1.x.
+Nebula Importer master and v2 branch can only connect to Nebula Graph 2.x.
+
+> Do not mismatch.
+
 ## How to use
 
 After configuring the YAML file and preparing the CSV files to be imported, you can use this tool to batch write data to Nebula Graph.
@@ -40,10 +51,10 @@ Nebula Importer is compiled with Go **1.13** or later, so make sure that Go is i
   $ git clone --branch v1 https://github.com/vesoft-inc/nebula-importer.git
   ```
 
-  * For Nebula Graph 2.x, clone the `v2` branch.
+  * For Nebula Graph 2.x, clone the master branch.
 
   ``` bash
-  $ git clone --branch v2 https://github.com/vesoft-inc/nebula-importer.git
+  $ git clone https://github.com/vesoft-inc/nebula-importer.git
   ```
 
 2. Go to the `nebula-importer` directory.
@@ -99,7 +110,7 @@ $ docker run --rm -ti \
 
 ## Prepare the configuration file
 
-Nebula Importer uses the YAML configuration file to store information for the CSV files and Nebula Graph server. Here's an [example](examples/example.yaml) for the configuration file and the CSV file. You can find the explanation for each option in the following:
+Nebula Importer uses the YAML configuration file to store information for the CSV files and Nebula Graph server. Here's an [example for v2](examples/v2/example.yaml) and an [example for v1](examples/v1/example.yaml) for the configuration file and the CSV file. You can find the explanation for each option in the following:
 
 ```yaml
 version: v2
@@ -121,7 +132,7 @@ clientSettings:
   connection:
     user: user
     password: password
-    address: 192.168.8.1:3699,192.168.8.2:3699
+    address: 192.168.8.1:9669,192.168.8.2:9669
   postStart:
     commands: |
       UPDATE CONFIGS storage:wal_ttl=3600;
