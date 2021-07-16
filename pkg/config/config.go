@@ -725,7 +725,7 @@ func (p *Prop) IsStringType() bool {
 
 func (p *Prop) IsDateOrTimeType() bool {
 	t := strings.ToLower(*p.Type)
-	return t == "date" || t == "time" || t == "datetime"
+	return t == "date" || t == "time" || t == "datetime" || t == "timestamp"
 }
 
 func (p *Prop) FormatValue(record base.Record) (string, error) {
