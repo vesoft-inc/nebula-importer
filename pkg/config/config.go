@@ -340,11 +340,11 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
 }
 
-func (f *File) expandFiles(dir string) (files []*File) {
+func (f *File) expandFiles(dir string) (err error, files []*File) {
 	if base.HasHttpPrefix(*f.Path) {
 		files = append(files, f)
 
-		return files
+		return err, files
 	} else {
 		if !filepath.IsAbs(*f.Path) {
 			absPath := filepath.Join(dir, *f.Path)
@@ -354,6 +354,7 @@ func (f *File) expandFiles(dir string) (files []*File) {
 		fileNames, err := filepath.Glob(*f.Path)
 		if err != nil || len(fileNames) == 0 {
 			logger.Errorf("error file path: %s", *f.Path)
+			return err, files
 		}
 
 		for _, name := range fileNames {
@@ -365,7 +366,7 @@ func (f *File) expandFiles(dir string) (files []*File) {
 		}
 	}
 
-	return files
+	return err, files
 }
 
 func (c *CSVConfig) validateAndReset(prefix string) error {
@@ -860,8 +861,13 @@ func (config *YAMLConfig) expandDirectoryToFilesNg(dir string) (err error) {
 	// change config.Files in its own iter is not a good idea, so save value and change it later
 	var newFiles []*File
 
-	for i := range config.Files {
-		for _, f := range config.Files[i].expandFiles(dir) {
+	for _, file := range config.Files {
+		err, files := file.expandFiles(dir)
+		if err != nil {
+			logger.Errorf("error when expand file: %s", err)
+			return err
+		}
+		for _, f := range files {
 			newFiles = append(newFiles, f)
 		}
 	}
