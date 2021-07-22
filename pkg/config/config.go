@@ -185,7 +185,8 @@ func (config *YAMLConfig) ValidateAndReset(dir string) error {
 
 	//TODO(yuyu): check each item in config.Files
 	// if item is a directory, iter this directory and replace this directory config section by filename config section
-	if err := config.expandDirectoryToFiles(dir); err != nil {
+	//if err := config.expandDirectoryToFiles(dir); err != nil {
+	if err := config.expandDirectoryToFilesNg(dir); err != nil {
 		logger.Errorf("%s", err)
 	}
 	for i := range config.Files {
@@ -337,6 +338,34 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		return fmt.Errorf("Please configure file schema: %s.schema", prefix)
 	}
 	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
+}
+
+func (f *File) expandFiles(dir string) (files []*File) {
+	if base.HasHttpPrefix(*f.Path) {
+		files = append(files, f)
+
+		return files
+	} else {
+		if !filepath.IsAbs(*f.Path) {
+			absPath := filepath.Join(dir, *f.Path)
+			f.Path = &absPath
+		}
+
+		fileNames, err := filepath.Glob(*f.Path)
+		if err != nil || len(fileNames) == 0 {
+			logger.Errorf("error file path: %s", *f.Path)
+		}
+
+		for _, name := range fileNames {
+			eachConf := f
+			eachConf.Path = &name
+
+			logger.Infof("find file: %v", *f.Path)
+			files = append(files, eachConf)
+		}
+	}
+
+	return files
 }
 
 func (c *CSVConfig) validateAndReset(prefix string) error {
@@ -800,7 +829,11 @@ func (config *YAMLConfig) expandDirectoryToFiles(dir string) (err error) {
 	for i := range config.Files {
 		if !base.HasHttpPrefix(*config.Files[i].Path) {
 			// treat all string as glob pattern
-			files, err := filepath.Glob(filepath.Join(dir, *config.Files[i].Path))
+			if !filepath.IsAbs(*config.Files[i].Path) {
+				*config.Files[i].Path = filepath.Join(dir, *config.Files[i].Path)
+			}
+
+			files, err := filepath.Glob(*config.Files[i].Path)
 			if err != nil || len(files) == 0 {
 				err = errors.New(fmt.Sprintf("error string: %s", *config.Files[i].Path))
 				logger.Errorf("%s", err)
@@ -819,5 +852,20 @@ func (config *YAMLConfig) expandDirectoryToFiles(dir string) (err error) {
 	}
 	config.Files = newFiles
 
+	return err
+}
+
+// TODO(yuyu): discuss about the function to expand file
+func (config *YAMLConfig) expandDirectoryToFilesNg(dir string) (err error) {
+	// change config.Files in its own iter is not a good idea, so save value and change it later
+	var newFiles []*File
+
+	for i := range config.Files {
+		for _, f := range config.Files[i].expandFiles(dir) {
+			newFiles = append(newFiles, f)
+		}
+	}
+
+	config.Files = newFiles
 	return err
 }
