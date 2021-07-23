@@ -239,7 +239,7 @@ Each tag contains the following two properties:
 * `name`: The tag name.
 * `prop`: A property of the tag. Each property contains the following two fields:
   * `name`: **Required**. The property name, must be the same with the tag property in Nebula Graph.
-  * `type`: **Optional**. The property type, currently `bool`, `int`, `float`, `double`, `timestamp`, and `string` are supported.
+  * `type`: **Optional**. The property type, currently  `bool`, `int`, `float`, `double`, `string`, `time`, `timestamp`, `date` and `datetime` are supported.
   * `index`: **Optional**. The column number in the CSV file.
 
 > **NOTE**: The properties in the preceding `prop` parameter must be sorted in the **same** way as in the CSV data file.
@@ -315,7 +315,7 @@ The format for each column is `<tag_name/edge_name>.<prop_name>:<prop_type>`:
 
 * `<tag_name/edge_name>` is the name for the vertex or edge.
 * `<prop_name>` is the property name.
-* `<prop_type>` is the property type. It can be `bool`, `int`, `float`, `double`, `string`, and `timestamp`. The default type is `string`.
+* `<prop_type>` is the property type. It can be `bool`, `int`, `float`, `double`, `string`, `time`, `timestamp`, `date` and `datetime`. The default type is `string`.
 
 In the above `<prop_type>` field, the following keywords contain special semantics:
 
