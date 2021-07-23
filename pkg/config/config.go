@@ -187,6 +187,7 @@ func (config *YAMLConfig) ValidateAndReset(dir string) error {
 	// if item is a directory, iter this directory and replace this directory config section by filename config section
 	if err := config.expandDirectoryToFiles(dir); err != nil {
 		logger.Errorf("%s", err)
+		return err
 	}
 	for i := range config.Files {
 		if err := config.Files[i].validateAndReset(dir, fmt.Sprintf("files[%d]", i)); err != nil {
