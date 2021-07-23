@@ -79,7 +79,7 @@ The `--config` option in the preceding command is used to pass the path of the Y
 
 ### From Docker
 
-If you are using Docker, you don't have to install Go locally. Pull the [Docker image](https://hub.docker.com/r/vesoft/nebula-importer) for Nebula Importer. Mount the local configuration file and the CSV data files into the container and you are done. 
+If you are using Docker, you don't have to install Go locally. Pull the [Docker image](https://hub.docker.com/r/vesoft/nebula-importer) for Nebula Importer. Mount the local configuration file and the CSV data files into the container and you are done.
 
 1. For Nebula Graph 1.x:
 
@@ -181,7 +181,7 @@ files:
 
 One CSV file can only store one type of vertex or edge. Vertices and edges of the different schema must be stored in different files.
 
-* `path`: **Required**. Specifies the path where the data files are stored. If a relative path is used, the `path` and current configuration file directory are spliced.
+* `path`: **Required**. Specifies the path where the data files are stored. If a relative path is used, the `path` and current configuration file directory are spliced. Wildcard filename is also supported, for example: `./follower-*.csv`, please make sure that all matching files with the same schema.
 * `failDataPath`: **Required**. Specifies the path for data that failed in inserting so that the failed data are reinserted.
 * `batchSize`: **Optional**. Specifies the batch size of the inserted data. The default value is 128.
 * `limit`: **Optional**. Limits the max data reading rows.
