@@ -375,9 +375,8 @@ func (f *File) expandFiles(dir string) (err error, files []*File) {
 		for _, name := range fileNames {
 			eachConf := f
 			eachConf.Path = &name
-
-			logger.Infof("find file: %v", *f.Path)
 			files = append(files, eachConf)
+			logger.Infof("find file: %v", *f.Path)
 		}
 	}
 
