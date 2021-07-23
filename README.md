@@ -79,7 +79,7 @@ The `--config` option in the preceding command is used to pass the path of the Y
 
 ### From Docker
 
-If you are using Docker, you don't have to install Go locally. Pull the [Docker image](https://hub.docker.com/r/vesoft/nebula-importer) for Nebula Importer. Mount the local configuration file and the CSV data files into the container and you are done. 
+If you are using Docker, you don't have to install Go locally. Pull the [Docker image](https://hub.docker.com/r/vesoft/nebula-importer) for Nebula Importer. Mount the local configuration file and the CSV data files into the container and you are done.
 
 1. For Nebula Graph 1.x:
 
@@ -181,7 +181,7 @@ files:
 
 One CSV file can only store one type of vertex or edge. Vertices and edges of the different schema must be stored in different files.
 
-* `path`: **Required**. Specifies the path where the data files are stored. If a relative path is used, the `path` and current configuration file directory are spliced.
+* `path`: **Required**. Specifies the path where the data files are stored. If a relative path is used, the `path` and current configuration file directory are spliced. Wildcard filename is also supported, for example: `./follower-*.csv`, please make sure that all matching files with the same schema.
 * `failDataPath`: **Required**. Specifies the path for data that failed in inserting so that the failed data are reinserted.
 * `batchSize`: **Optional**. Specifies the batch size of the inserted data. The default value is 128.
 * `limit`: **Optional**. Limits the max data reading rows.
@@ -239,7 +239,7 @@ Each tag contains the following two properties:
 * `name`: The tag name.
 * `prop`: A property of the tag. Each property contains the following two fields:
   * `name`: **Required**. The property name, must be the same with the tag property in Nebula Graph.
-  * `type`: **Optional**. The property type, currently `bool`, `int`, `float`, `double`, `timestamp`, and `string` are supported.
+  * `type`: **Optional**. The property type, currently  `bool`, `int`, `float`, `double`, `string`, `time`, `timestamp`, `date` and `datetime` are supported.
   * `index`: **Optional**. The column number in the CSV file.
 
 > **NOTE**: The properties in the preceding `prop` parameter must be sorted in the **same** way as in the CSV data file.
@@ -315,7 +315,7 @@ The format for each column is `<tag_name/edge_name>.<prop_name>:<prop_type>`:
 
 * `<tag_name/edge_name>` is the name for the vertex or edge.
 * `<prop_name>` is the property name.
-* `<prop_type>` is the property type. It can be `bool`, `int`, `float`, `double`, `string`, and `timestamp`. The default type is `string`.
+* `<prop_type>` is the property type. It can be `bool`, `int`, `float`, `double`, `string`, `time`, `timestamp`, `date` and `datetime`. The default type is `string`.
 
 In the above `<prop_type>` field, the following keywords contain special semantics:
 
