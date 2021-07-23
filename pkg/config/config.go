@@ -183,6 +183,12 @@ func (config *YAMLConfig) ValidateAndReset(dir string) error {
 		return errors.New("There is no files in configuration")
 	}
 
+	//TODO(yuyu): check each item in config.Files
+	// if item is a directory, iter this directory and replace this directory config section by filename config section
+	if err := config.expandDirectoryToFiles(dir); err != nil {
+		logger.Errorf("%s", err)
+		return err
+	}
 	for i := range config.Files {
 		if err := config.Files[i].validateAndReset(dir, fmt.Sprintf("files[%d]", i)); err != nil {
 			return err
@@ -190,6 +196,24 @@ func (config *YAMLConfig) ValidateAndReset(dir string) error {
 	}
 
 	return nil
+}
+
+func (config *YAMLConfig) expandDirectoryToFiles(dir string) (err error) {
+	var newFiles []*File
+
+	for _, file := range config.Files {
+		err, files := file.expandFiles(dir)
+		if err != nil {
+			logger.Errorf("error when expand file: %s", err)
+			return err
+		}
+		for _, f := range files {
+			newFiles = append(newFiles, f)
+		}
+	}
+	config.Files = newFiles
+
+	return err
 }
 
 func (n *NebulaPostStart) validateAndReset(prefix string) error {
@@ -332,6 +356,32 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		return fmt.Errorf("Please configure file schema: %s.schema", prefix)
 	}
 	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
+}
+
+func (f *File) expandFiles(dir string) (err error, files []*File) {
+	if base.HasHttpPrefix(*f.Path) {
+		files = append(files, f)
+	} else {
+		if !filepath.IsAbs(*f.Path) {
+			absPath := filepath.Join(dir, *f.Path)
+			f.Path = &absPath
+		}
+
+		fileNames, err := filepath.Glob(*f.Path)
+		if err != nil || len(fileNames) == 0 {
+			logger.Errorf("error file path: %s", *f.Path)
+			return err, files
+		}
+
+		for _, name := range fileNames {
+			eachConf := f
+			eachConf.Path = &name
+			files = append(files, eachConf)
+			logger.Infof("find file: %v", *f.Path)
+		}
+	}
+
+	return err, files
 }
 
 func (c *CSVConfig) validateAndReset(prefix string) error {
