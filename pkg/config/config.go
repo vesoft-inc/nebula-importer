@@ -373,11 +373,31 @@ func (f *File) expandFiles(dir string) (err error, files []*File) {
 			return err, files
 		}
 
-		for _, name := range fileNames {
-			eachConf := f
-			eachConf.Path = &name
+		if len(fileNames) == 1 {
+			files = append(files, f)
+			return err, files
+		}
+
+		for i := range fileNames {
+			var failedDataPath *string = nil
+			if f.FailDataPath != nil {
+				base := filepath.Base(fileNames[i])
+				tmp := filepath.Join(*f.FailDataPath, base)
+				failedDataPath = &tmp
+				logger.Infof("Failed data path: %v", *failedDataPath)
+			}
+			eachConf := &File{
+				Path:         &fileNames[i],
+				FailDataPath: failedDataPath,
+				BatchSize:    f.BatchSize,
+				Limit:        f.Limit,
+				InOrder:      f.InOrder,
+				Type:         f.Type,
+				CSV:          f.CSV,
+				Schema:       f.Schema,
+			}
 			files = append(files, eachConf)
-			logger.Infof("find file: %v", *f.Path)
+			logger.Infof("find file: %v", *eachConf.Path)
 		}
 	}
 
