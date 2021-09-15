@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   metad:
-    image: vesoft/nebula-metad:v2-nightly
+    image: vesoft/nebula-metad:nightly
     environment:
       USER: root
       TZ: UTC
@@ -28,7 +28,7 @@ services:
       - SYS_PTRACE
 
   storaged:
-    image: vesoft/nebula-storaged:v2-nightly
+    image: vesoft/nebula-storaged:nightly
     environment:
       USER: root
       TZ: UTC
@@ -58,7 +58,7 @@ services:
       - SYS_PTRACE
 
   graphd1:
-    image: vesoft/nebula-graphd:v2-nightly
+    image: vesoft/nebula-graphd:nightly
     environment:
       USER: root
       TZ: UTC
@@ -89,7 +89,7 @@ services:
       - SYS_PTRACE
 
   graphd2:
-    image: vesoft/nebula-graphd:v2-nightly
+    image: vesoft/nebula-graphd:nightly
     environment:
       USER: root
       TZ: UTC
