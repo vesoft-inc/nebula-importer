@@ -386,17 +386,10 @@ func (f *File) expandFiles(dir string) (err error, files []*File) {
 				failedDataPath = &tmp
 				logger.Infof("Failed data path: %v", *failedDataPath)
 			}
-			eachConf := &File{
-				Path:         &fileNames[i],
-				FailDataPath: failedDataPath,
-				BatchSize:    f.BatchSize,
-				Limit:        f.Limit,
-				InOrder:      f.InOrder,
-				Type:         f.Type,
-				CSV:          f.CSV,
-				Schema:       f.Schema,
-			}
-			files = append(files, eachConf)
+			eachConf := *f
+			eachConf.Path = &fileNames[i]
+			eachConf.FailDataPath = failedDataPath
+			files = append(files, &eachConf)
 			logger.Infof("find file: %v", *eachConf.Path)
 		}
 	}
