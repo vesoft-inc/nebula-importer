@@ -9,13 +9,14 @@ import (
 )
 
 type StatsMgr struct {
-	StatsCh      chan base.Stats
-	DoneCh       chan bool
-	NumFailed    int64
-	totalCount   int64
-	totalBatches int64
-	totalLatency int64
-	totalReqTime int64
+	StatsCh       chan base.Stats
+	DoneCh        chan bool
+	NumFailed     int64
+	NumReadFailed int64
+	totalCount    int64
+	totalBatches  int64
+	totalLatency  int64
+	totalReqTime  int64
 }
 
 func NewStatsMgr(numReadingFiles int) *StatsMgr {
@@ -58,8 +59,8 @@ func (s *StatsMgr) print(prefix string, now time.Time) {
 	avgLatency := s.totalLatency / s.totalBatches
 	avgReq := s.totalReqTime / s.totalBatches
 	rps := float64(s.totalCount) / secs
-	logger.Infof("%s: Time(%.2fs), Finished(%d), Failed(%d), Latency AVG(%dus), Batches Req AVG(%dus), Rows AVG(%.2f/s)",
-		prefix, secs, s.totalCount, s.NumFailed, avgLatency, avgReq, rps)
+	logger.Infof("%s: Time(%.2fs), Finished(%d), Failed(%d), Read Failed(%d), Latency AVG(%dus), Batches Req AVG(%dus), Rows AVG(%.2f/s)",
+		prefix, secs, s.totalCount, s.NumFailed, s.NumReadFailed, avgLatency, avgReq, rps)
 }
 
 func (s *StatsMgr) startWorker(numReadingFiles int) {
