@@ -67,7 +67,9 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 			continue
 		} else {
 			go func(fr *reader.FileReader, filename string) {
-				if err := fr.Read(); err != nil {
+				numReadFailed, err := fr.Read()
+				statsMgr.NumReadFailed += numReadFailed
+				if err != nil {
 					r.errs = append(r.errs, err)
 					statsMgr.StatsCh <- base.NewFileDoneStats(filename)
 				}

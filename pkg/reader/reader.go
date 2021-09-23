@@ -111,14 +111,14 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 	return &filepath, nil
 }
 
-func (r *FileReader) Read() error {
+func (r *FileReader) Read() (numErrorLines int64, err error) {
 	filePath, err := r.prepareDataFile()
 	if err != nil {
-		return err
+		return numErrorLines, err
 	}
 	file, err := os.Open(*filePath)
 	if err != nil {
-		return errors.Wrap(errors.ConfigError, err)
+		return numErrorLines, errors.Wrap(errors.ConfigError, err)
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
@@ -136,7 +136,7 @@ func (r *FileReader) Read() error {
 
 	r.DataReader.InitReader(file)
 
-	lineNum, numErrorLines := 0, 0
+	lineNum := 0
 
 	if !r.WithHeader {
 		r.startLog()
@@ -179,5 +179,5 @@ func (r *FileReader) Read() error {
 	fpath, _ := base.FormatFilePath(*r.File.Path)
 	logger.Infof("Total lines of file(%s) is: %d, error lines: %d", fpath, lineNum, numErrorLines)
 
-	return nil
+	return numErrorLines, nil
 }
