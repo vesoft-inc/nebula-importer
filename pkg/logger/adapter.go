@@ -7,17 +7,17 @@ import (
 type NebulaLogger struct{}
 
 func (l NebulaLogger) Info(msg string) {
-	infoWithSkip(2, fmt.Sprintf("[nebula-clients] %s", msg))
+	infoWithSkip(2, fmt.Sprintf("[nebula-go] %s", msg))
 }
 
 func (l NebulaLogger) Warn(msg string) {
-	warnWithSkip(2, fmt.Sprintf("[nebula-clients] %s", msg))
+	warnWithSkip(2, fmt.Sprintf("[nebula-go] %s", msg))
 }
 
 func (l NebulaLogger) Error(msg string) {
-	errorWithSkip(2, fmt.Sprintf("[nebula-clients] %s", msg))
+	errorWithSkip(2, fmt.Sprintf("[nebula-go] %s", msg))
 }
 
 func (l NebulaLogger) Fatal(msg string) {
-	fatalWithSkip(2, fmt.Sprintf("[nebula-clients] %s", msg))
+	fatalWithSkip(2, fmt.Sprintf("[nebula-go] %s", msg))
 }

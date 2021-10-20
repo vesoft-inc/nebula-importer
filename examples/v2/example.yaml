@@ -25,7 +25,8 @@ clientSettings:
       CREATE TAG course_no_props();
       CREATE TAG building_no_props();
       CREATE EDGE follow_no_props();
-      CREATE TAG date_test(c1 date, c2 time, c3 datetime, c4 timestamp)
+      CREATE TAG date_test(c1 date, c2 time, c3 datetime, c4 timestamp);
+      CREATE TAG geography_test(any_shape geography, only_point geography(point), only_linestring geography(linestring), only_polygon geography(polygon))
     afterPeriod: 8s
   preStop:
     commands: |
@@ -439,4 +440,34 @@ files:
                 index: 3
               - name: c4
                 type: timestamp
+                index: 4
+
+  - path: ./geography_test.csv
+    failDataPath: ./err/geography_test.csv
+    batchSize: 2
+    inOrder: true
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+      delimiter: ","
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          index: 0
+        tags:
+          - name: geography_test
+            props:
+              - name: any_shape
+                type: geography
+                index: 1
+              - name: only_point
+                type: geography(point)
+                index: 2
+              - name: only_linestring
+                type: geography(linestring)
+                index: 3
+              - name: only_polygon
+                type: geography(polygon)
                 index: 4
