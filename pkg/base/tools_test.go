@@ -28,4 +28,8 @@ func TestIsValidType(t *testing.T) {
 	assert.True(t, IsValidType("bool"))
 	assert.True(t, IsValidType("timestamp"))
 	assert.True(t, IsValidType("double"))
+	assert.True(t, IsValidType("geography"))
+	assert.True(t, IsValidType("geography(point)"))
+	assert.True(t, IsValidType("geography(linestring)"))
+	assert.True(t, IsValidType("geography(polygon)"))
 }

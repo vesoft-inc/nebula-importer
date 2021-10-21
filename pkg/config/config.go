@@ -791,6 +791,11 @@ func (p *Prop) IsDateOrTimeType() bool {
 	return t == "date" || t == "time" || t == "datetime" || t == "timestamp"
 }
 
+func (p *Prop) IsGeographyType() bool {
+	t := strings.ToLower(*p.Type)
+	return t == "geography" || t == "geography(point)" || t == "geography(linestring)" || t == "geography(polygon)"
+}
+
 func (p *Prop) FormatValue(record base.Record) (string, error) {
 	if p.Index != nil && *p.Index >= len(record) {
 		return "", fmt.Errorf("Prop index %d out range %d of record(%v)", *p.Index, len(record), record)
@@ -801,6 +806,10 @@ func (p *Prop) FormatValue(record base.Record) (string, error) {
 	}
 	if p.IsDateOrTimeType() {
 		return fmt.Sprintf("%s(%q)", strings.ToLower(*p.Type), r), nil
+	}
+	// Only support wkt for geography currently
+	if p.IsGeographyType() {
+		return fmt.Sprintf("ST_GeogFromText(%q)", r), nil
 	}
 
 	return r, nil

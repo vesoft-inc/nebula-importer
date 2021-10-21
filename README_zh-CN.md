@@ -192,7 +192,7 @@ schema:
 - `name`：TAG 的名称。
 - `props`：TAG 的属性字段数组，每个属性字段又由如下两个字段构成：
   - `name`：**必填**。属性名称，同 Nebula Graph 中创建的 TAG 的属性名称一致。
-  - `type`：**必填**。属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp` 和 `string` 几种类型。
+  - `type`：**必填**。属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp`、`string`、`geography`、`geography(point)`、`geography(linestring)`和`geography(polygon)` 几种类型。
   - `index`：**可选**。在 CSV 文件中的列标。
 
 > **注意**：上述 `props` 中的属性描述**顺序**必须同数据文件中的对应数据排列顺序一致。
@@ -268,7 +268,7 @@ example 中 choose 类型的边的样例数据：
 
 - `<tag_name/edge_name>` 表示 TAG 或者 EDGE 的名称。
 - `<prop_name>` 表示属性名称。
-- `<prop_type>` 表示属性类型。可以是 `bool`、`int`、`float`、`double`、`string` 和 `timestamp`，不设置默认为 `string`。
+- `<prop_type>` 表示属性类型。可以是 `bool`、`int`、`float`、`double`、`string`、`timestamp`、`geography`、`geography(point)`、`geography(linestring)`和`geography(polygon)`，不设置默认为 `string`。
 
 在上述的 `<prop_type>` 字段中有如下几个关键词含有特殊语义：
 

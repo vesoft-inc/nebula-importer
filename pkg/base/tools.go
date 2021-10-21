@@ -29,7 +29,7 @@ func FileExists(filename string) bool {
 
 func IsValidType(t string) bool {
 	switch strings.ToLower(t) {
-	case "string", "int", "float", "double", "bool", "date", "time", "datetime", "timestamp":
+	case "string", "int", "float", "double", "bool", "date", "time", "datetime", "timestamp", "geography", "geography(point)", "geography(linestring)", "geography(polygon)":
 		return true
 	default:
 		return false
