@@ -29,5 +29,5 @@ until echo "quit" | /usr/local/nebula/nebula-console -u root -p password --addr=
 done
 
 echo "nebula graph is up - executing command"
-./nebula-importer --config ./importer/examples/v1/example.yaml
 ./nebula-importer --config ./importer/examples/v2/example.yaml
+./nebula-importer --config ./importer/examples/v1/example.yaml

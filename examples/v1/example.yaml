@@ -12,8 +12,6 @@ clientSettings:
     address: graphd1:9669,graphd2:9669
   postStart:
     commands: |
-      UPDATE CONFIGS storage:wal_ttl=3600;
-      UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = true };
       DROP SPACE IF EXISTS importer_test;
       CREATE SPACE IF NOT EXISTS importer_test(partition_num=5, replica_factor=1, vid_type=int);
       USE importer_test;
@@ -28,8 +26,6 @@ clientSettings:
     afterPeriod: 8s
   preStop:
     commands: |
-      UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };
-      UPDATE CONFIGS storage:wal_ttl=86400;
 logPath: ./err/test.log
 files:
   - path: ./choose.csv
