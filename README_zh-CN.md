@@ -111,12 +111,14 @@ clientSettings:
 
 ### 文件
 
-跟日志和数据文件相关的配置跟以下两个选项有关：
+跟日志和数据文件相关的配置跟以下三个选项有关：
 
+- `workingDir`: **可选**。如果有多个文件夹，里面有相同文件结构的数据，可以使用这个参数在多个文件夹中切换。比如对于下面代码块的配置来说，`path`和`failDataPath`的值会被自动替换成`./data/student.csv`和`./data/err/student.csv`，如果把`workingDir`换成`./data1`，这两个值也会做相应改变。这个参数可以是绝对路径，也可以是相对路径。
 - `logPath`：**可选**。指定导入过程中的错误等日志信息输出的文件路径，默认输出到 `/tmp/nebula-importer-{timestamp}.log` 中。
 - `files`：**必填**。数组类型，用来配置不同的数据文件。您也可以从 HTTP 链接导入数据，在文件路径中输入链接即可。
 
 ```yaml
+workingDir: ./data/
 logPath: ./err/test.log
 files:
   - path: ./student.csv

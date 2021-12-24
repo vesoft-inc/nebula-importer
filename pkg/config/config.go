@@ -149,11 +149,11 @@ func Parse(filename string) (*YAMLConfig, error) {
 	}
 	path := filepath.Dir(abs)
 
-	if workingDir := *conf.WorkingDirectory; len(workingDir) > 0 {
-		if !filepath.IsAbs(workingDir) {
-			path = filepath.Join(path, workingDir)
+	if workingDir := conf.WorkingDirectory; workingDir != nil && len(*workingDir) > 0 {
+		if !filepath.IsAbs(*workingDir) {
+			path = filepath.Join(path, *workingDir)
 		} else {
-			path = workingDir
+			path = *workingDir
 		}
 	}
 
