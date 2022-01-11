@@ -36,7 +36,7 @@ for i in `seq 1 30`;do
     echo "Add hosts succeed"
     break;
   fi;
-  sleep 1;
+  sleep 2;
   echo "retry to add hosts.";
 done
 
