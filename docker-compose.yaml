@@ -105,21 +105,6 @@ services:
     networks:
       nebula-net:
 
-  console:
-    image: vesoft/nebula-console:nightly
-    entrypoint: ""
-    command:
-      - sh
-      - -c
-      - |
-        sleep 3 &&
-        nebula-console -addr graphd1 -port 9669 -u root -p nebula -e 'ADD HOSTS "storaged":9779;show configs graph;show configs storage' &&
-        sleep 36000
-    depends_on:
-      - graphd1
-    networks:
-      - nebula-net
-
   storaged:
     image: vesoft/nebula-storaged:nightly
     environment:
