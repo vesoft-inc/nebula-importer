@@ -27,36 +27,6 @@ services:
     cap_add:
       - SYS_PTRACE
 
-  storaged:
-    image: vesoft/nebula-storaged:nightly
-    environment:
-      USER: root
-      TZ: UTC
-    command:
-      - --meta_server_addrs=metad:9559
-      - --local_ip=storaged
-      - --ws_ip=storaged
-      - --port=9779
-      - --ws_http_port=19779
-      - --local_config=false
-    depends_on:
-      - metad
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://storaged:19779/status"]
-      interval: 15s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
-    ports:
-      - 9779
-      - 19779
-      - 19780
-    networks:
-      nebula-net:
-    restart: on-failure
-    cap_add:
-      - SYS_PTRACE
-
   graphd1:
     image: vesoft/nebula-graphd:nightly
     environment:
@@ -134,6 +104,36 @@ services:
       - graphd2
     networks:
       nebula-net:
+
+  storaged:
+    image: vesoft/nebula-storaged:nightly
+    environment:
+      USER: root
+      TZ: UTC
+    command:
+      - --meta_server_addrs=metad:9559
+      - --local_ip=storaged
+      - --ws_ip=storaged
+      - --port=9779
+      - --ws_http_port=19779
+      - --local_config=false
+    depends_on:
+      - metad
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://storaged:19779/status"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    ports:
+      - 9779
+      - 19779
+      - 19780
+    networks:
+      nebula-net:
+    restart: on-failure
+    cap_add:
+      - SYS_PTRACE
 
 networks:
   nebula-net:
