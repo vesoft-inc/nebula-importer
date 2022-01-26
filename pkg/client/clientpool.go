@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	nebula "github.com/vesoft-inc/nebula-go/v2"
+	nebula "github.com/vesoft-inc/nebula-go/v3"
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
