@@ -194,7 +194,11 @@ func (p *ClientPool) startWorker(i int) {
 			}
 		} else {
 			timeInMs := time.Since(now).Nanoseconds() / 1e3
-			p.statsCh <- base.NewSuccessStats(int64(resp.GetLatency()), timeInMs, len(data.Data))
+			var importedBytes int64
+			for _, d := range data.Data {
+				importedBytes += int64(d.Bytes)
+			}
+			p.statsCh <- base.NewSuccessStats(int64(resp.GetLatency()), timeInMs, len(data.Data), importedBytes)
 		}
 	}
 }

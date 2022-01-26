@@ -16,6 +16,7 @@ import (
 type Runner struct {
 	errs      []error
 	Readers   []*reader.FileReader
+	stataMgr  *stats.StatsMgr
 	NumFailed int64
 }
 
@@ -26,6 +27,10 @@ func (r *Runner) Error() error {
 
 	// TODO(yee): Only return first error
 	return r.errs[0]
+}
+
+func (r *Runner) Errors() []error {
+	return r.errs
 }
 
 func (r *Runner) Run(yaml *config.YAMLConfig) {
@@ -39,7 +44,8 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 		logger.Init(*yaml.LogPath)
 	}
 
-	statsMgr := stats.NewStatsMgr(len(yaml.Files))
+	statsMgr := stats.NewStatsMgr(yaml.Files)
+	r.stataMgr = statsMgr
 	defer statsMgr.Close()
 
 	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
@@ -68,7 +74,7 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 		} else {
 			go func(fr *reader.FileReader, filename string) {
 				numReadFailed, err := fr.Read()
-				statsMgr.NumReadFailed += numReadFailed
+				statsMgr.Stats.NumReadFailed += numReadFailed
 				if err != nil {
 					r.errs = append(r.errs, err)
 					statsMgr.StatsCh <- base.NewFileDoneStats(filename)
@@ -83,10 +89,28 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	<-statsMgr.DoneCh
 
 	r.Readers = nil
-	r.NumFailed = statsMgr.NumFailed
+	r.NumFailed = statsMgr.Stats.NumFailed
 
-	if statsMgr.NumFailed > 0 {
+	if statsMgr.Stats.NumFailed > 0 {
 		r.errs = append(r.errs, errors.Wrap(errors.NotCompleteError,
-			fmt.Errorf("Total %d lines fail to insert into nebula graph database", statsMgr.NumFailed)))
+			fmt.Errorf("Total %d lines fail to insert into nebula graph database", statsMgr.Stats.NumFailed)))
+	}
+}
+
+func (r *Runner) QueryStats() *stats.Stats {
+	if r.stataMgr != nil {
+		if r.Readers == nil {
+			return &r.stataMgr.Stats
+		}
+		r.stataMgr.StatsCh <- base.NewOutputStats()
+		select {
+		case stats, ok := <-r.stataMgr.OutputStatsCh:
+			if !ok {
+				return nil
+			}
+			return &stats
+		}
+	} else {
+		return nil
 	}
 }

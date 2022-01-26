@@ -21,3 +21,4 @@ nebula-importer
 
 # IDE
 .vscode/
+.idea/
