@@ -28,10 +28,8 @@ Currently, there are three methods to deploy Nebula Graph:
 
 ## **CAUTION**: Choose the correct branch
 
-The rpc protocols (i.e., thrift) in Nebula Graph 1.x and v2 are incompatible.
-
-Nebula Importer v1 branch can only connect to Nebula Graph 1.x.
-Nebula Importer master and v2 branch can only connect to Nebula Graph 2.x.
+The rpc protocols (i.e., thrift) in Nebula Graph 1.x, v2, v3 are incompatible.
+Nebula Importer master and v3 branch can only connect to Nebula Graph 3.x.
 
 > Do not mismatch.
 
@@ -45,13 +43,7 @@ Nebula Importer is compiled with Go **1.13** or later, so make sure that Go is i
 
 1. Clone the repository
 
-  * For Nebula Graph 1.x, clone the `v1` branch.
-
-  ``` bash
-  $ git clone --branch v1 https://github.com/vesoft-inc/nebula-importer.git
-  ```
-
-  * For Nebula Graph 2.x, clone the master branch.
+  * For Nebula Graph 3.x, clone the master branch.
 
   ``` bash
   $ git clone https://github.com/vesoft-inc/nebula-importer.git
@@ -81,31 +73,18 @@ The `--config` option in the preceding command is used to pass the path of the Y
 
 If you are using Docker, you don't have to install Go locally. Pull the [Docker image](https://hub.docker.com/r/vesoft/nebula-importer) for Nebula Importer. Mount the local configuration file and the CSV data files into the container and you are done.
 
-1. For Nebula Graph 1.x:
-
 ```bash
 $ docker run --rm -ti \
     --network=host \
     -v {your-config-file}:{your-config-file} \
     -v {your-csv-data-dir}:{your-csv-data-dir} \
-    vesoft/nebula-importer:v1
-    --config {your-config-file}
-```
-
-2. For Nebula Graph 2.x:
-
-```bash
-$ docker run --rm -ti \
-    --network=host \
-    -v {your-config-file}:{your-config-file} \
-    -v {your-csv-data-dir}:{your-csv-data-dir} \
-    vesoft/nebula-importer:v2
+    vesoft/nebula-importer:{image_version}
     --config {your-config-file}
 ```
 
 - `{your-config-file}`: Replace with the absolute path of the local YAML configuration file.
 - `{your-csv-data-dir}`: Replace with the absolute path of the local CSV data file.
-
+- `{image_version}`: Replace with the image version you need(e.g. `v1`, `v2`, `v3`)
 > **NOTE**: We recommend that you use the relative paths in the `files.path` file. If you use the local absolute path, check how the path is mapped to Docker carefully.
 
 ## Prepare the configuration file
@@ -118,7 +97,7 @@ description: example
 removeTempFiles: false
 ```
 
-* `version`: **Required**. Indicates the configuration file version, the default value is `v2`.
+* `version`: **Required**. Indicates the configuration file version, the default value is `v2`. Note that `v2` config can be used with both 2.x and 3.x Nebula service.
 * `description`: **Optional**. Describes the configuration file.
 * `removeTempFiles`: **Optional**. Whether to delete the temporarily generated log and error data files. The default value is `false`.
 * `clientSettings`: Stores all the configurations related to the Nebula Graph service.
