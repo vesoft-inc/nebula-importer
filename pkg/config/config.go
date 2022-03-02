@@ -503,7 +503,7 @@ func (v *VID) ParseFunction(str string) (err error) {
 }
 
 func (v *VID) String(vid string) string {
-	if (v.Function != nil && *v.Function != "") && (v.Prefix != nil || *v.Prefix != "") {
+	if (v.Function != nil && *v.Function != "") && (v.Prefix != nil && *v.Prefix != "") {
 		return fmt.Sprintf("%s(%s+%s+%s)", vid, *v.Function, *v.Type, *v.Prefix)
 	} else if (v.Function == nil || *v.Function == "") && (v.Prefix != nil && *v.Prefix != "") {
 		return fmt.Sprintf("%s(%s+%s+%s)", vid, "", *v.Type, *v.Prefix)
