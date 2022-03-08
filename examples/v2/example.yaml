@@ -15,8 +15,7 @@ clientSettings:
       UPDATE CONFIGS storage:wal_ttl=3600;
       UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = true };
       DROP SPACE IF EXISTS importer_test;
-      CREATE SPACE IF NOT EXISTS importer_test(partition_num=5, replica_factor=1, vid_type=FIXED_STRING(10));
-      USE importer_test;
+      CREATE SPACE IF NOT EXISTS importer_test(partition_num=5, replica_factor=1, vid_type=FIXED_STRING(32));USE importer_test;
       CREATE TAG course(name string, credits int);
       CREATE TAG building(name string);
       CREATE TAG student(name string, age int, gender string);
@@ -385,6 +384,7 @@ files:
       vertex:
         vid:
           index: 0
+          prefix: wxyz
         tags:
           - name: building
             props:

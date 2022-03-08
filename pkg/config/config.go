@@ -52,6 +52,7 @@ type VID struct {
 	Index    *int    `json:"index" yaml:"index"`
 	Function *string `json:"function" yaml:"function"`
 	Type     *string `json:"type" yaml:"type"`
+	Prefix   *string `json:"prefix" yaml:"prefix"`
 }
 
 type Rank struct {
@@ -482,12 +483,18 @@ func (v *VID) ParseFunction(str string) (err error) {
 	} else if i > 0 && j > i {
 		strs := strings.ToLower(str[i+1 : j])
 		fnType := strings.Split(strs, "+")
-		if len(fnType) > 1 {
+		if len(fnType) == 2 {
 			v.Function = &fnType[0]
 			v.Type = &fnType[1]
+			v.Prefix = nil
+		} else if len(fnType) == 3 {
+			v.Function = &fnType[0]
+			v.Type = &fnType[1]
+			v.Prefix = &fnType[2]
 		} else {
 			v.Function = nil
 			v.Type = &fnType[0]
+			v.Prefix = nil
 		}
 	} else {
 		err = fmt.Errorf("Invalid function format: %s", str)
@@ -496,10 +503,14 @@ func (v *VID) ParseFunction(str string) (err error) {
 }
 
 func (v *VID) String(vid string) string {
-	if v.Function == nil || *v.Function == "" {
-		return fmt.Sprintf("%s(%s)", vid, *v.Type)
-	} else {
+	if (v.Function != nil && *v.Function != "") && (v.Prefix != nil && *v.Prefix != "") {
+		return fmt.Sprintf("%s(%s+%s+%s)", vid, *v.Function, *v.Type, *v.Prefix)
+	} else if (v.Function == nil || *v.Function == "") && (v.Prefix != nil && *v.Prefix != "") {
+		return fmt.Sprintf("%s(%s+%s+%s)", vid, "", *v.Type, *v.Prefix)
+	} else if (v.Function != nil && *v.Function != "") && (v.Prefix == nil || *v.Prefix == "") {
 		return fmt.Sprintf("%s(%s+%s)", vid, *v.Function, *v.Type)
+	} else {
+		return fmt.Sprintf("%s(%s)", vid, *v.Type)
 	}
 }
 
@@ -507,8 +518,11 @@ func (v *VID) FormatValue(record base.Record) (string, error) {
 	if len(record) <= *v.Index {
 		return "", fmt.Errorf("vid index(%d) out of range record length(%d)", *v.Index, len(record))
 	}
+	vid := record[*v.Index]
+	if v.Prefix != nil {
+		vid = *v.Prefix + vid
+	}
 	if v.Function == nil || *v.Function == "" {
-		vid := record[*v.Index]
 		if err := checkVidFormat(vid, *v.Type == "int"); err != nil {
 			return "", err
 		}
@@ -518,7 +532,7 @@ func (v *VID) FormatValue(record base.Record) (string, error) {
 			return vid, nil
 		}
 	} else {
-		return fmt.Sprintf("%s(%q)", *v.Function, record[*v.Index]), nil
+		return fmt.Sprintf("%s(%q)", *v.Function, vid), nil
 	}
 }
 
