@@ -209,6 +209,7 @@ schema:
 
 * `index`: **Optional**. The column number in the CSV file. Started with 0. The default value is 0.
 * `function`: **Optional**. Functions to generate the VIDs. Currently, we only support function `hash` and `uuid`.
+* `type`: **Optional**. The type for VIDs. The default value is `string`.
 * `prefix`: **Optional**. Add prefix to the original vid. When `function` is specified also, `prefix` is applied to the original vid before `function`.
 
 ##### `schema.vertex.tags`
