@@ -85,7 +85,7 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 
 	r.Readers = freaders
 	r.stataMgr = statsMgr
-
+	r.stataMgr.CountFileBytes(r.Readers)
 	<-statsMgr.DoneCh
 
 	r.Readers = nil
