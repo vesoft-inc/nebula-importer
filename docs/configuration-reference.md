@@ -34,8 +34,10 @@
 | files[0].schema.edge                          | Edge options                                                              | -              |
 | files[0].schema.edge.srcVID.index             | Column index of source vertex id of edge                                  | 0              |
 | files[0].schema.edge.srcVID.function          | The generation function of edge source vertex id                          | ""             |
+| files[0].schema.edge.srcVID.type              | Type of source vertex id of edge                                          | 0              |
 | files[0].schema.edge.dstVID.index             | Column index of destination vertex id of edge                             | 1              |
 | files[0].schema.edge.dstVID.function          | The generation function of edge destination vertex id                     | ""             |
+| files[0].schema.edge.dstVID.type              | Type of destination vertex id of edge                             | 1              |
 | files[0].schema.edge.rank.index               | Column index of the edge rank                                             | 2              |
 | files[0].schema.edge.name                     | Edge name in above space                                                  | ""             |
 | files[0].schema.edge.props                    | Properties of the edge                                                    | -              |
@@ -45,6 +47,7 @@
 | files[0].schema.vertex                        | Vertex options                                                            | -              |
 | files[0].schema.vertex.vid.index              | Column index of vertex vid                                                | 0              |
 | files[0].schema.vertex.vid.function           | The generation function of vertex vid                                     | ""             |
+| files[0].schema.vertex.vid.type               | The type of vertex vid                                                    | "string"       |
 | files[0].schema.vertex.tags                   | Vertex tags options                                                       | -              |
 | files[0].schema.vertex.tags[0].name           | Vertex tag name                                                           | ""             |
 | files[0].schema.vertex.tags[0].props          | Vertex tag's properties                                                   | -              |
