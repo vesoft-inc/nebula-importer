@@ -45,7 +45,6 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	}
 
 	statsMgr := stats.NewStatsMgr(yaml.Files)
-	r.stataMgr = statsMgr
 	defer statsMgr.Close()
 
 	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
@@ -85,6 +84,7 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	}
 
 	r.Readers = freaders
+	r.stataMgr = statsMgr
 
 	<-statsMgr.DoneCh
 

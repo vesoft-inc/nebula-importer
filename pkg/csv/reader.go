@@ -4,14 +4,11 @@ import (
 	"bufio"
 	"encoding/csv"
 	"fmt"
-	"io"
-	"os"
-	"reflect"
-	"unsafe"
-
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
+	"io"
+	"os"
 )
 
 type CSVReader struct {
@@ -20,6 +17,8 @@ type CSVReader struct {
 	lineNum   uint64
 	rr        *recordReader
 	br        *bufio.Reader
+	totalBytes int64
+	initComplete bool
 }
 
 type recordReader struct {
@@ -35,9 +34,10 @@ func (r *recordReader) Read(p []byte) (n int, err error) {
 
 func (r *CSVReader) InitReader(file *os.File) {
 	r.rr = &recordReader{
-		Reader: bufio.NewReader(file),
+		Reader: file,
 	}
-	r.reader = csv.NewReader(r.rr)
+	r.br = bufio.NewReader(r.rr)
+	r.reader = csv.NewReader(r.br)
 	if r.CSVConfig.Delimiter != nil {
 		d := []rune(*r.CSVConfig.Delimiter)
 		if len(d) > 0 {
@@ -45,10 +45,12 @@ func (r *CSVReader) InitReader(file *os.File) {
 			logger.Infof("The delimiter of %s is %#U", file.Name(), r.reader.Comma)
 		}
 	}
-	rf := reflect.ValueOf(r.reader).Elem().FieldByName("r")
-	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
-	br := rf.Interface().(*bufio.Reader)
-	r.br = br
+	stat, err := file.Stat()
+	if err != nil {
+		logger.Infof("The stat of %s is wrong, %s", file.Name(), err)
+	}
+	r.totalBytes = stat.Size()
+	r.initComplete = true
 }
 
 func (r *CSVReader) ReadLine() (base.Data, error) {
@@ -86,18 +88,10 @@ func (r *CSVReader) ReadLine() (base.Data, error) {
 	}
 }
 
-func CountFileBytes(path string) (int64, error) {
-	file, err := os.Open(path)
-	defer file.Close()
-	if err != nil {
-		logger.Errorf("count bytes fail: %s", path)
-		return 0, err
+func (r *CSVReader) TotalBytes() (int64) {
+	for {
+		if r.initComplete {
+			return r.totalBytes
+		}
 	}
-	stat, err := file.Stat()
-	if err != nil {
-		logger.Errorf("count bytes fail: %s", path)
-		return 0, err
-	}
-	bytesCount := stat.Size()
-	return bytesCount, nil
 }

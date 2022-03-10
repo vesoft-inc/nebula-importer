@@ -2,11 +2,11 @@ package stats
 
 import (
 	"fmt"
+	"github.com/vesoft-inc/nebula-importer/pkg/reader"
 	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
-	"github.com/vesoft-inc/nebula-importer/pkg/csv"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 )
 
@@ -31,14 +31,6 @@ type Stats struct {
 func NewStatsMgr(files []*config.File) *StatsMgr {
 	numReadingFiles := len(files)
 	totalBytes := int64(0)
-	for _, file := range files {
-		path := file.Path
-		bytes, err := csv.CountFileBytes(*path)
-		if err != nil {
-			logger.Errorf("count line fail: %s, %s", path, err.Error())
-		}
-		totalBytes += bytes
-	}
 	stats := Stats{
 		NumFailed:    0,
 		TotalBytes:   totalBytes,
@@ -93,8 +85,13 @@ func (s *StatsMgr) print(prefix string, now time.Time) {
 		prefix, secs, s.Stats.TotalCount, s.Stats.NumFailed, s.Stats.NumReadFailed, avgLatency, avgReq, rps)
 }
 
-func (s *StatsMgr) StatsQuery() Stats {
-	return s.Stats
+func (s *StatsMgr) CountFileBytes(freaders []*reader.FileReader) {
+	for _, r := range freaders {
+		if r == nil {
+			continue
+		}
+		s.Stats.TotalBytes += r.DataReader.TotalBytes()
+	}
 }
 
 func (s *StatsMgr) startWorker(numReadingFiles int) {
