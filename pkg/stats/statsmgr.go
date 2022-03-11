@@ -32,10 +32,9 @@ type Stats struct {
 
 func NewStatsMgr(files []*config.File) *StatsMgr {
 	numReadingFiles := len(files)
-	totalBytes := int64(0)
 	stats := Stats{
 		NumFailed:    0,
-		TotalBytes:   totalBytes,
+		TotalBytes:   0,
 		TotalCount:   0,
 		TotalLatency: 0,
 		TotalBatches: 0,
@@ -93,7 +92,7 @@ func (s *StatsMgr) CountFileBytes(freaders []*reader.FileReader) error {
 	if s.CountFileDone {
 		return nil
 	}
-	s.Stats.TotalCount = 0
+	s.Stats.TotalBytes = 0
 	for _, r := range freaders {
 		if r == nil {
 			continue
