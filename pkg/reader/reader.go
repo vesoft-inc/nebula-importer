@@ -20,7 +20,7 @@ import (
 type DataFileReader interface {
 	InitReader(*os.File)
 	ReadLine() (base.Data, error)
-	TotalBytes() (int64)
+	TotalBytes() (int64, error)
 }
 
 // FIXME: private fields

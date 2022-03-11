@@ -85,9 +85,10 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 
 	r.Readers = freaders
 	r.stataMgr = statsMgr
-	r.stataMgr.CountFileBytes(r.Readers)
+
 	<-statsMgr.DoneCh
 
+	r.stataMgr.CountFileBytes(r.Readers)
 	r.Readers = nil
 	r.NumFailed = statsMgr.Stats.NumFailed
 
@@ -99,7 +100,10 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 
 func (r *Runner) QueryStats() *stats.Stats {
 	if r.stataMgr != nil {
-		if r.Readers == nil {
+		if r.Readers != nil {
+			r.stataMgr.CountFileBytes(r.Readers)
+		}
+		if r.stataMgr.Done == true {
 			return &r.stataMgr.Stats
 		}
 		r.stataMgr.StatsCh <- base.NewOutputStats()

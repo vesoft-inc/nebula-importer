@@ -3,21 +3,23 @@ package csv
 import (
 	"bufio"
 	"encoding/csv"
+	"errors"
 	"fmt"
+	"io"
+	"os"
+
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
-	"io"
-	"os"
 )
 
 type CSVReader struct {
-	CSVConfig *config.CSVConfig
-	reader    *csv.Reader
-	lineNum   uint64
-	rr        *recordReader
-	br        *bufio.Reader
-	totalBytes int64
+	CSVConfig    *config.CSVConfig
+	reader       *csv.Reader
+	lineNum      uint64
+	rr           *recordReader
+	br           *bufio.Reader
+	totalBytes   int64
 	initComplete bool
 }
 
@@ -50,7 +52,9 @@ func (r *CSVReader) InitReader(file *os.File) {
 		logger.Infof("The stat of %s is wrong, %s", file.Name(), err)
 	}
 	r.totalBytes = stat.Size()
-	r.initComplete = true
+	defer func() {
+		r.initComplete = true
+	}()
 }
 
 func (r *CSVReader) ReadLine() (base.Data, error) {
@@ -88,10 +92,9 @@ func (r *CSVReader) ReadLine() (base.Data, error) {
 	}
 }
 
-func (r *CSVReader) TotalBytes() (int64) {
-	for {
-		if r.initComplete {
-			return r.totalBytes
-		}
+func (r *CSVReader) TotalBytes() (int64, error) {
+	if r.initComplete {
+		return r.totalBytes, nil
 	}
+	return 0, errors.New("init not complete")
 }

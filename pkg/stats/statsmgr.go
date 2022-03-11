@@ -15,6 +15,8 @@ type StatsMgr struct {
 	StatsCh       chan base.Stats
 	DoneCh        chan bool
 	Stats         Stats
+	Done          bool
+	CountFileDone bool
 }
 
 type Stats struct {
@@ -52,6 +54,8 @@ func NewStatsMgr(files []*config.File) *StatsMgr {
 func (s *StatsMgr) Close() {
 	close(s.StatsCh)
 	close(s.DoneCh)
+	close(s.OutputStatsCh)
+	s.Done = true
 }
 
 func (s *StatsMgr) updateStat(stat base.Stats) {
@@ -86,11 +90,25 @@ func (s *StatsMgr) print(prefix string, now time.Time) {
 }
 
 func (s *StatsMgr) CountFileBytes(freaders []*reader.FileReader) {
+	if s.CountFileDone {
+		return
+	}
+	flag := true
+	s.Stats.TotalCount = 0
 	for _, r := range freaders {
 		if r == nil {
 			continue
 		}
-		s.Stats.TotalBytes += r.DataReader.TotalBytes()
+		bytes, err := r.DataReader.TotalBytes()
+		if err != nil {
+			logger.Infof("file %s count file bytes fail, $s", *r.File.Path, err.Error())
+			flag = false
+			continue
+		}
+		s.Stats.TotalBytes += bytes
+	}
+	if flag {
+		s.CountFileDone = true
 	}
 }
 
