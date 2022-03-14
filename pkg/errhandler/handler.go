@@ -61,7 +61,11 @@ func (w *Handler) Init(file *config.File, concurrency int, cleanup bool) (chan b
 			} else {
 				dataWriter.Write(rawErr.Data)
 				logger.Error(rawErr.Error.Error())
-				w.statsCh <- base.NewFailureStats(len(rawErr.Data))
+				var importedBytes int64
+				for _, d := range rawErr.Data {
+					importedBytes += int64(d.Bytes)
+				}
+				w.statsCh <- base.NewFailureStats(len(rawErr.Data), importedBytes)
 			}
 		}
 
