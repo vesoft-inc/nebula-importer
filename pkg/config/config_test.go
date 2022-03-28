@@ -6,10 +6,13 @@ import (
 	"testing"
 
 	yaml "gopkg.in/yaml.v2"
+
+	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 )
 
 func TestYAMLParser(t *testing.T) {
-	yaml, err := Parse("../../examples/example.yaml")
+	runnerLogger := logger.NewRunnerLogger("")
+	yaml, err := Parse("../../examples/example.yaml", runnerLogger)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -11,13 +11,15 @@ import (
 )
 
 type ErrWriter struct {
-	writer    *csv.Writer
-	csvConfig *config.CSVConfig
+	writer       *csv.Writer
+	csvConfig    *config.CSVConfig
+	runnerLogger *logger.RunnerLogger
 }
 
-func NewErrDataWriter(config *config.CSVConfig) *ErrWriter {
+func NewErrDataWriter(config *config.CSVConfig, runnerLogger *logger.RunnerLogger) *ErrWriter {
 	return &ErrWriter{
-		csvConfig: config,
+		csvConfig:    config,
+		runnerLogger: runnerLogger,
 	}
 }
 
@@ -31,7 +33,7 @@ func (w *ErrWriter) Init(f *os.File) {
 
 func (w *ErrWriter) Write(data []base.Data) {
 	if len(data) == 0 {
-		logger.Info("Empty error data")
+		w.runnerLogger.Info("Empty error data")
 	}
 	for _, d := range data {
 		if *w.csvConfig.WithLabel {
@@ -42,7 +44,7 @@ func (w *ErrWriter) Write(data []base.Data) {
 			case base.DELETE:
 				record = append(record, "-")
 			default:
-				logger.Errorf("Error data type: %s, data: %s", d.Type, strings.Join(d.Record, ","))
+				w.runnerLogger.Errorf("Error data type: %s, data: %s", d.Type, strings.Join(d.Record, ","))
 				continue
 			}
 			record = append(record, d.Record...)

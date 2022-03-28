@@ -21,6 +21,7 @@ type CSVReader struct {
 	br           *bufio.Reader
 	totalBytes   int64
 	initComplete bool
+	runnerLogger *logger.RunnerLogger
 }
 
 type recordReader struct {
@@ -34,7 +35,8 @@ func (r *recordReader) Read(p []byte) (n int, err error) {
 	return
 }
 
-func (r *CSVReader) InitReader(file *os.File) {
+func (r *CSVReader) InitReader(file *os.File, runnerLogger *logger.RunnerLogger) {
+	r.runnerLogger = runnerLogger
 	r.rr = &recordReader{
 		Reader: file,
 	}
@@ -44,12 +46,12 @@ func (r *CSVReader) InitReader(file *os.File) {
 		d := []rune(*r.CSVConfig.Delimiter)
 		if len(d) > 0 {
 			r.reader.Comma = d[0]
-			logger.Infof("The delimiter of %s is %#U", file.Name(), r.reader.Comma)
+			runnerLogger.Infof("The delimiter of %s is %#U", file.Name(), r.reader.Comma)
 		}
 	}
 	stat, err := file.Stat()
 	if err != nil {
-		logger.Infof("The stat of %s is wrong, %s", file.Name(), err)
+		runnerLogger.Infof("The stat of %s is wrong, %s", file.Name(), err)
 	}
 	r.totalBytes = stat.Size()
 	defer func() {

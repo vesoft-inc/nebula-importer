@@ -7,16 +7,19 @@ import (
 )
 
 type NebulaClientMgr struct {
-	config *config.NebulaClientSettings
-	pool   *ClientPool
+	config       *config.NebulaClientSettings
+	pool         *ClientPool
+	runnerLogger *logger.RunnerLogger
 }
 
-func NewNebulaClientMgr(settings *config.NebulaClientSettings, statsCh chan<- base.Stats) (*NebulaClientMgr, error) {
+func NewNebulaClientMgr(settings *config.NebulaClientSettings, statsCh chan<- base.Stats,
+	runnerLogger *logger.RunnerLogger) (*NebulaClientMgr, error) {
 	mgr := NebulaClientMgr{
-		config: settings,
+		config:       settings,
+		runnerLogger: runnerLogger,
 	}
 
-	if pool, err := NewClientPool(settings, statsCh); err != nil {
+	if pool, err := NewClientPool(settings, statsCh, runnerLogger); err != nil {
 		return nil, err
 	} else {
 		if err := pool.Init(); err != nil {
@@ -25,7 +28,7 @@ func NewNebulaClientMgr(settings *config.NebulaClientSettings, statsCh chan<- ba
 		mgr.pool = pool
 	}
 
-	logger.Infof("Create %d Nebula Graph clients", mgr.GetNumConnections())
+	mgr.runnerLogger.Infof("Create %d Nebula Graph clients", mgr.GetNumConnections())
 
 	return &mgr, nil
 }

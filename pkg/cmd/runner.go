@@ -41,14 +41,12 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 		}
 	}()
 
-	if !*yaml.RemoveTempFiles {
-		logger.Init(*yaml.LogPath)
-	}
+	runnerLogger := logger.NewRunnerLogger(*yaml.LogPath)
 
-	statsMgr := stats.NewStatsMgr(yaml.Files)
+	statsMgr := stats.NewStatsMgr(yaml.Files, runnerLogger)
 	defer statsMgr.Close()
 
-	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh)
+	clientMgr, err := client.NewNebulaClientMgr(yaml.NebulaClientSettings, statsMgr.StatsCh, runnerLogger)
 	if err != nil {
 		r.errs = append(r.errs, importerError.Wrap(importerError.NebulaError, err))
 		return
@@ -60,14 +58,14 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	freaders := make([]*reader.FileReader, len(yaml.Files))
 
 	for i, file := range yaml.Files {
-		errCh, err := errHandler.Init(file, clientMgr.GetNumConnections(), *yaml.RemoveTempFiles)
+		errCh, err := errHandler.Init(file, clientMgr.GetNumConnections(), *yaml.RemoveTempFiles, runnerLogger)
 		if err != nil {
 			r.errs = append(r.errs, importerError.Wrap(importerError.ConfigError, err))
 			statsMgr.StatsCh <- base.NewFileDoneStats(*file.Path)
 			continue
 		}
 
-		if fr, err := reader.New(i, file, *yaml.RemoveTempFiles, clientMgr.GetRequestChans(), errCh); err != nil {
+		if fr, err := reader.New(i, file, *yaml.RemoveTempFiles, clientMgr.GetRequestChans(), errCh, runnerLogger); err != nil {
 			r.errs = append(r.errs, importerError.Wrap(importerError.ConfigError, err))
 			statsMgr.StatsCh <- base.NewFileDoneStats(*file.Path)
 			continue
