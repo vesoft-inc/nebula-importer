@@ -13,18 +13,19 @@ import (
 )
 
 type ClientPool struct {
-	retry       int
-	concurrency int
-	space       string
-	postStart   *config.NebulaPostStart
-	preStop     *config.NebulaPreStop
-	statsCh     chan<- base.Stats
-	pool        *nebula.ConnectionPool
-	Sessions    []*nebula.Session
-	requestChs  []chan base.ClientRequest
+	retry        int
+	concurrency  int
+	space        string
+	postStart    *config.NebulaPostStart
+	preStop      *config.NebulaPreStop
+	statsCh      chan<- base.Stats
+	pool         *nebula.ConnectionPool
+	Sessions     []*nebula.Session
+	requestChs   []chan base.ClientRequest
+	runnerLogger *logger.RunnerLogger
 }
 
-func NewClientPool(settings *config.NebulaClientSettings, statsCh chan<- base.Stats) (*ClientPool, error) {
+func NewClientPool(settings *config.NebulaClientSettings, statsCh chan<- base.Stats, runnerLogger *logger.RunnerLogger) (*ClientPool, error) {
 	addrs := strings.Split(*settings.Connection.Address, ",")
 	var hosts []nebula.HostAddress
 	for _, addr := range addrs {
@@ -45,16 +46,17 @@ func NewClientPool(settings *config.NebulaClientSettings, statsCh chan<- base.St
 		MaxConnPoolSize: len(addrs) * *settings.Concurrency,
 		MinConnPoolSize: 1,
 	}
-	connPool, err := nebula.NewConnectionPool(hosts, conf, logger.NebulaLogger{})
+	connPool, err := nebula.NewConnectionPool(hosts, conf, logger.NewNebulaLogger(runnerLogger))
 	if err != nil {
 		return nil, err
 	}
 	pool := ClientPool{
-		space:     *settings.Space,
-		postStart: settings.PostStart,
-		preStop:   settings.PreStop,
-		statsCh:   statsCh,
-		pool:      connPool,
+		space:        *settings.Space,
+		postStart:    settings.PostStart,
+		preStop:      settings.PreStop,
+		statsCh:      statsCh,
+		pool:         connPool,
+		runnerLogger: runnerLogger,
 	}
 	pool.retry = *settings.Retry
 	pool.concurrency = (*settings.Concurrency) * len(addrs)
@@ -105,7 +107,7 @@ func (p *ClientPool) Close() {
 	if p.preStop != nil && p.preStop.Commands != nil {
 		if i := p.getActiveConnIdx(); i != -1 {
 			if err := p.exec(i, *p.preStop.Commands); err != nil {
-				logger.Errorf("%s", err.Error())
+				p.runnerLogger.Errorf("%s", err.Error())
 			}
 		}
 	}
@@ -153,7 +155,7 @@ func (p *ClientPool) Init() error {
 func (p *ClientPool) startWorker(i int) {
 	stmt := fmt.Sprintf("USE `%s`;", p.space)
 	if err := p.exec(i, stmt); err != nil {
-		logger.Error(err.Error())
+		p.runnerLogger.Error(err.Error())
 		return
 	}
 	for {
@@ -194,7 +196,11 @@ func (p *ClientPool) startWorker(i int) {
 			}
 		} else {
 			timeInMs := time.Since(now).Nanoseconds() / 1e3
-			p.statsCh <- base.NewSuccessStats(int64(resp.GetLatency()), timeInMs, len(data.Data))
+			var importedBytes int64
+			for _, d := range data.Data {
+				importedBytes += int64(d.Bytes)
+			}
+			p.statsCh <- base.NewSuccessStats(int64(resp.GetLatency()), timeInMs, len(data.Data), importedBytes)
 		}
 	}
 }

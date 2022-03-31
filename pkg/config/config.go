@@ -52,6 +52,7 @@ type VID struct {
 	Index    *int    `json:"index" yaml:"index"`
 	Function *string `json:"function" yaml:"function"`
 	Type     *string `json:"type" yaml:"type"`
+	Prefix   *string `json:"prefix" yaml:"prefix"`
 }
 
 type Rank struct {
@@ -127,7 +128,7 @@ func isSupportedVersion(ver string) bool {
 	return false
 }
 
-func Parse(filename string) (*YAMLConfig, error) {
+func Parse(filename string, runnerLogger *logger.RunnerLogger) (*YAMLConfig, error) {
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat, err)
@@ -147,32 +148,32 @@ func Parse(filename string) (*YAMLConfig, error) {
 		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat, err)
 	}
 	path := filepath.Dir(abs)
-	if err = conf.ValidateAndReset(path); err != nil {
+	if err = conf.ValidateAndReset(path, runnerLogger); err != nil {
 		return nil, ierrors.Wrap(ierrors.ConfigError, err)
 	}
 
 	return &conf, nil
 }
 
-func (config *YAMLConfig) ValidateAndReset(dir string) error {
+func (config *YAMLConfig) ValidateAndReset(dir string, runnerLogger *logger.RunnerLogger) error {
 	if config.NebulaClientSettings == nil {
 		return errors.New("please configure clientSettings")
 	}
-	if err := config.NebulaClientSettings.validateAndReset("clientSettings"); err != nil {
+	if err := config.NebulaClientSettings.validateAndReset("clientSettings", runnerLogger); err != nil {
 		return err
 	}
 
 	if config.RemoveTempFiles == nil {
 		removeTempFiles := false
 		config.RemoveTempFiles = &removeTempFiles
-		logger.Warnf("You have not configured whether to remove generated temporary files, reset to default value. removeTempFiles: %v",
+		runnerLogger.Warnf("You have not configured whether to remove generated temporary files, reset to default value. removeTempFiles: %v",
 			*config.RemoveTempFiles)
 	}
 
 	if config.LogPath == nil {
 		defaultPath := filepath.Join(os.TempDir(), fmt.Sprintf("nebula-importer-%d.log", time.Now().UnixNano()))
 		config.LogPath = &defaultPath
-		logger.Warnf("You have not configured the log file path in: logPath, reset to default path: %s", *config.LogPath)
+		runnerLogger.Warnf("You have not configured the log file path in: logPath, reset to default path: %s", *config.LogPath)
 	}
 	if !filepath.IsAbs(*config.LogPath) {
 		absPath := filepath.Join(dir, *config.LogPath)
@@ -185,12 +186,12 @@ func (config *YAMLConfig) ValidateAndReset(dir string) error {
 
 	//TODO(yuyu): check each item in config.Files
 	// if item is a directory, iter this directory and replace this directory config section by filename config section
-	if err := config.expandDirectoryToFiles(dir); err != nil {
-		logger.Errorf("%s", err)
+	if err := config.expandDirectoryToFiles(dir, runnerLogger); err != nil {
+		runnerLogger.Errorf("%s", err)
 		return err
 	}
 	for i := range config.Files {
-		if err := config.Files[i].validateAndReset(dir, fmt.Sprintf("files[%d]", i)); err != nil {
+		if err := config.Files[i].validateAndReset(dir, fmt.Sprintf("files[%d]", i), runnerLogger); err != nil {
 			return err
 		}
 	}
@@ -198,13 +199,13 @@ func (config *YAMLConfig) ValidateAndReset(dir string) error {
 	return nil
 }
 
-func (config *YAMLConfig) expandDirectoryToFiles(dir string) (err error) {
+func (config *YAMLConfig) expandDirectoryToFiles(dir string, runnerLogger *logger.RunnerLogger) (err error) {
 	var newFiles []*File
 
 	for _, file := range config.Files {
-		err, files := file.expandFiles(dir)
+		err, files := file.expandFiles(dir, runnerLogger)
 		if err != nil {
-			logger.Errorf("error when expand file: %s", err)
+			runnerLogger.Errorf("error when expand file: %s", err)
 			return err
 		}
 		for _, f := range files {
@@ -230,7 +231,7 @@ func (n *NebulaPostStart) validateAndReset(prefix string) error {
 	return nil
 }
 
-func (n *NebulaClientSettings) validateAndReset(prefix string) error {
+func (n *NebulaClientSettings) validateAndReset(prefix string, runnerLogger *logger.RunnerLogger) error {
 	if n.Space == nil {
 		return fmt.Errorf("Please configure the space name in: %s.space", prefix)
 	}
@@ -238,25 +239,25 @@ func (n *NebulaClientSettings) validateAndReset(prefix string) error {
 	if n.Retry == nil {
 		retry := 1
 		n.Retry = &retry
-		logger.Warnf("Invalid retry option in %s.retry, reset to %d ", prefix, *n.Retry)
+		runnerLogger.Warnf("Invalid retry option in %s.retry, reset to %d ", prefix, *n.Retry)
 	}
 
 	if n.Concurrency == nil {
 		d := 10
 		n.Concurrency = &d
-		logger.Warnf("Invalid client concurrency in %s.concurrency, reset to %d", prefix, *n.Concurrency)
+		runnerLogger.Warnf("Invalid client concurrency in %s.concurrency, reset to %d", prefix, *n.Concurrency)
 	}
 
 	if n.ChannelBufferSize == nil {
 		d := 128
 		n.ChannelBufferSize = &d
-		logger.Warnf("Invalid client channel buffer size in %s.channelBufferSize, reset to %d", prefix, *n.ChannelBufferSize)
+		runnerLogger.Warnf("Invalid client channel buffer size in %s.channelBufferSize, reset to %d", prefix, *n.ChannelBufferSize)
 	}
 
 	if n.Connection == nil {
 		return fmt.Errorf("Please configure the connection information in: %s.connection", prefix)
 	}
-	if err := n.Connection.validateAndReset(fmt.Sprintf("%s.connection", prefix)); err != nil {
+	if err := n.Connection.validateAndReset(fmt.Sprintf("%s.connection", prefix), runnerLogger); err != nil {
 		return err
 	}
 
@@ -266,20 +267,20 @@ func (n *NebulaClientSettings) validateAndReset(prefix string) error {
 	return nil
 }
 
-func (c *NebulaClientConnection) validateAndReset(prefix string) error {
+func (c *NebulaClientConnection) validateAndReset(prefix string, runnerLogger *logger.RunnerLogger) error {
 	if c.Address == nil {
 		c.Address = &kDefaultConnAddr
-		logger.Warnf("%s.address: %s", prefix, *c.Address)
+		runnerLogger.Warnf("%s.address: %s", prefix, *c.Address)
 	}
 
 	if c.User == nil {
 		c.User = &kDefaultUser
-		logger.Warnf("%s.user: %s", prefix, *c.User)
+		runnerLogger.Warnf("%s.user: %s", prefix, *c.User)
 	}
 
 	if c.Password == nil {
 		c.Password = &kDefaultPassword
-		logger.Warnf("%s.password: %s", prefix, *c.Password)
+		runnerLogger.Warnf("%s.password: %s", prefix, *c.Password)
 	}
 	return nil
 }
@@ -288,7 +289,7 @@ func (f *File) IsInOrder() bool {
 	return (f.InOrder != nil && *f.InOrder) || (f.CSV != nil && f.CSV.WithLabel != nil && *f.CSV.WithLabel)
 }
 
-func (f *File) validateAndReset(dir, prefix string) error {
+func (f *File) validateAndReset(dir, prefix string, runnerLogger *logger.RunnerLogger) error {
 	if f.Path == nil {
 		return fmt.Errorf("Please configure file path in: %s.path", prefix)
 	}
@@ -305,7 +306,7 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		if f.FailDataPath == nil {
 			failDataPath := filepath.Join(os.TempDir(), fmt.Sprintf("nebula-importer-err-data-%d", time.Now().UnixNano()))
 			f.FailDataPath = &failDataPath
-			logger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to tmp path: %s",
+			runnerLogger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to tmp path: %s",
 				prefix, *f.FailDataPath)
 		}
 	} else {
@@ -320,7 +321,7 @@ func (f *File) validateAndReset(dir, prefix string) error {
 		if f.FailDataPath == nil {
 			p := filepath.Join(filepath.Dir(*f.Path), "err", filepath.Base(*f.Path))
 			f.FailDataPath = &p
-			logger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to default path: %s",
+			runnerLogger.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to default path: %s",
 				prefix, *f.FailDataPath)
 		} else {
 			if !filepath.IsAbs(*f.FailDataPath) {
@@ -332,7 +333,7 @@ func (f *File) validateAndReset(dir, prefix string) error {
 
 	if f.BatchSize == nil {
 		f.BatchSize = &kDefaultBatchSize
-		logger.Infof("Invalid batch size in file(%s), reset to %d", *f.Path, *f.BatchSize)
+		runnerLogger.Infof("Invalid batch size in file(%s), reset to %d", *f.Path, *f.BatchSize)
 	}
 
 	if f.InOrder == nil {
@@ -346,7 +347,7 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	}
 
 	if f.CSV != nil {
-		err := f.CSV.validateAndReset(fmt.Sprintf("%s.csv", prefix))
+		err := f.CSV.validateAndReset(fmt.Sprintf("%s.csv", prefix), runnerLogger)
 		if err != nil {
 			return err
 		}
@@ -355,10 +356,10 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	if f.Schema == nil {
 		return fmt.Errorf("Please configure file schema: %s.schema", prefix)
 	}
-	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
+	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix), runnerLogger)
 }
 
-func (f *File) expandFiles(dir string) (err error, files []*File) {
+func (f *File) expandFiles(dir string, runnerLogger *logger.RunnerLogger) (err error, files []*File) {
 	if base.HasHttpPrefix(*f.Path) {
 		files = append(files, f)
 	} else {
@@ -369,7 +370,7 @@ func (f *File) expandFiles(dir string) (err error, files []*File) {
 
 		fileNames, err := filepath.Glob(*f.Path)
 		if err != nil || len(fileNames) == 0 {
-			logger.Errorf("error file path: %s", *f.Path)
+			runnerLogger.Errorf("error file path: %s", *f.Path)
 			return err, files
 		}
 
@@ -384,30 +385,30 @@ func (f *File) expandFiles(dir string) (err error, files []*File) {
 				base := filepath.Base(fileNames[i])
 				tmp := filepath.Join(*f.FailDataPath, base)
 				failedDataPath = &tmp
-				logger.Infof("Failed data path: %v", *failedDataPath)
+				runnerLogger.Infof("Failed data path: %v", *failedDataPath)
 			}
 			eachConf := *f
 			eachConf.Path = &fileNames[i]
 			eachConf.FailDataPath = failedDataPath
 			files = append(files, &eachConf)
-			logger.Infof("find file: %v", *eachConf.Path)
+			runnerLogger.Infof("find file: %v", *eachConf.Path)
 		}
 	}
 
 	return err, files
 }
 
-func (c *CSVConfig) validateAndReset(prefix string) error {
+func (c *CSVConfig) validateAndReset(prefix string, runnerLogger *logger.RunnerLogger) error {
 	if c.WithHeader == nil {
 		h := false
 		c.WithHeader = &h
-		logger.Infof("%s.withHeader: %v", prefix, false)
+		runnerLogger.Infof("%s.withHeader: %v", prefix, false)
 	}
 
 	if c.WithLabel == nil {
 		l := false
 		c.WithLabel = &l
-		logger.Infof("%s.withLabel: %v", prefix, false)
+		runnerLogger.Infof("%s.withLabel: %v", prefix, false)
 	}
 
 	if c.Delimiter != nil {
@@ -451,20 +452,20 @@ func (s *Schema) CollectEmptyPropsTagNames() []string {
 	return tagNames
 }
 
-func (s *Schema) validateAndReset(prefix string) error {
+func (s *Schema) validateAndReset(prefix string, runnerLogger *logger.RunnerLogger) error {
 	var err error = nil
 	switch strings.ToLower(*s.Type) {
 	case "edge":
 		if s.Edge != nil {
-			err = s.Edge.validateAndReset(fmt.Sprintf("%s.edge", prefix))
+			err = s.Edge.validateAndReset(fmt.Sprintf("%s.edge", prefix), runnerLogger)
 		} else {
-			logger.Infof("%s.edge is nil", prefix)
+			runnerLogger.Infof("%s.edge is nil", prefix)
 		}
 	case "vertex":
 		if s.Vertex != nil {
-			err = s.Vertex.validateAndReset(fmt.Sprintf("%s.vertex", prefix))
+			err = s.Vertex.validateAndReset(fmt.Sprintf("%s.vertex", prefix), runnerLogger)
 		} else {
-			logger.Infof("%s.vertex is nil", prefix)
+			runnerLogger.Infof("%s.vertex is nil", prefix)
 		}
 	default:
 		err = fmt.Errorf("Error schema type(%s) in %s.type only edge and vertex are supported", *s.Type, prefix)
@@ -482,12 +483,18 @@ func (v *VID) ParseFunction(str string) (err error) {
 	} else if i > 0 && j > i {
 		strs := strings.ToLower(str[i+1 : j])
 		fnType := strings.Split(strs, "+")
-		if len(fnType) > 1 {
+		if len(fnType) == 2 {
 			v.Function = &fnType[0]
 			v.Type = &fnType[1]
+			v.Prefix = nil
+		} else if len(fnType) == 3 {
+			v.Function = &fnType[0]
+			v.Type = &fnType[1]
+			v.Prefix = &fnType[2]
 		} else {
 			v.Function = nil
 			v.Type = &fnType[0]
+			v.Prefix = nil
 		}
 	} else {
 		err = fmt.Errorf("Invalid function format: %s", str)
@@ -496,10 +503,14 @@ func (v *VID) ParseFunction(str string) (err error) {
 }
 
 func (v *VID) String(vid string) string {
-	if v.Function == nil || *v.Function == "" {
-		return fmt.Sprintf("%s(%s)", vid, *v.Type)
-	} else {
+	if (v.Function != nil && *v.Function != "") && (v.Prefix != nil && *v.Prefix != "") {
+		return fmt.Sprintf("%s(%s+%s+%s)", vid, *v.Function, *v.Type, *v.Prefix)
+	} else if (v.Function == nil || *v.Function == "") && (v.Prefix != nil && *v.Prefix != "") {
+		return fmt.Sprintf("%s(%s+%s+%s)", vid, "", *v.Type, *v.Prefix)
+	} else if (v.Function != nil && *v.Function != "") && (v.Prefix == nil || *v.Prefix == "") {
 		return fmt.Sprintf("%s(%s+%s)", vid, *v.Function, *v.Type)
+	} else {
+		return fmt.Sprintf("%s(%s)", vid, *v.Type)
 	}
 }
 
@@ -507,8 +518,11 @@ func (v *VID) FormatValue(record base.Record) (string, error) {
 	if len(record) <= *v.Index {
 		return "", fmt.Errorf("vid index(%d) out of range record length(%d)", *v.Index, len(record))
 	}
+	vid := record[*v.Index]
+	if v.Prefix != nil {
+		vid = *v.Prefix + vid
+	}
 	if v.Function == nil || *v.Function == "" {
-		vid := record[*v.Index]
 		if err := checkVidFormat(vid, *v.Type == "int"); err != nil {
 			return "", err
 		}
@@ -518,7 +532,7 @@ func (v *VID) FormatValue(record base.Record) (string, error) {
 			return vid, nil
 		}
 	} else {
-		return fmt.Sprintf("%s(%q)", *v.Function, record[*v.Index]), nil
+		return fmt.Sprintf("%s(%q)", *v.Function, vid), nil
 	}
 }
 
@@ -534,7 +548,7 @@ func (v *VID) checkFunction(prefix string) error {
 	return nil
 }
 
-func (v *VID) validateAndReset(prefix string, defaultVal int) error {
+func (v *VID) validateAndReset(prefix string, defaultVal int, runnerLogger *logger.RunnerLogger) error {
 	if v.Index == nil {
 		v.Index = &defaultVal
 	}
@@ -551,7 +565,7 @@ func (v *VID) validateAndReset(prefix string, defaultVal int) error {
 		}
 	} else {
 		v.Type = &kDefaultVidType
-		logger.Warnf("Not set %s.Type, reset to default value `%s'", prefix, *v.Type)
+		runnerLogger.Warnf("Not set %s.Type, reset to default value `%s'", prefix, *v.Type)
 	}
 	return nil
 }
@@ -654,12 +668,12 @@ func (e *Edge) String() string {
 	return strings.Join(cells, ",")
 }
 
-func (e *Edge) validateAndReset(prefix string) error {
+func (e *Edge) validateAndReset(prefix string, runnerLogger *logger.RunnerLogger) error {
 	if e.Name == nil {
 		return fmt.Errorf("Please configure edge name in: %s.name", prefix)
 	}
 	if e.SrcVID != nil {
-		if err := e.SrcVID.validateAndReset(fmt.Sprintf("%s.srcVID", prefix), 0); err != nil {
+		if err := e.SrcVID.validateAndReset(fmt.Sprintf("%s.srcVID", prefix), 0, runnerLogger); err != nil {
 			return err
 		}
 	} else {
@@ -667,7 +681,7 @@ func (e *Edge) validateAndReset(prefix string) error {
 		e.SrcVID = &VID{Index: &index, Type: &kDefaultVidType}
 	}
 	if e.DstVID != nil {
-		if err := e.DstVID.validateAndReset(fmt.Sprintf("%s.dstVID", prefix), 1); err != nil {
+		if err := e.DstVID.validateAndReset(fmt.Sprintf("%s.dstVID", prefix), 1, runnerLogger); err != nil {
 			return err
 		}
 	} else {
@@ -693,7 +707,7 @@ func (e *Edge) validateAndReset(prefix string) error {
 				return err
 			}
 		} else {
-			logger.Errorf("prop %d of edge %s is nil", i, *e.Name)
+			runnerLogger.Errorf("prop %d of edge %s is nil", i, *e.Name)
 		}
 	}
 	return nil
@@ -756,12 +770,12 @@ func (v *Vertex) String() string {
 	return strings.Join(cells, ",")
 }
 
-func (v *Vertex) validateAndReset(prefix string) error {
+func (v *Vertex) validateAndReset(prefix string, runnerLogger *logger.RunnerLogger) error {
 	// if v.Tags == nil {
 	// 	return fmt.Errorf("Please configure %.tags", prefix)
 	// }
 	if v.VID != nil {
-		if err := v.VID.validateAndReset(fmt.Sprintf("%s.vid", prefix), 0); err != nil {
+		if err := v.VID.validateAndReset(fmt.Sprintf("%s.vid", prefix), 0, runnerLogger); err != nil {
 			return err
 		}
 	} else {
@@ -771,12 +785,12 @@ func (v *Vertex) validateAndReset(prefix string) error {
 	j := 1
 	for i := range v.Tags {
 		if v.Tags[i] != nil {
-			if err := v.Tags[i].validateAndReset(fmt.Sprintf("%s.tags[%d]", prefix, i), j); err != nil {
+			if err := v.Tags[i].validateAndReset(fmt.Sprintf("%s.tags[%d]", prefix, i), j, runnerLogger); err != nil {
 				return err
 			}
 			j = j + len(v.Tags[i].Props)
 		} else {
-			logger.Errorf("tag %d is nil", i)
+			runnerLogger.Errorf("tag %d is nil", i)
 		}
 	}
 	return nil
@@ -851,7 +865,7 @@ func (t *Tag) FormatValues(record base.Record) (string, bool, error) {
 	return strings.Join(cells, ","), noProps, nil
 }
 
-func (t *Tag) validateAndReset(prefix string, start int) error {
+func (t *Tag) validateAndReset(prefix string, start int, runnerLogger *logger.RunnerLogger) error {
 	if t.Name == nil {
 		return fmt.Errorf("Please configure the vertex tag name in: %s.name", prefix)
 	}
@@ -862,7 +876,7 @@ func (t *Tag) validateAndReset(prefix string, start int) error {
 				return err
 			}
 		} else {
-			logger.Errorf("prop %d of tag %s is nil", i, *t.Name)
+			runnerLogger.Errorf("prop %d of tag %s is nil", i, *t.Name)
 		}
 	}
 	return nil

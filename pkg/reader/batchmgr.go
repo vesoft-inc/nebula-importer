@@ -17,6 +17,7 @@ type BatchMgr struct {
 	InsertStmtPrefix   string
 	initializedSchema  bool
 	emptyPropsTagNames []string
+	runnerLogger       *logger.RunnerLogger
 }
 
 func NewBatchMgr(schema *config.Schema, batchSize int, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) *BatchMgr {
@@ -58,10 +59,10 @@ func (bm *BatchMgr) Done() {
 	}
 }
 
-func (bm *BatchMgr) InitSchema(header base.Record) (err error) {
+func (bm *BatchMgr) InitSchema(header base.Record, runnerLogger *logger.RunnerLogger) (err error) {
 	err = nil
 	if bm.initializedSchema {
-		logger.Info("Batch manager schema has been initialized!")
+		runnerLogger.Info("Batch manager schema has been initialized!")
 		return
 	}
 	bm.initializedSchema = true
@@ -200,24 +201,24 @@ func (bm *BatchMgr) parseProperty(r string) (columnName, columnType string) {
 	}
 }
 
-func (bm *BatchMgr) Add(data base.Data) error {
+func (bm *BatchMgr) Add(data base.Data, runnerLogger *logger.RunnerLogger) error {
 	var vid string
 	if bm.Schema.IsVertex() {
 		vid = data.Record[*bm.Schema.Vertex.VID.Index]
 	} else {
 		vid = data.Record[*bm.Schema.Edge.SrcVID.Index]
 	}
-	batchIdx := getBatchId(vid, len(bm.Batches))
+	batchIdx := getBatchId(vid, len(bm.Batches), runnerLogger)
 	bm.Batches[batchIdx].Add(data)
 	return nil
 }
 
 var h = fnv.New32a()
 
-func getBatchId(idStr string, numChans int) uint32 {
+func getBatchId(idStr string, numChans int, runnerLogger *logger.RunnerLogger) uint32 {
 	_, err := h.Write([]byte(idStr))
 	if err != nil {
-		logger.Error(err)
+		runnerLogger.Error(err)
 	}
 	return h.Sum32() % uint32(numChans)
 }

@@ -8,13 +8,15 @@ import (
 )
 
 type taskMgr struct {
-	tasks map[string]*cmd.Runner
-	mux   sync.Mutex
+	tasks        map[string]*cmd.Runner
+	mux          sync.Mutex
+	runnerLogger *logger.RunnerLogger
 }
 
-func newTaskMgr() *taskMgr {
+func newTaskMgr(runnerLogger *logger.RunnerLogger) *taskMgr {
 	return &taskMgr{
-		tasks: make(map[string]*cmd.Runner),
+		tasks:        make(map[string]*cmd.Runner),
+		runnerLogger: runnerLogger,
 	}
 }
 
@@ -38,7 +40,7 @@ func (m *taskMgr) get(k string) *cmd.Runner {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	if v, ok := m.tasks[k]; !ok {
-		logger.Errorf("Fail to get %s value from task manager", k)
+		m.runnerLogger.Errorf("Fail to get %s value from task manager", k)
 		return nil
 	} else {
 		return v

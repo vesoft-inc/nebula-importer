@@ -9,6 +9,7 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/errors"
+	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/pkg/web"
 )
 
@@ -28,12 +29,14 @@ func main() {
 	log.Println("--- START OF NEBULA IMPORTER ---")
 
 	flag.Parse()
-
+	runnerLogger := logger.NewRunnerLogger("")
 	if port != nil && *port > 0 && callback != nil && *callback != "" {
+
 		// Start http server
 		svr := &web.WebServer{
-			Port:     *port,
-			Callback: *callback,
+			Port:         *port,
+			Callback:     *callback,
+			RunnerLogger: runnerLogger,
 		}
 
 		if err := svr.Start(); err != nil {
@@ -44,7 +47,7 @@ func main() {
 			panic("please configure yaml file")
 		}
 
-		conf, err := config.Parse(*configuration)
+		conf, err := config.Parse(*configuration, runnerLogger)
 		if err != nil {
 			e := err.(errors.ImporterError)
 			log.Println(e.ErrMsg.Error())
