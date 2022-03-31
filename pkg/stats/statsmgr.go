@@ -17,6 +17,7 @@ type StatsMgr struct {
 	Stats         Stats
 	Done          bool
 	CountFileDone bool
+	runnerLogger  *logger.RunnerLogger
 }
 
 type Stats struct {
@@ -30,7 +31,7 @@ type Stats struct {
 	TotalImportedBytes int64 `json:"totalImportedBytes"`
 }
 
-func NewStatsMgr(files []*config.File) *StatsMgr {
+func NewStatsMgr(files []*config.File, runnerLogger *logger.RunnerLogger) *StatsMgr {
 	numReadingFiles := len(files)
 	stats := Stats{
 		NumFailed:    0,
@@ -45,6 +46,7 @@ func NewStatsMgr(files []*config.File) *StatsMgr {
 		StatsCh:       make(chan base.Stats),
 		DoneCh:        make(chan bool),
 		Stats:         stats,
+		runnerLogger:  runnerLogger,
 	}
 	go m.startWorker(numReadingFiles)
 	return &m
@@ -84,7 +86,7 @@ func (s *StatsMgr) print(prefix string, now time.Time) {
 	avgLatency := s.Stats.TotalLatency / s.Stats.TotalBatches
 	avgReq := s.Stats.TotalReqTime / s.Stats.TotalBatches
 	rps := float64(s.Stats.TotalCount) / secs
-	logger.Infof("%s: Time(%.2fs), Finished(%d), Failed(%d), Read Failed(%d), Latency AVG(%dus), Batches Req AVG(%dus), Rows AVG(%.2f/s)",
+	s.runnerLogger.Infof("%s: Time(%.2fs), Finished(%d), Failed(%d), Read Failed(%d), Latency AVG(%dus), Batches Req AVG(%dus), Rows AVG(%.2f/s)",
 		prefix, secs, s.Stats.TotalCount, s.Stats.NumFailed, s.Stats.NumReadFailed, avgLatency, avgReq, rps)
 }
 
@@ -133,7 +135,7 @@ func (s *StatsMgr) startWorker(numReadingFiles int) {
 			case base.OUTPUT:
 				s.outputStats()
 			default:
-				logger.Errorf("Error stats type: %s", stat.Type)
+				s.runnerLogger.Errorf("Error stats type: %s", stat.Type)
 			}
 		}
 	}

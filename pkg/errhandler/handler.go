@@ -23,11 +23,11 @@ func New(statsCh chan<- base.Stats) *Handler {
 	return &h
 }
 
-func (w *Handler) Init(file *config.File, concurrency int, cleanup bool) (chan base.ErrData, error) {
+func (w *Handler) Init(file *config.File, concurrency int, cleanup bool, runnerLogger *logger.RunnerLogger) (chan base.ErrData, error) {
 	var dataWriter DataWriter
 	switch strings.ToLower(*file.Type) {
 	case "csv":
-		dataWriter = csv.NewErrDataWriter(file.CSV)
+		dataWriter = csv.NewErrDataWriter(file.CSV, runnerLogger)
 	default:
 		return nil, fmt.Errorf("Wrong file type: %s", *file.Type)
 	}
@@ -38,13 +38,13 @@ func (w *Handler) Init(file *config.File, concurrency int, cleanup bool) (chan b
 	go func() {
 		defer func() {
 			if err := dataFile.Close(); err != nil {
-				logger.Errorf("Fail to close opened error data file: %s", *file.FailDataPath)
+				runnerLogger.Errorf("Fail to close opened error data file: %s", *file.FailDataPath)
 			}
 			if cleanup {
 				if err := os.Remove(*file.FailDataPath); err != nil {
-					logger.Errorf("Fail to remove error data file: %s", *file.FailDataPath)
+					runnerLogger.Errorf("Fail to remove error data file: %s", *file.FailDataPath)
 				} else {
-					logger.Infof("Error data file has been removed: %s", *file.FailDataPath)
+					runnerLogger.Infof("Error data file has been removed: %s", *file.FailDataPath)
 				}
 			}
 		}()
@@ -60,7 +60,7 @@ func (w *Handler) Init(file *config.File, concurrency int, cleanup bool) (chan b
 				}
 			} else {
 				dataWriter.Write(rawErr.Data)
-				logger.Error(rawErr.Error.Error())
+				runnerLogger.Error(rawErr.Error.Error())
 				var importedBytes int64
 				for _, d := range rawErr.Data {
 					importedBytes += int64(d.Bytes)
@@ -71,7 +71,7 @@ func (w *Handler) Init(file *config.File, concurrency int, cleanup bool) (chan b
 
 		dataWriter.Flush()
 		if dataWriter.Error() != nil {
-			logger.Error(dataWriter.Error())
+			runnerLogger.Error(dataWriter.Error())
 		}
 		w.statsCh <- base.NewFileDoneStats(*file.Path)
 	}()
