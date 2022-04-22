@@ -18,38 +18,42 @@ import (
 )
 
 type DataFileReader interface {
-	InitReader(*os.File)
+	InitReader(*os.File, *logger.RunnerLogger)
 	ReadLine() (base.Data, error)
+	TotalBytes() (int64, error)
 }
 
 // FIXME: private fields
 type FileReader struct {
-	FileIdx     int
-	File        *config.File
-	localFile   bool
-	cleanup     bool
-	WithHeader  bool
-	DataReader  DataFileReader
-	Concurrency int
-	BatchMgr    *BatchMgr
-	StopFlag    bool
+	FileIdx      int
+	File         *config.File
+	localFile    bool
+	cleanup      bool
+	WithHeader   bool
+	DataReader   DataFileReader
+	Concurrency  int
+	BatchMgr     *BatchMgr
+	StopFlag     bool
+	runnerLogger *logger.RunnerLogger
 }
 
-func New(fileIdx int, file *config.File, cleanup bool, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) (*FileReader, error) {
+func New(fileIdx int, file *config.File, cleanup bool, clientRequestChs []chan base.ClientRequest,
+	errCh chan<- base.ErrData, runnerLogger *logger.RunnerLogger) (*FileReader, error) {
 	switch strings.ToLower(*file.Type) {
 	case "csv":
 		r := csv.CSVReader{CSVConfig: file.CSV}
 		reader := FileReader{
-			FileIdx:    fileIdx,
-			DataReader: &r,
-			File:       file,
-			WithHeader: *file.CSV.WithHeader,
-			StopFlag:   false,
-			cleanup:    cleanup,
+			FileIdx:      fileIdx,
+			DataReader:   &r,
+			File:         file,
+			WithHeader:   *file.CSV.WithHeader,
+			StopFlag:     false,
+			cleanup:      cleanup,
+			runnerLogger: runnerLogger,
 		}
 		reader.BatchMgr = NewBatchMgr(file.Schema, *file.BatchSize, clientRequestChs, errCh)
 		if !reader.WithHeader {
-			if err := reader.BatchMgr.InitSchema(strings.Split(file.Schema.String(), ",")); err != nil {
+			if err := reader.BatchMgr.InitSchema(strings.Split(file.Schema.String(), ","), runnerLogger); err != nil {
 				return nil, err
 			}
 		}
@@ -61,7 +65,7 @@ func New(fileIdx int, file *config.File, cleanup bool, clientRequestChs []chan b
 
 func (r *FileReader) startLog() {
 	fpath, _ := base.FormatFilePath(*r.File.Path)
-	logger.Infof("Start to read file(%d): %s, schema: < %s >", r.FileIdx, fpath, r.BatchMgr.Schema.String())
+	r.runnerLogger.Infof("Start to read file(%d): %s, schema: < %s >", r.FileIdx, fpath, r.BatchMgr.Schema.String())
 }
 
 func (r *FileReader) Stop() {
@@ -106,37 +110,37 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 	filepath := file.Name()
 
 	fpath, _ := base.FormatFilePath(*r.File.Path)
-	logger.Infof("File(%s) has been downloaded to \"%s\", size: %d", fpath, filepath, n)
+	r.runnerLogger.Infof("File(%s) has been downloaded to \"%s\", size: %d", fpath, filepath, n)
 
 	return &filepath, nil
 }
 
-func (r *FileReader) Read() error {
+func (r *FileReader) Read() (numErrorLines int64, err error) {
 	filePath, err := r.prepareDataFile()
 	if err != nil {
-		return err
+		return numErrorLines, err
 	}
 	file, err := os.Open(*filePath)
 	if err != nil {
-		return errors.Wrap(errors.ConfigError, err)
+		return numErrorLines, errors.Wrap(errors.ConfigError, err)
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
-			logger.Errorf("Fail to close opened data file: %s", *filePath)
+			r.runnerLogger.Errorf("Fail to close opened data file: %s", *filePath)
 			return
 		}
 		if !r.localFile && r.cleanup {
 			if err := os.Remove(*filePath); err != nil {
-				logger.Errorf("Fail to remove temp data file: %s", *filePath)
+				r.runnerLogger.Errorf("Fail to remove temp data file: %s", *filePath)
 			} else {
-				logger.Infof("Temp downloaded data file has been removed: %s", *filePath)
+				r.runnerLogger.Infof("Temp downloaded data file has been removed: %s", *filePath)
 			}
 		}
 	}()
 
-	r.DataReader.InitReader(file)
+	r.DataReader.InitReader(file, r.runnerLogger)
 
-	lineNum, numErrorLines := 0, 0
+	lineNum := 0
 
 	if !r.WithHeader {
 		r.startLog()
@@ -152,11 +156,11 @@ func (r *FileReader) Read() error {
 
 		if err == nil {
 			if data.Type == base.HEADER {
-				err = r.BatchMgr.InitSchema(data.Record)
+				err = r.BatchMgr.InitSchema(data.Record, r.runnerLogger)
 				r.startLog()
 			} else {
 				if r.File.IsInOrder() {
-					err = r.BatchMgr.Add(data)
+					err = r.BatchMgr.Add(data, r.runnerLogger)
 				} else {
 					idx := lineNum % len(r.BatchMgr.Batches)
 					r.BatchMgr.Batches[idx].Add(data)
@@ -166,7 +170,7 @@ func (r *FileReader) Read() error {
 
 		if err != nil {
 			fpath, _ := base.FormatFilePath(*r.File.Path)
-			logger.Errorf("Fail to read file(%s) line %d, error: %s", fpath, lineNum, err.Error())
+			r.runnerLogger.Errorf("Fail to read file(%s) line %d, error: %s", fpath, lineNum, err.Error())
 			numErrorLines++
 		}
 
@@ -177,7 +181,7 @@ func (r *FileReader) Read() error {
 
 	r.BatchMgr.Done()
 	fpath, _ := base.FormatFilePath(*r.File.Path)
-	logger.Infof("Total lines of file(%s) is: %d, error lines: %d", fpath, lineNum, numErrorLines)
+	r.runnerLogger.Infof("Total lines of file(%s) is: %d, error lines: %d", fpath, lineNum, numErrorLines)
 
-	return nil
+	return numErrorLines, nil
 }

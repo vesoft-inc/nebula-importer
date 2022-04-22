@@ -1,6 +1,6 @@
-name: test
+name: pull_request
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   test:
@@ -10,3 +10,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: test importer
         run: docker-compose up --exit-code-from importer
+        timeout-minutes: 20
+      - name: cleanup
+        if: ${{ always() }}
+        run: docker-compose down -v

@@ -18,3 +18,7 @@
 err/
 vendor/
 nebula-importer
+
+# IDE
+.vscode/
+.idea/

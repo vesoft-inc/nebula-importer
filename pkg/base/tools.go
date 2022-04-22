@@ -29,16 +29,11 @@ func FileExists(filename string) bool {
 
 func IsValidType(t string) bool {
 	switch strings.ToLower(t) {
-	case "string":
-	case "int":
-	case "float":
-	case "double":
-	case "bool":
-	case "timestamp":
+	case "string", "int", "float", "double", "bool", "date", "time", "datetime", "timestamp", "geography", "geography(point)", "geography(linestring)", "geography(polygon)":
+		return true
 	default:
 		return false
 	}
-	return true
 }
 
 func HasHttpPrefix(path string) bool {

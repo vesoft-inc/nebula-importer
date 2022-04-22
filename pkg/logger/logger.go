@@ -11,82 +11,93 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 )
 
-var logger *log.Logger = log.New(os.Stdout, "", log.LstdFlags)
-
-func Init(path string) {
-	file := base.MustCreateFile(path)
-	w := io.MultiWriter(os.Stdout, file)
-	logger = log.New(w, "", log.LstdFlags)
+// RunnerLogger TODO: Need to optimize it
+type RunnerLogger struct {
+	logger *log.Logger
 }
 
-func Info(v ...interface{}) {
-	infoWithSkip(2, fmt.Sprint(v...))
+func NewRunnerLogger(path string) *RunnerLogger {
+	var w io.Writer
+	if path != "" {
+		file := base.MustCreateFile(path)
+		w = io.MultiWriter(os.Stdout, file)
+	} else {
+		w = io.MultiWriter(os.Stdout)
+	}
+	logger := log.New(w, "", log.LstdFlags)
+	r := new(RunnerLogger)
+	r.logger = logger
+	return r
 }
 
-func Infof(format string, v ...interface{}) {
-	infoWithSkip(2, fmt.Sprintf(format, v...))
+func (r *RunnerLogger) Info(v ...interface{}) {
+	r.infoWithSkip(2, fmt.Sprint(v...))
 }
 
-func Warn(v ...interface{}) {
-	warnWithSkip(2, fmt.Sprint(v...))
+func (r *RunnerLogger) Infof(format string, v ...interface{}) {
+	r.infoWithSkip(2, fmt.Sprintf(format, v...))
 }
 
-func Warnf(format string, v ...interface{}) {
-	warnWithSkip(2, fmt.Sprintf(format, v...))
+func (r *RunnerLogger) Warn(v ...interface{}) {
+	r.warnWithSkip(2, fmt.Sprint(v...))
 }
 
-func Error(v ...interface{}) {
-	errorWithSkip(2, fmt.Sprint(v...))
+func (r *RunnerLogger) Warnf(format string, v ...interface{}) {
+	r.warnWithSkip(2, fmt.Sprintf(format, v...))
 }
 
-func Errorf(format string, v ...interface{}) {
-	errorWithSkip(2, fmt.Sprintf(format, v...))
+func (r *RunnerLogger) Error(v ...interface{}) {
+	r.errorWithSkip(2, fmt.Sprint(v...))
 }
 
-func Fatal(v ...interface{}) {
-	fatalWithSkip(2, fmt.Sprint(v...))
+func (r *RunnerLogger) Errorf(format string, v ...interface{}) {
+	r.errorWithSkip(2, fmt.Sprintf(format, v...))
 }
 
-func Fatalf(format string, v ...interface{}) {
-	fatalWithSkip(2, fmt.Sprintf(format, v...))
+func (r *RunnerLogger) Fatal(v ...interface{}) {
+	r.fatalWithSkip(2, fmt.Sprint(v...))
 }
 
-func infoWithSkip(skip int, msg string) {
+func (r *RunnerLogger) Fatalf(format string, v ...interface{}) {
+	r.fatalWithSkip(2, fmt.Sprintf(format, v...))
+}
+
+func (r *RunnerLogger) infoWithSkip(skip int, msg string) {
 	_, file, no, ok := runtime.Caller(skip)
 	if ok {
 		file = filepath.Base(file)
-		logger.Printf("[INFO] %s:%d: %s", file, no, msg)
+		r.logger.Printf("[INFO] %s:%d: %s", file, no, msg)
 	} else {
-		logger.Fatalf("Fail to get caller info of logger.Info")
+		r.logger.Fatalf("Fail to get caller info of logger.Info")
 	}
 }
 
-func warnWithSkip(skip int, msg string) {
+func (r *RunnerLogger) warnWithSkip(skip int, msg string) {
 	_, file, no, ok := runtime.Caller(skip)
 	if ok {
 		file = filepath.Base(file)
-		logger.Printf("[WARN] %s:%d: %s", file, no, msg)
+		r.logger.Printf("[WARN] %s:%d: %s", file, no, msg)
 	} else {
-		logger.Fatalf("Fail to get caller info of logger.Warn")
+		r.logger.Fatalf("Fail to get caller info of logger.Warn")
 	}
 }
 
-func errorWithSkip(skip int, msg string) {
+func (r *RunnerLogger) errorWithSkip(skip int, msg string) {
 	_, file, no, ok := runtime.Caller(skip)
 	if ok {
 		file = filepath.Base(file)
-		logger.Printf("[ERROR] %s:%d: %s", file, no, msg)
+		r.logger.Printf("[ERROR] %s:%d: %s", file, no, msg)
 	} else {
-		logger.Fatalf("Fail to get caller info of logger.Error")
+		r.logger.Fatalf("Fail to get caller info of logger.Error")
 	}
 }
 
-func fatalWithSkip(skip int, msg string) {
+func (r *RunnerLogger) fatalWithSkip(skip int, msg string) {
 	_, file, no, ok := runtime.Caller(skip)
 	if ok {
 		file = filepath.Base(file)
-		logger.Fatalf("[FATAL] %s:%d: %s", file, no, msg)
+		r.logger.Fatalf("[FATAL] %s:%d: %s", file, no, msg)
 	} else {
-		logger.Fatalf("Fail to get caller info of logger.Fatal")
+		r.logger.Fatalf("Fail to get caller info of logger.Fatal")
 	}
 }

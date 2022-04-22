@@ -9,14 +9,13 @@ clientSettings:
   connection:
     user: root
     password: nebula
-    address: graphd1:3699,graphd2:3699
+    address: graphd1:9669,graphd2:9669
   postStart:
     commands: |
       UPDATE CONFIGS storage:wal_ttl=3600;
       UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = true };
       DROP SPACE IF EXISTS importer_test;
-      CREATE SPACE IF NOT EXISTS importer_test(partition_num=5, replica_factor=1, vid_type=int);
-      USE importer_test;
+      CREATE SPACE IF NOT EXISTS importer_test(partition_num=5, replica_factor=1, vid_type=int);USE importer_test;
       CREATE TAG course(name string, credits int);
       CREATE TAG building(name string);
       CREATE TAG student(name string, age int, gender string);

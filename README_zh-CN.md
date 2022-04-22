@@ -86,7 +86,7 @@ clientSettings:
   connection:
     user: user
     password: password
-    address: 192.168.8.1:3699,192.168.8.2:3699
+    address: 192.168.8.1:9669,192.168.8.2:9669
   postStart:
     commands: |
       UPDATE CONFIGS storage:wal_ttl=3600;
@@ -163,6 +163,7 @@ schema:
     vid:
       index: 1
       function: hash
+      prefix: abc
     tags:
       - name: student
         props:
@@ -183,6 +184,7 @@ schema:
 
 - `index`：**可选**。在 CSV 文件中的列标，从 0 开始计数。默认值 0。
 - `function`：**可选**。用来生成 VID 时的函数，有 `hash` 和 `uuid` 两种函数可选。
+- `prefix`: **可选**。给 原始vid 添加的前缀，当同时指定了 `function` 时, 生成 VID 的方法是先添加 `prefix` 前缀, 再用 `function`生成 VID。
 
 ##### `schema.vertex.tags`
 
@@ -193,7 +195,7 @@ schema:
 - `name`：TAG 的名称。
 - `props`：TAG 的属性字段数组，每个属性字段又由如下两个字段构成：
   - `name`：**必填**。属性名称，同 Nebula Graph 中创建的 TAG 的属性名称一致。
-  - `type`：**必填**。属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp` 和 `string` 几种类型。
+  - `type`：**必填**。属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp`、`string`、`geography`、`geography(point)`、`geography(linestring)`和`geography(polygon)` 几种类型。
   - `index`：**可选**。在 CSV 文件中的列标。
   - `default`: **可选**。如果在csv文件中该列缺失的时候，使用该默认值
 
@@ -270,7 +272,7 @@ example 中 choose 类型的边的样例数据：
 
 - `<tag_name/edge_name>` 表示 TAG 或者 EDGE 的名称。
 - `<prop_name>` 表示属性名称。
-- `<prop_type>` 表示属性类型。可以是 `bool`、`int`、`float`、`double`、`string` 和 `timestamp`，不设置默认为 `string`。
+- `<prop_type>` 表示属性类型。可以是 `bool`、`int`、`float`、`double`、`string`、`timestamp`、`geography`、`geography(point)`、`geography(linestring)`和`geography(polygon)`，不设置默认为 `string`。
 
 在上述的 `<prop_type>` 字段中有如下几个关键词含有特殊语义：
 
