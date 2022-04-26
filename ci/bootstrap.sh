@@ -17,7 +17,7 @@ cd nebulaconsolebuild
   wget "https://github.com/vesoft-inc/nebula-console/archive/master.zip" -O nebula-console.zip
   unzip ./nebula-console.zip -d ./
   cd nebula-console-master
-    go build -buildvcs=false -o ../../nebula-console
+    go build -o ../../nebula-console
   cd ..
 cd ..
 rm -rf nebulaconsolebuild
