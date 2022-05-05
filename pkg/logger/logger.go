@@ -17,12 +17,10 @@ type RunnerLogger struct {
 }
 
 func NewRunnerLogger(path string) *RunnerLogger {
-	var w io.Writer
+	var w io.Writer = os.Stdout
 	if path != "" {
 		file := base.MustCreateFile(path)
-		w = io.MultiWriter(os.Stdout, file)
-	} else {
-		w = io.MultiWriter(os.Stdout)
+		w = io.MultiWriter(file, os.Stdout)
 	}
 	logger := log.New(w, "", log.LstdFlags)
 	r := new(RunnerLogger)
