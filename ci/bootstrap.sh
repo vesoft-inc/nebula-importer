@@ -8,6 +8,9 @@ port=$2
 export GOPATH=/usr/local/nebula/
 export GO111MODULE=on
 
+# build git
+apk add git
+
 # build nebula-console
 mkdir -p nebulaconsolebuild
 cd nebulaconsolebuild

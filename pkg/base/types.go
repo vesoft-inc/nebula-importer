@@ -34,26 +34,30 @@ func (op OpType) String() string {
 type Data struct {
 	Type   OpType
 	Record Record
+	Bytes  int
 }
 
-func InsertData(record Record) Data {
+func InsertData(record Record, bytes int) Data {
 	return Data{
 		Type:   INSERT,
 		Record: record,
+		Bytes:  bytes,
 	}
 }
 
-func DeleteData(record Record) Data {
+func DeleteData(record Record, bytes int) Data {
 	return Data{
 		Type:   DELETE,
 		Record: record,
+		Bytes:  bytes,
 	}
 }
 
-func HeaderData(record Record) Data {
+func HeaderData(record Record, bytes int) Data {
 	return Data{
 		Type:   HEADER,
 		Record: record,
+		Bytes:  bytes,
 	}
 }
 

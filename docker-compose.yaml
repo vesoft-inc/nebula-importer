@@ -91,7 +91,7 @@ services:
       - SYS_PTRACE
 
   importer:
-    image: golang:alpine
+    image: golang:1.13.2-alpine
     volumes:
       - .:/usr/local/nebula/importer:rw
     working_dir: /usr/local/nebula

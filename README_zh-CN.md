@@ -165,6 +165,7 @@ schema:
     vid:
       index: 1
       function: hash
+      prefix: abc
     tags:
       - name: student
         props:
@@ -184,6 +185,7 @@ schema:
 
 - `index`：**可选**。在 CSV 文件中的列标，从 0 开始计数。默认值 0。
 - `function`：**可选**。用来生成 VID 时的函数，有 `hash` 和 `uuid` 两种函数可选。
+- `prefix`: **可选**。给 原始vid 添加的前缀，当同时指定了 `function` 时, 生成 VID 的方法是先添加 `prefix` 前缀, 再用 `function`生成 VID。
 
 ##### `schema.vertex.tags`
 
