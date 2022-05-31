@@ -136,12 +136,14 @@ clientSettings:
 
 ### Files
 
-The following two configurations are related to the log and data files:
+The following three configurations are related to the log and data files:
 
+* `workingDir`: **Optional**. If you have multiple directories containing data with the same file structure, you can use this parameter to switch between them. For example, the value of `path` and `failDataPath` of the configuration below will be automatically changed to `./data/student.csv` and `./data/err/student.csv`. If you change workingDir to `./data1`, the path will be changed accordingly. The param can be either absolute or relative.
 * `logPath`: **Optional**. Specifies the log path when importing data. The default path is `/tmp/nebula-importer-{timestamp}.log`.
 * `files`: **Required**. It is an array type to configure different data files. You can also import data from a HTTP link by inputting the link in the file path.
 
 ```yaml
+workingDir: ./data/
 logPath: ./err/test.log
 files:
   - path: ./student.csv

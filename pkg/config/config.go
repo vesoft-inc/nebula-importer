@@ -107,6 +107,7 @@ type YAMLConfig struct {
 	RemoveTempFiles      *bool                 `json:"removeTempFiles" yaml:"removeTempFiles"` // from v1
 	NebulaClientSettings *NebulaClientSettings `json:"clientSettings" yaml:"clientSettings"`
 	LogPath              *string               `json:"logPath" yaml:"logPath"`
+	WorkingDirectory     *string               `json:"workingDir" yaml:"workingDir"`
 	Files                []*File               `json:"files" yaml:"files"`
 }
 
@@ -148,6 +149,15 @@ func Parse(filename string, runnerLogger *logger.RunnerLogger) (*YAMLConfig, err
 		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat, err)
 	}
 	path := filepath.Dir(abs)
+
+  if workingDir := conf.WorkingDirectory; workingDir != nil && len(*workingDir) > 0 {
+		if !filepath.IsAbs(*workingDir) {
+			path = filepath.Join(path, *workingDir)
+		} else {
+			path = *workingDir
+		}
+	}
+
 	if err = conf.ValidateAndReset(path, runnerLogger); err != nil {
 		return nil, ierrors.Wrap(ierrors.ConfigError, err)
 	}
