@@ -384,11 +384,6 @@ func (f *File) expandFiles(dir string, runnerLogger *logger.RunnerLogger) (err e
 			return err, files
 		}
 
-		if len(fileNames) == 1 {
-			files = append(files, f)
-			return err, files
-		}
-
 		for i := range fileNames {
 			var failedDataPath *string = nil
 			if f.FailDataPath != nil {
