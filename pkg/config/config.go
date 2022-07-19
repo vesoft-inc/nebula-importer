@@ -150,7 +150,7 @@ func Parse(filename string, runnerLogger *logger.RunnerLogger) (*YAMLConfig, err
 	}
 	path := filepath.Dir(abs)
 
-  if workingDir := conf.WorkingDirectory; workingDir != nil && len(*workingDir) > 0 {
+	if workingDir := conf.WorkingDirectory; workingDir != nil && len(*workingDir) > 0 {
 		if !filepath.IsAbs(*workingDir) {
 			path = filepath.Join(path, *workingDir)
 		} else {
