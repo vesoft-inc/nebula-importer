@@ -28,7 +28,7 @@ func NewNebulaClientMgr(settings *config.NebulaClientSettings, statsCh chan<- ba
 		mgr.pool = pool
 	}
 
-	mgr.runnerLogger.Infof("Create %d Nebula Graph clients", mgr.GetNumConnections())
+	logger.Log.Infof("Create %d Nebula Graph clients", mgr.GetNumConnections())
 
 	return &mgr, nil
 }

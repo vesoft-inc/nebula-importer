@@ -20,7 +20,7 @@ type WebServer struct {
 	server       *http.Server
 	taskMgr      *taskMgr
 	mux          sync.Mutex
-	RunnerLogger *logger.RunnerLogger
+	RunnerLogger logger.Logger
 }
 
 var taskId uint64 = 0
@@ -34,8 +34,9 @@ func (w *WebServer) newTaskId() string {
 }
 
 func (w *WebServer) Start() error {
+	logger.SetLogger(w.RunnerLogger)
 	m := http.NewServeMux()
-	w.taskMgr = newTaskMgr(w.RunnerLogger)
+	w.taskMgr = newTaskMgr()
 
 	m.HandleFunc("/submit", func(resp http.ResponseWriter, req *http.Request) {
 		if req.Method == "POST" {
@@ -65,7 +66,7 @@ func (w *WebServer) Start() error {
 			} else {
 				resp.WriteHeader(http.StatusOK)
 				if _, err = resp.Write(b); err != nil {
-					w.RunnerLogger.Error(err)
+					logger.Log.Error(err)
 				}
 			}
 		} else {
@@ -78,13 +79,13 @@ func (w *WebServer) Start() error {
 		Handler: m,
 	}
 
-	w.RunnerLogger.Infof("Starting http server on %d", w.Port)
+	logger.Log.Infof("Starting http server on %d", w.Port)
 	return w.listenAndServe()
 }
 
 func (w *WebServer) listenAndServe() error {
 	if err := w.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		w.RunnerLogger.Error(err)
+		logger.Log.Error(err)
 		return err
 	}
 	return nil
@@ -107,11 +108,11 @@ type respBody struct {
 
 func (w *WebServer) callback(body *respBody) {
 	if b, err := json.Marshal(*body); err != nil {
-		w.RunnerLogger.Error(err)
+		logger.Log.Error(err)
 	} else {
 		_, err := http.Post(w.Callback, "application/json", bytes.NewBuffer(b))
 		if err != nil {
-			w.RunnerLogger.Error(err)
+			logger.Log.Error(err)
 		}
 	}
 }
@@ -126,7 +127,7 @@ func (w *WebServer) stopRunner(taskId string) {
 		r.Stop()
 	}
 
-	w.RunnerLogger.Infof("Task %s stopped.", taskId)
+	logger.Log.Infof("Task %s stopped.", taskId)
 }
 
 func (w *WebServer) stop(resp http.ResponseWriter, req *http.Request) {
@@ -152,7 +153,7 @@ func (w *WebServer) stop(resp http.ResponseWriter, req *http.Request) {
 
 	resp.WriteHeader(http.StatusOK)
 	if _, err := fmt.Fprintln(resp, "OK"); err != nil {
-		w.RunnerLogger.Error(err)
+		logger.Log.Error(err)
 	}
 }
 
@@ -164,11 +165,11 @@ func (w *WebServer) badRequest(resp http.ResponseWriter, msg string) {
 	}
 
 	if b, err := json.Marshal(t); err != nil {
-		w.RunnerLogger.Error(err)
+		logger.Log.Error(err)
 	} else {
 		resp.WriteHeader(http.StatusOK)
 		if _, err = resp.Write(b); err != nil {
-			w.RunnerLogger.Error(err)
+			logger.Log.Error(err)
 		}
 	}
 }
@@ -186,7 +187,7 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := conf.ValidateAndReset("", w.RunnerLogger); err != nil {
+	if err := conf.ValidateAndReset(""); err != nil {
 		w.badRequest(resp, err.Error())
 		return
 	}
@@ -205,7 +206,7 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 		rerr := runner.Error()
 		if rerr != nil {
 			err, _ := rerr.(errors.ImporterError)
-			w.RunnerLogger.Error(err)
+			logger.Log.Error(err)
 			body = respBody{
 				task: task{
 					errResult: errResult{
@@ -230,7 +231,7 @@ func (w *WebServer) submit(resp http.ResponseWriter, req *http.Request) {
 	} else {
 		resp.WriteHeader(http.StatusOK)
 		if _, err := resp.Write(b); err != nil {
-			w.RunnerLogger.Error(err)
+			logger.Log.Error(err)
 		}
 	}
 }

@@ -46,12 +46,12 @@ func (r *CSVReader) InitReader(file *os.File, runnerLogger *logger.RunnerLogger)
 		d := []rune(*r.CSVConfig.Delimiter)
 		if len(d) > 0 {
 			r.reader.Comma = d[0]
-			runnerLogger.Infof("The delimiter of %s is %#U", file.Name(), r.reader.Comma)
+			logger.Log.Infof("The delimiter of %s is %#U", file.Name(), r.reader.Comma)
 		}
 	}
 	stat, err := file.Stat()
 	if err != nil {
-		runnerLogger.Infof("The stat of %s is wrong, %s", file.Name(), err)
+		logger.Log.Infof("The stat of %s is wrong, %s", file.Name(), err)
 	}
 	r.totalBytes = stat.Size()
 	defer func() {
