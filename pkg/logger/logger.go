@@ -58,23 +58,23 @@ func (r *RunnerLogger) Warn(v ...interface{}) {
 }
 
 func (r *RunnerLogger) Warnf(format string, v ...interface{}) {
-	r.warnWithSkip(3, fmt.Sprintf(format, v...))
+	r.warnWithSkip(2, fmt.Sprintf(format, v...))
 }
 
 func (r *RunnerLogger) Error(v ...interface{}) {
-	r.errorWithSkip(3, fmt.Sprint(v...))
+	r.errorWithSkip(2, fmt.Sprint(v...))
 }
 
 func (r *RunnerLogger) Errorf(format string, v ...interface{}) {
-	r.errorWithSkip(3, fmt.Sprintf(format, v...))
+	r.errorWithSkip(2, fmt.Sprintf(format, v...))
 }
 
 func (r *RunnerLogger) Fatal(v ...interface{}) {
-	r.fatalWithSkip(3, fmt.Sprint(v...))
+	r.fatalWithSkip(2, fmt.Sprint(v...))
 }
 
 func (r *RunnerLogger) Fatalf(format string, v ...interface{}) {
-	r.fatalWithSkip(3, fmt.Sprintf(format, v...))
+	r.fatalWithSkip(2, fmt.Sprintf(format, v...))
 }
 
 func (r *RunnerLogger) infoWithSkip(skip int, msg string) {
