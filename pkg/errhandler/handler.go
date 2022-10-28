@@ -38,13 +38,13 @@ func (w *Handler) Init(file *config.File, concurrency int, cleanup bool, runnerL
 	go func() {
 		defer func() {
 			if err := dataFile.Close(); err != nil {
-				runnerLogger.Errorf("Fail to close opened error data file: %s", *file.FailDataPath)
+				logger.Log.Errorf("Fail to close opened error data file: %s", *file.FailDataPath)
 			}
 			if cleanup {
 				if err := os.Remove(*file.FailDataPath); err != nil {
-					runnerLogger.Errorf("Fail to remove error data file: %s", *file.FailDataPath)
+					logger.Log.Errorf("Fail to remove error data file: %s", *file.FailDataPath)
 				} else {
-					runnerLogger.Infof("Error data file has been removed: %s", *file.FailDataPath)
+					logger.Log.Infof("Error data file has been removed: %s", *file.FailDataPath)
 				}
 			}
 		}()
@@ -60,7 +60,7 @@ func (w *Handler) Init(file *config.File, concurrency int, cleanup bool, runnerL
 				}
 			} else {
 				dataWriter.Write(rawErr.Data)
-				runnerLogger.Error(rawErr.Error.Error())
+				logger.Log.Error(rawErr.Error.Error())
 				var importedBytes int64
 				for _, d := range rawErr.Data {
 					importedBytes += int64(d.Bytes)
@@ -71,7 +71,7 @@ func (w *Handler) Init(file *config.File, concurrency int, cleanup bool, runnerL
 
 		dataWriter.Flush()
 		if dataWriter.Error() != nil {
-			runnerLogger.Error(dataWriter.Error())
+			logger.Log.Error(dataWriter.Error())
 		}
 		w.statsCh <- base.NewFileDoneStats(*file.Path)
 	}()

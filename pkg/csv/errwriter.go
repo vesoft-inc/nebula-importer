@@ -33,7 +33,7 @@ func (w *ErrWriter) Init(f *os.File) {
 
 func (w *ErrWriter) Write(data []base.Data) {
 	if len(data) == 0 {
-		w.runnerLogger.Info("Empty error data")
+		logger.Log.Info("Empty error data")
 	}
 	for _, d := range data {
 		if *w.csvConfig.WithLabel {
@@ -44,7 +44,7 @@ func (w *ErrWriter) Write(data []base.Data) {
 			case base.DELETE:
 				record = append(record, "-")
 			default:
-				w.runnerLogger.Errorf("Error data type: %s, data: %s", d.Type, strings.Join(d.Record, ","))
+				logger.Log.Errorf("Error data type: %s, data: %s", d.Type, strings.Join(d.Record, ","))
 				continue
 			}
 			record = append(record, d.Record...)

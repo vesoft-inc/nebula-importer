@@ -65,7 +65,7 @@ func New(fileIdx int, file *config.File, cleanup bool, clientRequestChs []chan b
 
 func (r *FileReader) startLog() {
 	fpath, _ := base.FormatFilePath(*r.File.Path)
-	r.runnerLogger.Infof("Start to read file(%d): %s, schema: < %s >", r.FileIdx, fpath, r.BatchMgr.Schema.String())
+	logger.Log.Infof("Start to read file(%d): %s, schema: < %s >", r.FileIdx, fpath, r.BatchMgr.Schema.String())
 }
 
 func (r *FileReader) Stop() {
@@ -110,7 +110,7 @@ func (r *FileReader) prepareDataFile() (*string, error) {
 	filepath := file.Name()
 
 	fpath, _ := base.FormatFilePath(*r.File.Path)
-	r.runnerLogger.Infof("File(%s) has been downloaded to \"%s\", size: %d", fpath, filepath, n)
+	logger.Log.Infof("File(%s) has been downloaded to \"%s\", size: %d", fpath, filepath, n)
 
 	return &filepath, nil
 }
@@ -126,14 +126,14 @@ func (r *FileReader) Read() (numErrorLines int64, err error) {
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
-			r.runnerLogger.Errorf("Fail to close opened data file: %s", *filePath)
+			logger.Log.Errorf("Fail to close opened data file: %s", *filePath)
 			return
 		}
 		if !r.localFile && r.cleanup {
 			if err := os.Remove(*filePath); err != nil {
-				r.runnerLogger.Errorf("Fail to remove temp data file: %s", *filePath)
+				logger.Log.Errorf("Fail to remove temp data file: %s", *filePath)
 			} else {
-				r.runnerLogger.Infof("Temp downloaded data file has been removed: %s", *filePath)
+				logger.Log.Infof("Temp downloaded data file has been removed: %s", *filePath)
 			}
 		}
 	}()
@@ -170,7 +170,7 @@ func (r *FileReader) Read() (numErrorLines int64, err error) {
 
 		if err != nil {
 			fpath, _ := base.FormatFilePath(*r.File.Path)
-			r.runnerLogger.Errorf("Fail to read file(%s) line %d, error: %s", fpath, lineNum, err.Error())
+			logger.Log.Errorf("Fail to read file(%s) line %d, error: %s", fpath, lineNum, err.Error())
 			numErrorLines++
 		}
 
@@ -181,7 +181,7 @@ func (r *FileReader) Read() (numErrorLines int64, err error) {
 
 	r.BatchMgr.Done()
 	fpath, _ := base.FormatFilePath(*r.File.Path)
-	r.runnerLogger.Infof("Total lines of file(%s) is: %d, error lines: %d", fpath, lineNum, numErrorLines)
+	logger.Log.Infof("Total lines of file(%s) is: %d, error lines: %d", fpath, lineNum, numErrorLines)
 
 	return numErrorLines, nil
 }

@@ -11,6 +11,23 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 )
 
+type Logger interface {
+	Info(v ...interface{})
+	Infof(format string, v ...interface{})
+	Warn(v ...interface{})
+	Warnf(format string, v ...interface{})
+	Error(v ...interface{})
+	Errorf(format string, v ...interface{})
+	Fatal(v ...interface{})
+	Fatalf(format string, v ...interface{})
+}
+
+var Log Logger = NewRunnerLogger("")
+
+func SetLogger(l Logger) {
+	Log = l
+}
+
 // RunnerLogger TODO: Need to optimize it
 type RunnerLogger struct {
 	logger *log.Logger
@@ -66,7 +83,7 @@ func (r *RunnerLogger) infoWithSkip(skip int, msg string) {
 		file = filepath.Base(file)
 		r.logger.Printf("[INFO] %s:%d: %s", file, no, msg)
 	} else {
-		r.logger.Fatalf("Fail to get caller info of logger.Info")
+		r.logger.Fatalf("Fail to get caller info of logger.Log.Info")
 	}
 }
 
@@ -76,7 +93,7 @@ func (r *RunnerLogger) warnWithSkip(skip int, msg string) {
 		file = filepath.Base(file)
 		r.logger.Printf("[WARN] %s:%d: %s", file, no, msg)
 	} else {
-		r.logger.Fatalf("Fail to get caller info of logger.Warn")
+		r.logger.Fatalf("Fail to get caller info of logger.Log.Warn")
 	}
 }
 
@@ -86,7 +103,7 @@ func (r *RunnerLogger) errorWithSkip(skip int, msg string) {
 		file = filepath.Base(file)
 		r.logger.Printf("[ERROR] %s:%d: %s", file, no, msg)
 	} else {
-		r.logger.Fatalf("Fail to get caller info of logger.Error")
+		r.logger.Fatalf("Fail to get caller info of logger.Log.Error")
 	}
 }
 

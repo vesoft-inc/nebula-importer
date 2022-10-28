@@ -86,7 +86,7 @@ func (s *StatsMgr) print(prefix string, now time.Time) {
 	avgLatency := s.Stats.TotalLatency / s.Stats.TotalBatches
 	avgReq := s.Stats.TotalReqTime / s.Stats.TotalBatches
 	rps := float64(s.Stats.TotalCount) / secs
-	s.runnerLogger.Infof("%s: Time(%.2fs), Finished(%d), Failed(%d), Read Failed(%d), Latency AVG(%dus), Batches Req AVG(%dus), Rows AVG(%.2f/s)",
+	logger.Log.Infof("%s: Time(%.2fs), Finished(%d), Failed(%d), Read Failed(%d), Latency AVG(%dus), Batches Req AVG(%dus), Rows AVG(%.2f/s)",
 		prefix, secs, s.Stats.TotalCount, s.Stats.NumFailed, s.Stats.NumReadFailed, avgLatency, avgReq, rps)
 }
 
@@ -135,7 +135,7 @@ func (s *StatsMgr) startWorker(numReadingFiles int) {
 			case base.OUTPUT:
 				s.outputStats()
 			default:
-				s.runnerLogger.Errorf("Error stats type: %s", stat.Type)
+				logger.Log.Errorf("Error stats type: %s", stat.Type)
 			}
 		}
 	}

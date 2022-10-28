@@ -107,7 +107,7 @@ func (p *ClientPool) Close() {
 	if p.preStop != nil && p.preStop.Commands != nil {
 		if i := p.getActiveConnIdx(); i != -1 {
 			if err := p.exec(i, *p.preStop.Commands); err != nil {
-				p.runnerLogger.Errorf("%s", err.Error())
+				logger.Log.Errorf("%s", err.Error())
 			}
 		}
 	}
@@ -155,7 +155,7 @@ func (p *ClientPool) Init() error {
 func (p *ClientPool) startWorker(i int) {
 	stmt := fmt.Sprintf("USE `%s`;", p.space)
 	if err := p.exec(i, stmt); err != nil {
-		p.runnerLogger.Error(err.Error())
+		logger.Log.Error(err.Error())
 		return
 	}
 	for {

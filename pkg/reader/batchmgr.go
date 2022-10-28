@@ -62,7 +62,7 @@ func (bm *BatchMgr) Done() {
 func (bm *BatchMgr) InitSchema(header base.Record, runnerLogger *logger.RunnerLogger) (err error) {
 	err = nil
 	if bm.initializedSchema {
-		runnerLogger.Info("Batch manager schema has been initialized!")
+		logger.Log.Info("Batch manager schema has been initialized!")
 		return
 	}
 	bm.initializedSchema = true
@@ -218,7 +218,7 @@ var h = fnv.New32a()
 func getBatchId(idStr string, numChans int, runnerLogger *logger.RunnerLogger) uint32 {
 	_, err := h.Write([]byte(idStr))
 	if err != nil {
-		runnerLogger.Error(err)
+		logger.Log.Error(err)
 	}
 	return h.Sum32() % uint32(numChans)
 }
