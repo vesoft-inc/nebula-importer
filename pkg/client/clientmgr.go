@@ -34,7 +34,9 @@ func NewNebulaClientMgr(settings *config.NebulaClientSettings, statsCh chan<- ba
 }
 
 func (m *NebulaClientMgr) Close() {
+	m.runnerLogger.Infof("Client manager closing")
 	m.pool.Close()
+	m.runnerLogger.Infof("Client manager closed")
 }
 
 func (m *NebulaClientMgr) GetRequestChans() []chan base.ClientRequest {
