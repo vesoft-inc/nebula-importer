@@ -129,6 +129,19 @@ func isSupportedVersion(ver string) bool {
 	return false
 }
 
+func UpdateParse(filename string, yamlConf *YAMLConfig) error {
+	abs, err := filepath.Abs(filename)
+	if err != nil {
+		return ierrors.Wrap(ierrors.InvalidConfigPathOrFormat, err)
+	}
+	path := filepath.Dir(abs)
+	if err = yamlConf.ValidateAndReset(path); err != nil {
+		return ierrors.Wrap(ierrors.ConfigError, err)
+	}
+
+	return nil
+}
+
 func Parse(filename string, runnerLogger logger.Logger) (*YAMLConfig, error) {
 	logger.SetLogger(runnerLogger)
 	content, err := ioutil.ReadFile(filename)

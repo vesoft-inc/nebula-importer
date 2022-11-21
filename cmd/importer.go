@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
@@ -39,6 +40,19 @@ func main() {
 	}()
 
 	log.Println("--- START OF NEBULA IMPORTER ---")
+
+	paramMap := make(map[string]string)
+	if flag.NArg() > 0 {
+		for i := 0; i != flag.NArg(); i++ {
+			s := flag.Arg(i)
+			sa := strings.Split(s, "=")
+			if len(sa) == 2 {
+				paramMap[sa[0]] = sa[1]
+				log.Printf("=== External Param args[%d] is [%s]", i, s)
+			}
+		}
+	}
+
 	if port != nil && *port > 0 && callback != nil && *callback != "" {
 		// Start http server
 		svr := &web.WebServer{
@@ -61,6 +75,50 @@ func main() {
 			log.Println(e.ErrMsg.Error())
 			errCode = e.ErrCode
 			return
+		}
+
+		fileArr := conf.Files
+		applyExParam := make(map[string]string)
+		for _, value := range fileArr {
+			if strings.ToUpper(*value.Schema.Type) == "VERTEX" {
+				tagArr := value.Schema.Vertex.Tags
+				if len(tagArr) > 0 {
+					for _, tag := range tagArr {
+						tagName := tag.Name
+						exVertexPath, isOk := paramMap[*tagName]
+						if isOk {
+							*value.Path = exVertexPath
+							log.Printf("=== Update tag [%s] conf, new path is %s.", *tagName, *value.Path)
+
+							applyExParam[*tagName] = *value.Path
+						}
+					}
+				}
+			} else {
+				edgeName := value.Schema.Edge.Name
+				exEdgePath, isOk := paramMap[*edgeName]
+				if isOk {
+					*value.Path = exEdgePath
+					log.Printf("=== Update edge [%s] conf, new path is %s.", *edgeName, *value.Path)
+
+					applyExParam[*edgeName] = *value.Path
+				}
+			}
+		}
+
+		if len(applyExParam) > 0 {
+			log.Println("--- START OF Update Conf YAML ---")
+			for k, v := range applyExParam {
+				log.Printf("=== External Apply Param key[%s] is [%s]", k, v)
+			}
+			err := config.UpdateParse(*configuration, conf)
+			if err != nil {
+				e := err.(errors.ImporterError)
+				log.Println(e.ErrMsg.Error())
+				errCode = e.ErrCode
+				return
+			}
+			log.Println("--- END OF Update Conf YAML ---")
 		}
 
 		runner := &cmd.Runner{}
