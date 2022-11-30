@@ -1,0 +1,12 @@
+version: v2
+description: example
+removeTempFiles: false
+clientSettings:
+  retry: 3
+  concurrency: 2 # number of graph clients
+  channelBufferSize: 1
+  space: importer_test
+  connection:
+    user: root
+    password: nebula
+    address: 127.0.0.1:9669

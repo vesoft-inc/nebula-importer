@@ -14,7 +14,7 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	ierrors "github.com/vesoft-inc/nebula-importer/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 type NebulaClientConnection struct {
@@ -141,7 +141,7 @@ func Parse(filename string, runnerLogger logger.Logger) (*YAMLConfig, error) {
 		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat, err)
 	}
 
-	if conf.Version == nil && !isSupportedVersion(*conf.Version) {
+	if conf.Version == nil || !isSupportedVersion(*conf.Version) {
 		return nil, ierrors.Wrap(ierrors.InvalidConfigPathOrFormat,
 			fmt.Errorf("The supported YAML configure versions are %v, please upgrade importer.", supportedVersions))
 	}

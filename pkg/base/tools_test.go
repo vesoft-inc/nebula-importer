@@ -21,11 +21,14 @@ func TestFileExists(t *testing.T) {
 
 func TestIsValidType(t *testing.T) {
 	assert.True(t, IsValidType("string"))
+	assert.True(t, IsValidType("String"))
+	assert.True(t, IsValidType("STRING"))
+	assert.True(t, IsValidType("sTring"))
 	assert.True(t, IsValidType("int"))
 	assert.True(t, IsValidType("float"))
-	assert.False(t, IsValidType("date"))
+	assert.True(t, IsValidType("date"))
 	assert.False(t, IsValidType("byte"))
-	assert.False(t, IsValidType("datetime"))
+	assert.True(t, IsValidType("datetime"))
 	assert.True(t, IsValidType("bool"))
 	assert.True(t, IsValidType("timestamp"))
 	assert.True(t, IsValidType("double"))
