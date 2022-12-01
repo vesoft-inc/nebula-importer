@@ -7,11 +7,14 @@ import (
 )
 
 func TestCsvWriter(t *testing.T) {
-	file, err := os.OpenFile("./test.csv", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	file, err := os.CreateTemp("", "test")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer file.Close()
+	defer func() {
+		file.Close()
+		os.Remove(file.Name())
+	}()
 
 	w := csv.NewWriter(file)
 
