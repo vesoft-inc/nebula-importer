@@ -17,6 +17,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var (
+	reTimestampInteger = regexp.MustCompile(`^(0[xX][0-9a-fA-F]+|0[0-7]+|\d+)$`)
+)
+
 type NebulaClientConnection struct {
 	User     *string `json:"user" yaml:"user"`
 	Password *string `json:"password" yaml:"password"`
@@ -811,6 +815,11 @@ func (p *Prop) IsDateOrTimeType() bool {
 	return t == "date" || t == "time" || t == "datetime" || t == "timestamp"
 }
 
+func (p *Prop) IsTimestampType() bool {
+	t := strings.ToLower(*p.Type)
+	return t == "timestamp"
+}
+
 func (p *Prop) IsGeographyType() bool {
 	t := strings.ToLower(*p.Type)
 	return t == "geography" || t == "geography(point)" || t == "geography(linestring)" || t == "geography(polygon)"
@@ -825,6 +834,9 @@ func (p *Prop) FormatValue(record base.Record) (string, error) {
 		return fmt.Sprintf("%q", r), nil
 	}
 	if p.IsDateOrTimeType() {
+		if p.IsTimestampType() && reTimestampInteger.MatchString(r) {
+			return fmt.Sprintf("%s(%s)", strings.ToLower(*p.Type), r), nil
+		}
 		return fmt.Sprintf("%s(%q)", strings.ToLower(*p.Type), r), nil
 	}
 	// Only support wkt for geography currently
