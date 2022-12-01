@@ -53,10 +53,12 @@ func NewStatsMgr(files []*config.File, runnerLogger *logger.RunnerLogger) *Stats
 }
 
 func (s *StatsMgr) Close() {
+	s.runnerLogger.Infof("Stats manager closing")
 	close(s.StatsCh)
 	close(s.DoneCh)
 	close(s.OutputStatsCh)
 	s.Done = true
+	s.runnerLogger.Infof("Stats manager closed")
 }
 
 func (s *StatsMgr) updateStat(stat base.Stats) {
@@ -129,6 +131,7 @@ func (s *StatsMgr) startWorker(numReadingFiles int) {
 			case base.FILEDONE:
 				s.print(fmt.Sprintf("Done(%s)", stat.Filename), now)
 				numReadingFiles--
+				s.runnerLogger.Infof("Remaining read files %d", numReadingFiles)
 				if numReadingFiles == 0 {
 					s.DoneCh <- true
 				}

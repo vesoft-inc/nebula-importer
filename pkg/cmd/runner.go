@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/client"
@@ -57,6 +58,7 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 
 	freaders := make([]*reader.FileReader, len(yaml.Files))
 
+	var wgReaders sync.WaitGroup
 	for i, file := range yaml.Files {
 		errCh, err := errHandler.Init(file, clientMgr.GetNumConnections(), *yaml.RemoveTempFiles, runnerLogger)
 		if err != nil {
@@ -70,7 +72,13 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 			statsMgr.StatsCh <- base.NewFileDoneStats(*file.Path)
 			continue
 		} else {
+			runnerLogger.Infof("Start to read %s", *file.Path)
+			wgReaders.Add(1)
 			go func(fr *reader.FileReader, filename string) {
+				defer func() {
+					runnerLogger.Infof("Finish to read %s", filename)
+					wgReaders.Done()
+				}()
 				numReadFailed, err := fr.Read()
 				statsMgr.Stats.NumReadFailed += numReadFailed
 				if err != nil {
@@ -85,7 +93,20 @@ func (r *Runner) Run(yaml *config.YAMLConfig) {
 	r.Readers = freaders
 	r.stataMgr = statsMgr
 
+	runnerLogger.Infof("Waiting for stats manager done")
 	<-statsMgr.DoneCh
+	runnerLogger.Infof("Waiting for all readers exit")
+	for _, r := range freaders {
+		if r != nil {
+			r.Stop()
+		}
+	}
+	// fix issues/219
+	// The number of times `statsMgr.StatsCh <- base.NewFileDoneStats(filename)` has reached the number of readers,
+	// then <-statsMgr.DoneCh return, but not all readers have exited.
+	// So, it's need to wait for it exit.
+	wgReaders.Wait()
+	runnerLogger.Infof("All readers exited")
 
 	r.stataMgr.CountFileBytes(r.Readers)
 	r.Readers = nil
