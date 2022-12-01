@@ -18,6 +18,7 @@
 err/
 vendor/
 nebula-importer
+coverage.*
 
 # IDE
 .vscode/

@@ -29,5 +29,8 @@ test:
 	docker-compose up --exit-code-from importer; \
 	docker-compose down -v;
 
+gotest:
+	go test -gcflags=all=-l -race -coverprofile=coverage.txt -covermode=atomic ./...
+
 fmt:
 	@go mod tidy && find . -path ./vendor -prune -o -type f -iname '*.go' -exec go fmt {} \;

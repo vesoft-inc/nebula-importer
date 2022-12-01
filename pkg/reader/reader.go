@@ -59,7 +59,7 @@ func New(fileIdx int, file *config.File, cleanup bool, clientRequestChs []chan b
 		}
 		return &reader, nil
 	default:
-		return nil, fmt.Errorf("Wrong file type: %s", file.Type)
+		return nil, fmt.Errorf("Wrong file type: %s", *file.Type)
 	}
 }
 

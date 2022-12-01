@@ -5,7 +5,7 @@ clientSettings:
   retry: 3
   concurrency: 2 # number of graph clients
   channelBufferSize: 1
-  space: importer_test
+  space: importer_test_v1
   connection:
     user: root
     password: nebula
@@ -14,8 +14,8 @@ clientSettings:
     commands: |
       UPDATE CONFIGS storage:wal_ttl=3600;
       UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = true };
-      DROP SPACE IF EXISTS importer_test;
-      CREATE SPACE IF NOT EXISTS importer_test(partition_num=5, replica_factor=1, vid_type=int);USE importer_test;
+      DROP SPACE IF EXISTS importer_test_v1;
+      CREATE SPACE IF NOT EXISTS importer_test_v1(partition_num=5, replica_factor=1, vid_type=int);USE importer_test_v1;
       CREATE TAG course(name string, credits int);
       CREATE TAG building(name string);
       CREATE TAG student(name string, age int, gender string);
