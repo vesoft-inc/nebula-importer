@@ -677,6 +677,33 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "timestamp(\"2020-01-11T19:28:23\")",
 		},
 		{
+			name: "type timestamp integer",
+			prop: Prop{
+				Index: &idx0,
+				Type:  &tTimestamp,
+			},
+			record: base.Record{"1578770903"},
+			want:   "timestamp(1578770903)",
+		},
+		{
+			name: "type timestamp integer",
+			prop: Prop{
+				Index: &idx0,
+				Type:  &tTimestamp,
+			},
+			record: base.Record{"0123"},
+			want:   "timestamp(0123)",
+		},
+		{
+			name: "type timestamp integer",
+			prop: Prop{
+				Index: &idx0,
+				Type:  &tTimestamp,
+			},
+			record: base.Record{"0XF0"},
+			want:   "timestamp(0XF0)",
+		},
+		{
 			name: "type date",
 			prop: Prop{
 				Index: &idx0,
