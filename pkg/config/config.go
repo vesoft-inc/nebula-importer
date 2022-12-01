@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vesoft-inc/nebula-importer/pkg/base"
-	ierrors "github.com/vesoft-inc/nebula-importer/pkg/errors"
-	"github.com/vesoft-inc/nebula-importer/pkg/logger"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/base"
+	ierrors "github.com/vesoft-inc/nebula-importer/v3/pkg/errors"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/logger"
 	"gopkg.in/yaml.v2"
 )
 

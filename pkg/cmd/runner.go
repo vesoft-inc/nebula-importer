@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/vesoft-inc/nebula-importer/pkg/base"
-	"github.com/vesoft-inc/nebula-importer/pkg/client"
-	"github.com/vesoft-inc/nebula-importer/pkg/config"
-	"github.com/vesoft-inc/nebula-importer/pkg/errhandler"
-	importerError "github.com/vesoft-inc/nebula-importer/pkg/errors"
-	"github.com/vesoft-inc/nebula-importer/pkg/logger"
-	"github.com/vesoft-inc/nebula-importer/pkg/reader"
-	"github.com/vesoft-inc/nebula-importer/pkg/stats"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/client"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/errhandler"
+	importerError "github.com/vesoft-inc/nebula-importer/v3/pkg/errors"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/logger"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/reader"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/stats"
 )
 
 type Runner struct {

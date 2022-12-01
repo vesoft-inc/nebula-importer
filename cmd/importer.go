@@ -7,12 +7,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
-	"github.com/vesoft-inc/nebula-importer/pkg/config"
-	"github.com/vesoft-inc/nebula-importer/pkg/errors"
-	"github.com/vesoft-inc/nebula-importer/pkg/logger"
-	"github.com/vesoft-inc/nebula-importer/pkg/version"
-	"github.com/vesoft-inc/nebula-importer/pkg/web"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/cmd"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/errors"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/logger"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/version"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/web"
 )
 
 var configuration = flag.String("config", "", "Specify importer configure file path")

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/vesoft-inc/nebula-importer/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/base"
 )
 
 type Logger interface {

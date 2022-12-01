@@ -3,8 +3,8 @@ package web
 import (
 	"sync"
 
-	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
-	"github.com/vesoft-inc/nebula-importer/pkg/logger"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/cmd"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/logger"
 )
 
 type taskMgr struct {

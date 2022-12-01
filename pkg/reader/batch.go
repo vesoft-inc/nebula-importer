@@ -3,7 +3,7 @@ package reader
 import (
 	"fmt"
 
-	"github.com/vesoft-inc/nebula-importer/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/base"
 )
 
 type Batch struct {

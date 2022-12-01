@@ -1,4 +1,4 @@
-module github.com/vesoft-inc/nebula-importer
+module github.com/vesoft-inc/nebula-importer/v3
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

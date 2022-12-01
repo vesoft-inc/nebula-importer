@@ -10,10 +10,10 @@ import (
 	"text/template"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vesoft-inc/nebula-importer/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/base"
 	"gopkg.in/yaml.v2"
 
-	"github.com/vesoft-inc/nebula-importer/pkg/logger"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/logger"
 )
 
 func TestYAMLParser(t *testing.T) {
