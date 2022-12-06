@@ -17,6 +17,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	dbNULL = "NULL"
+)
+
 var (
 	reTimestampInteger = regexp.MustCompile(`^(0[xX][0-9a-fA-F]+|0[0-7]+|\d+)$`)
 )
@@ -47,9 +51,11 @@ type NebulaClientSettings struct {
 }
 
 type Prop struct {
-	Name  *string `json:"name" yaml:"name"`
-	Type  *string `json:"type" yaml:"type"`
-	Index *int    `json:"index" yaml:"index"`
+	Name      *string `json:"name" yaml:"name"`
+	Type      *string `json:"type" yaml:"type"`
+	Index     *int    `json:"index" yaml:"index"`
+	Nullable  bool    `json:"nullable" yaml:"nullable"`
+	NullValue string  `json:"nullValue" yaml:"nullValue"`
 }
 
 type VID struct {
@@ -466,17 +472,17 @@ func (s *Schema) validateAndReset(prefix string) error {
 	var err error = nil
 	switch strings.ToLower(*s.Type) {
 	case "edge":
-		if s.Edge != nil {
-			err = s.Edge.validateAndReset(fmt.Sprintf("%s.edge", prefix))
-		} else {
+		if s.Edge == nil {
 			logger.Log.Infof("%s.edge is nil", prefix)
+			s.Edge = &Edge{}
 		}
+		err = s.Edge.validateAndReset(fmt.Sprintf("%s.edge", prefix))
 	case "vertex":
-		if s.Vertex != nil {
-			err = s.Vertex.validateAndReset(fmt.Sprintf("%s.vertex", prefix))
-		} else {
+		if s.Vertex == nil {
 			logger.Log.Infof("%s.vertex is nil", prefix)
+			s.Vertex = &Vertex{}
 		}
+		err = s.Vertex.validateAndReset(fmt.Sprintf("%s.vertex", prefix))
 	default:
 		err = fmt.Errorf("Error schema type(%s) in %s.type only edge and vertex are supported", *s.Type, prefix)
 	}
@@ -830,6 +836,9 @@ func (p *Prop) FormatValue(record base.Record) (string, error) {
 		return "", fmt.Errorf("Prop index %d out range %d of record(%v)", *p.Index, len(record), record)
 	}
 	r := record[*p.Index]
+	if p.Nullable && r == p.NullValue {
+		return dbNULL, nil
+	}
 	if p.IsStringType() {
 		return fmt.Sprintf("%q", r), nil
 	}

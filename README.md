@@ -203,6 +203,13 @@ schema:
             index: 1
           - name: gender
             type: string
+          - name: phone
+            type: string
+            nullable: true
+          - name: wechat
+            type: string
+            nullable: true
+            nullValue: "__NULL__"
 ```
 
 ##### `schema.vertex.vid`
@@ -225,6 +232,8 @@ Each tag contains the following two properties:
   * `name`: **Required**. The property name, must be the same with the tag property in Nebula Graph.
   * `type`: **Optional**. The property type, currently  `bool`, `int`, `float`, `double`, `string`, `time`, `timestamp`, `date`, `datetime`, `geography`, `geography(point)`, `geography(linestring)` and `geography(polygon)` are supported.
   * `index`: **Optional**. The column number in the CSV file.
+  * `nullable`: **Optional**. Whether this prop property can be `NULL`, optional values is `true` or `false`, default `false`.
+  * `nullValue`: **Optional**. If `nullable` is set to `true`, the property will be set to `NULL` when the value is equal to `nullValue`, default `""`.
 
 > **NOTE**: The properties in the preceding `prop` parameter must be sorted in the **same** way as in the CSV data file.
 
