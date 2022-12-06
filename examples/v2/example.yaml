@@ -24,13 +24,14 @@ clientSettings:
       CREATE TAG course_no_props();
       CREATE TAG building_no_props();
       CREATE EDGE follow_no_props();
-      CREATE TAG basic_type_test(b bool, i int, f float, d double, s string);
-      CREATE EDGE edge_basic_type_test(b bool, i int, f float, d double, s string);
-      CREATE TAG date_test(c1 date, c2 time, c3 datetime, c4 timestamp);
-      CREATE EDGE edge_date_test(c1 date, c2 time, c3 datetime, c4 timestamp);
-      CREATE TAG geography_test(any_shape geography, only_point geography(point), only_linestring geography(linestring), only_polygon geography(polygon));
-      CREATE EDGE edge_geography_test(any_shape geography, only_point geography(point), only_linestring geography(linestring), only_polygon geography(polygon))
-    afterPeriod: 8s
+      CREATE TAG basic_type_test(b bool NULL, i int NULL, f float NULL, d double NULL, s string NULL);
+      CREATE EDGE edge_basic_type_test(b bool NULL, i int NULL, f float NULL, d double NULL, s string NULL);
+      CREATE TAG date_test(c1 date NULL, c2 time NULL, c3 datetime NULL, c4 timestamp NULL);
+      CREATE EDGE edge_date_test(c1 date NULL, c2 time NULL, c3 datetime NULL, c4 timestamp NULL);
+      CREATE TAG geography_test(any_shape geography NULL, only_point geography(point) NULL, only_linestring geography(linestring) NULL, only_polygon geography(polygon) NULL);
+      CREATE EDGE edge_geography_test(any_shape geography NULL, only_point geography(point) NULL, only_linestring geography(linestring) NULL, only_polygon geography(polygon) NULL)
+
+    afterPeriod: 10s
   preStop:
     commands: |
       UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };
@@ -478,18 +479,23 @@ files:
               - name: b
                 type: bool
                 index: 1
+                nullable: true
               - name: i
                 type: int
                 index: 2
+                nullable: true
               - name: f
                 type: float
                 index: 3
+                nullable: true
               - name: d
                 type: double
                 index: 4
+                nullable: true
               - name: s
                 type: string
                 index: 5
+                nullable: true
 
   - path: ./basic_type_test.csv
     failDataPath: ./err/edge_basic_type_test.csv
@@ -513,18 +519,24 @@ files:
           - name: b
             type: bool
             index: 1
+            nullable: true
           - name: i
             type: int
             index: 2
+            nullable: true
           - name: f
             type: float
             index: 3
+            nullable: true
           - name: d
             type: double
             index: 4
+            nullable: true
           - name: s
             type: string
             index: 5
+            nullable: true
+            nullValue: "__NULL__"
 
   - path: ./date_test.csv
     failDataPath: ./err/date_test.csv
@@ -546,15 +558,19 @@ files:
               - name: c1
                 type: date
                 index: 1
+                nullable: true
               - name: c2
                 type: time
                 index: 2
+                nullable: true
               - name: c3
                 type: datetime
                 index: 3
+                nullable: true
               - name: c4
                 type: timestamp
                 index: 4
+                nullable: true
 
   - path: ./date_test.csv
     failDataPath: ./err/edge_date_test.csv
@@ -578,15 +594,19 @@ files:
           - name: c1
             type: date
             index: 1
+            nullable: true
           - name: c2
             type: time
             index: 2
+            nullable: true
           - name: c3
             type: datetime
             index: 3
+            nullable: true
           - name: c4
             type: timestamp
             index: 4
+            nullable: true
 
   - path: ./geography_test.csv
     failDataPath: ./err/geography_test.csv
@@ -608,15 +628,19 @@ files:
               - name: any_shape
                 type: geography
                 index: 1
+                nullable: true
               - name: only_point
                 type: geography(point)
                 index: 2
+                nullable: true
               - name: only_linestring
                 type: geography(linestring)
                 index: 3
+                nullable: true
               - name: only_polygon
                 type: geography(polygon)
                 index: 4
+                nullable: true
 
   - path: ./geography_test.csv
     failDataPath: ./err/edge_geography_test.csv
@@ -640,12 +664,16 @@ files:
           - name: any_shape
             type: geography
             index: 1
+            nullable: true
           - name: only_point
             type: geography(point)
             index: 2
+            nullable: true
           - name: only_linestring
             type: geography(linestring)
             index: 3
+            nullable: true
           - name: only_polygon
             type: geography(polygon)
             index: 4
+            nullable: true

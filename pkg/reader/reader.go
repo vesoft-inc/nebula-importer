@@ -52,11 +52,6 @@ func New(fileIdx int, file *config.File, cleanup bool, clientRequestChs []chan b
 			runnerLogger: runnerLogger,
 		}
 		reader.BatchMgr = NewBatchMgr(file.Schema, *file.BatchSize, clientRequestChs, errCh)
-		if !reader.WithHeader {
-			if err := reader.BatchMgr.InitSchema(strings.Split(file.Schema.String(), ","), runnerLogger); err != nil {
-				return nil, err
-			}
-		}
 		return &reader, nil
 	default:
 		return nil, fmt.Errorf("Wrong file type: %s", *file.Type)

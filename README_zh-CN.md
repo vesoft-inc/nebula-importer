@@ -198,6 +198,8 @@ schema:
   - `name`：**必填**。属性名称，同 Nebula Graph 中创建的 TAG 的属性名称一致。
   - `type`：**必填**。属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp`、`string`、`geography`、`geography(point)`、`geography(linestring)`和`geography(polygon)` 几种类型。
   - `index`：**可选**。在 CSV 文件中的列标。
+  - `nullable`：**可选**。此属性是否可以为 `NULL`，可选 `true` 或者 `false`，默认值为 `false` 。
+  - `nullValue`：**可选**。如果 `nullable` 设置为 `true`，则当值等于 `nullValue` 的时候属性将被设置为 `NULL` ，默认值为 `""`。
 
 > **注意**：上述 `props` 中的属性描述**顺序**必须同数据文件中的对应数据排列顺序一致。
 

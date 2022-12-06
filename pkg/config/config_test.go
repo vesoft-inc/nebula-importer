@@ -623,6 +623,16 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "false",
 		},
 		{
+			name: "type bool null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tBool,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
 			name: "type int",
 			prop: Prop{
 				Index: &idx0,
@@ -630,6 +640,16 @@ func TestPropFormatValue(t *testing.T) {
 			},
 			record: base.Record{"1"},
 			want:   "1",
+		},
+		{
+			name: "type int null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tInt,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type float",
@@ -641,6 +661,16 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "1.1",
 		},
 		{
+			name: "type float null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tFloat,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
 			name: "type double",
 			prop: Prop{
 				Index: &idx0,
@@ -648,6 +678,16 @@ func TestPropFormatValue(t *testing.T) {
 			},
 			record: base.Record{"2.2"},
 			want:   "2.2",
+		},
+		{
+			name: "type double null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tDouble,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type string",
@@ -659,6 +699,27 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "\"str\"",
 		},
 		{
+			name: "type string null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tString,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
+			name: "type string null value",
+			prop: Prop{
+				Index:     &idx0,
+				Type:      &tString,
+				Nullable:  true,
+				NullValue: "__NULL__",
+			},
+			record: base.Record{"__NULL__"},
+			want:   dbNULL,
+		},
+		{
 			name: "type time",
 			prop: Prop{
 				Index: &idx0,
@@ -666,6 +727,16 @@ func TestPropFormatValue(t *testing.T) {
 			},
 			record: base.Record{"18:38:23.284"},
 			want:   "time(\"18:38:23.284\")",
+		},
+		{
+			name: "type time null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tTime,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type timestamp",
@@ -704,6 +775,16 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "timestamp(0XF0)",
 		},
 		{
+			name: "type timestamp null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tTimestamp,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
 			name: "type date",
 			prop: Prop{
 				Index: &idx0,
@@ -711,6 +792,16 @@ func TestPropFormatValue(t *testing.T) {
 			},
 			record: base.Record{"2020-01-02"},
 			want:   "date(\"2020-01-02\")",
+		},
+		{
+			name: "type date null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tDate,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type datetime",
@@ -722,6 +813,16 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "datetime(\"2020-01-11T19:28:23.284\")",
 		},
 		{
+			name: "type datetime null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tDatetime,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
 			name: "type geography",
 			prop: Prop{
 				Index: &idx0,
@@ -729,6 +830,16 @@ func TestPropFormatValue(t *testing.T) {
 			},
 			record: base.Record{"Polygon((-85.1 34.8,-80.7 28.4,-76.9 34.9,-85.1 34.8))"},
 			want:   "ST_GeogFromText(\"Polygon((-85.1 34.8,-80.7 28.4,-76.9 34.9,-85.1 34.8))\")",
+		},
+		{
+			name: "type geography null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tGeography,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type geography(point)",
@@ -740,6 +851,16 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "ST_GeogFromText(\"Point(0.0 0.0)\")",
 		},
 		{
+			name: "type geography(point) null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tGeographyPoint,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
 			name: "type geography(linestring)",
 			prop: Prop{
 				Index: &idx0,
@@ -749,6 +870,16 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "ST_GeogFromText(\"linestring(0 1, 179.99 89.99)\")",
 		},
 		{
+			name: "type geography(linestring) null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tGeographyLineString,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
 			name: "type geography(polygon)",
 			prop: Prop{
 				Index: &idx0,
@@ -756,6 +887,16 @@ func TestPropFormatValue(t *testing.T) {
 			},
 			record: base.Record{"polygon((0 1, 2 4, 3 5, 4 9, 0 1))"},
 			want:   "ST_GeogFromText(\"polygon((0 1, 2 4, 3 5, 4 9, 0 1))\")",
+		},
+		{
+			name: "type geography(polygon) null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tGeographyPolygon,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 	}
 	for _, tc := range testcases {

@@ -22,34 +22,16 @@ type BatchMgr struct {
 
 func NewBatchMgr(schema *config.Schema, batchSize int, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) *BatchMgr {
 	bm := BatchMgr{
-		Schema:             &config.Schema{},
+		Schema:             schema,
 		Batches:            make([]*Batch, len(clientRequestChs)),
 		initializedSchema:  false,
 		emptyPropsTagNames: schema.CollectEmptyPropsTagNames(),
 	}
 
-	bm.Schema.Type = schema.Type
-
-	if bm.Schema.IsVertex() {
-		index := 0
-		bm.Schema.Vertex = &config.Vertex{
-			VID:  &config.VID{Index: &index},
-			Tags: []*config.Tag{},
-		}
-	} else {
-		srcIdx, dstIdx := 0, 1
-		bm.Schema.Edge = &config.Edge{
-			Name:   schema.Edge.Name,
-			SrcVID: &config.VID{Index: &srcIdx},
-			DstVID: &config.VID{Index: &dstIdx},
-			Rank:   nil,
-			Props:  []*config.Prop{},
-		}
-	}
-
 	for i := range bm.Batches {
 		bm.Batches[i] = NewBatch(&bm, batchSize, clientRequestChs[i], errCh)
 	}
+	bm.generateInsertStmtPrefix()
 	return &bm
 }
 
@@ -173,12 +155,11 @@ func (bm *BatchMgr) getOrCreateVertexTagByName(name string) *config.Tag {
 			return bm.Schema.Vertex.Tags[i]
 		}
 	}
-	newTag := config.Tag{
+	newTag := &config.Tag{
 		Name: &name,
 	}
-	idx := len(bm.Schema.Vertex.Tags)
-	bm.Schema.Vertex.Tags = append(bm.Schema.Vertex.Tags, &newTag)
-	return bm.Schema.Vertex.Tags[idx]
+	bm.Schema.Vertex.Tags = append(bm.Schema.Vertex.Tags, newTag)
+	return newTag
 }
 
 func (bm *BatchMgr) parseTag(s string) (tag, field string) {
