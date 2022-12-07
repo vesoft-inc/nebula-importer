@@ -203,13 +203,20 @@ schema:
             index: 1
           - name: gender
             type: string
+            defaultValue: "male"
           - name: phone
             type: string
             nullable: true
-          - name: wechat
+          - name: email
             type: string
             nullable: true
             nullValue: "__NULL__"
+          - name: address
+            type: string
+            nullable: true
+            alternativeIndices:
+              - 7
+              - 8
 ```
 
 ##### `schema.vertex.vid`
@@ -233,7 +240,9 @@ Each tag contains the following two properties:
   * `type`: **Optional**. The property type, currently  `bool`, `int`, `float`, `double`, `string`, `time`, `timestamp`, `date`, `datetime`, `geography`, `geography(point)`, `geography(linestring)` and `geography(polygon)` are supported.
   * `index`: **Optional**. The column number in the CSV file.
   * `nullable`: **Optional**. Whether this prop property can be `NULL`, optional values is `true` or `false`, default `false`.
-  * `nullValue`: **Optional**. If `nullable` is set to `true`, the property will be set to `NULL` when the value is equal to `nullValue`, default `""`.
+  * `nullValue`: **Optional**. Ignored when `nullable` is `false`. The property is set to `NULL` when the value is equal to `nullValue`, default `""`.
+  * `alternativeIndices`: **Optional**. Ignored when `nullable` is `false`. The property is fetched from csv according to the indices in order until not equal to `nullValue`.
+  * `defaultValue`: **Optional**. Ignored when `nullable` is `false`. The property default value, when all the values obtained by `index` and `alternativeIndices` are `nullValue`.
 
 > **NOTE**: The properties in the preceding `prop` parameter must be sorted in the **same** way as in the CSV data file.
 

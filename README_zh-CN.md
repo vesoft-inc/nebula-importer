@@ -177,6 +177,20 @@ schema:
             index: 1
           - name: gender
             type: string
+            defaultValue: "male"
+          - name: phone
+            type: string
+            nullable: true
+          - name: email
+            type: string
+            nullable: true
+            nullValue: "__NULL__"
+          - name: address
+            type: string
+            nullable: true
+            alternativeIndices:
+              - 7
+              - 8
 ```
 
 ##### `schema.vertex.vid`
@@ -199,7 +213,9 @@ schema:
   - `type`：**必填**。属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp`、`string`、`geography`、`geography(point)`、`geography(linestring)`和`geography(polygon)` 几种类型。
   - `index`：**可选**。在 CSV 文件中的列标。
   - `nullable`：**可选**。此属性是否可以为 `NULL`，可选 `true` 或者 `false`，默认值为 `false` 。
-  - `nullValue`：**可选**。如果 `nullable` 设置为 `true`，则当值等于 `nullValue` 的时候属性将被设置为 `NULL` ，默认值为 `""`。
+  - `nullValue`：**可选**。当 `nullable` 为 `false` 时被忽略。当值等于 `nullValue` 的时候属性将被设置为 `NULL` ，默认值为 `""`。
+  - `alternativeIndices`: **可选**。当 `nullable` 为 `false` 时被忽略。该属性根据索引顺序从 csv 中获取，直到不等于 `nullValue`。
+  - `defaultValue`: **可选**。当 `nullable` 为 `false` 时被忽略。属性默认值，当根据 `index` 和 `alternativeIndices` 获取的所有值为 `nullValue` 时设置默认值。
 
 > **注意**：上述 `props` 中的属性描述**顺序**必须同数据文件中的对应数据排列顺序一致。
 

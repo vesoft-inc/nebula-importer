@@ -484,14 +484,21 @@ files:
                 type: int
                 index: 2
                 nullable: true
+                defaultValue: "0"
               - name: f
                 type: float
                 index: 3
                 nullable: true
+                alternativeIndices:
+                  - 2
               - name: d
                 type: double
                 index: 4
                 nullable: true
+                alternativeIndices:
+                  - 3
+                  - 2
+                defaultValue: "0"
               - name: s
                 type: string
                 index: 5
@@ -528,10 +535,16 @@ files:
             type: float
             index: 3
             nullable: true
+            alternativeIndices:
+              - 2
+            defaultValue: "0"
           - name: d
             type: double
             index: 4
             nullable: true
+            alternativeIndices:
+              - 3
+              - 2
           - name: s
             type: string
             index: 5

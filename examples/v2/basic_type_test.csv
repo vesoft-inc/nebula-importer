@@ -5,3 +5,8 @@ b4,false,3,2.0,3.3,0a bd
 b5,true,-3,2,3,abcd efg
 bnull1,,,,,
 bnull2,,,,,__NULL__
+bnull3,,-4,4,4.4,
+bnull4,,-4,,4.4,
+bnull5,,,4,,
+bnull6,,,4,4.4,
+bnull7,,,,4.4,
