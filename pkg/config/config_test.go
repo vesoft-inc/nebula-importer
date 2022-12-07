@@ -582,6 +582,7 @@ func TestPropFormatValue(t *testing.T) {
 	var (
 		idx0                 = 0
 		idx1                 = 1
+		vZero                = "0"
 		tBool                = "bool"
 		tInt                 = "int"
 		tFloat               = "float"
@@ -898,6 +899,107 @@ func TestPropFormatValue(t *testing.T) {
 			record: base.Record{""},
 			want:   dbNULL,
 		},
+		{
+			name: "alternative indices 0",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{},
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
+			name: "alternative indices 1 out range",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{1},
+			},
+			record:        base.Record{""},
+			wantErrString: "out range",
+		},
+		{
+			name: "alternative indices 1 use index",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{1},
+			},
+			record: base.Record{"1"},
+			want:   "1",
+		},
+		{
+			name: "alternative indices 1 null",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{1},
+			},
+			record: base.Record{"", ""},
+			want:   dbNULL,
+		},
+		{
+			name: "alternative indices 1 not null",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{2},
+			},
+			record: base.Record{"", "1", "2"},
+			want:   "2",
+		},
+		{
+			name: "alternative indices n not null",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{3, 2, 1},
+			},
+			record: base.Record{"", "1", "2", ""},
+			want:   "2",
+		},
+		{
+			name: "default value not nullable",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           false,
+				AlternativeIndices: []int{1},
+				DefaultValue:       &vZero,
+			},
+			record: base.Record{"", "1", "2"},
+			want:   "",
+		},
+		{
+			name: "default value nullable",
+			prop: Prop{
+				Index:        &idx0,
+				Type:         &tInt,
+				Nullable:     true,
+				DefaultValue: &vZero,
+			},
+			record: base.Record{""},
+			want:   "0",
+		},
+		{
+			name: "default value nullable alternative indices",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{1, 2, 3, 4, 5, 6},
+				DefaultValue:       &vZero,
+			},
+			record: base.Record{"", "", "", "", "", "", ""},
+			want:   "0",
+		},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -908,7 +1010,7 @@ func TestPropFormatValue(t *testing.T) {
 				ast.Contains(err.Error(), tc.wantErrString)
 			} else {
 				ast.NoError(err)
-				ast.Contains(str, tc.want)
+				ast.Equal(str, tc.want)
 			}
 		})
 	}

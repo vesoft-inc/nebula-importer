@@ -51,11 +51,13 @@ type NebulaClientSettings struct {
 }
 
 type Prop struct {
-	Name      *string `json:"name" yaml:"name"`
-	Type      *string `json:"type" yaml:"type"`
-	Index     *int    `json:"index" yaml:"index"`
-	Nullable  bool    `json:"nullable" yaml:"nullable"`
-	NullValue string  `json:"nullValue" yaml:"nullValue"`
+	Name               *string `json:"name" yaml:"name"`
+	Type               *string `json:"type" yaml:"type"`
+	Index              *int    `json:"index" yaml:"index"`
+	Nullable           bool    `json:"nullable" yaml:"nullable"`
+	NullValue          string  `json:"nullValue" yaml:"nullValue"`
+	AlternativeIndices []int   `json:"alternativeIndices" yaml:"alternativeIndices"`
+	DefaultValue       *string `json:"defaultValue" yaml:"defaultValue"`
 }
 
 type VID struct {
@@ -832,12 +834,12 @@ func (p *Prop) IsGeographyType() bool {
 }
 
 func (p *Prop) FormatValue(record base.Record) (string, error) {
-	if p.Index != nil && *p.Index >= len(record) {
-		return "", fmt.Errorf("Prop index %d out range %d of record(%v)", *p.Index, len(record), record)
+	r, isNull, err := p.getValue(record)
+	if err != nil {
+		return "", err
 	}
-	r := record[*p.Index]
-	if p.Nullable && r == p.NullValue {
-		return dbNULL, nil
+	if isNull {
+		return r, err
 	}
 	if p.IsStringType() {
 		return fmt.Sprintf("%q", r), nil
@@ -854,6 +856,35 @@ func (p *Prop) FormatValue(record base.Record) (string, error) {
 	}
 
 	return r, nil
+}
+
+func (p *Prop) getValue(record base.Record) (string, bool, error) {
+	if p.Index != nil && *p.Index >= len(record) {
+		return "", false, fmt.Errorf("Prop index %d out range %d of record(%v)", *p.Index, len(record), record)
+	}
+
+	r := record[*p.Index]
+	if !p.Nullable {
+		return r, false, nil
+	}
+
+	if r != p.NullValue {
+		return r, false, nil
+	}
+
+	for _, idx := range p.AlternativeIndices {
+		if idx >= len(record) {
+			return "", false, fmt.Errorf("Prop index %d out range %d of record(%v)", idx, len(record), record)
+		}
+		r = record[idx]
+		if r != p.NullValue {
+			return r, false, nil
+		}
+	}
+	if p.DefaultValue != nil {
+		return *p.DefaultValue, false, nil
+	}
+	return dbNULL, true, nil
 }
 
 func (p *Prop) String(prefix string) string {
