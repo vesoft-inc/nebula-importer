@@ -12,7 +12,7 @@ clientSettings:
     address: 127.0.0.1:9669
 {{ .LogPath }}
 files:
-  - path: ../../examples/v2/choose.csv
+  - path: ../../../examples/v2/choose.csv
     batchSize: 2
     inOrder: false
     type: csv

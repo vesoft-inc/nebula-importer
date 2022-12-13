@@ -14,6 +14,7 @@ import (
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	ierrors "github.com/vesoft-inc/nebula-importer/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
+	"github.com/vesoft-inc/nebula-importer/pkg/picker"
 	"gopkg.in/yaml.v2"
 )
 
@@ -58,13 +59,16 @@ type Prop struct {
 	NullValue          string  `json:"nullValue" yaml:"nullValue"`
 	AlternativeIndices []int   `json:"alternativeIndices" yaml:"alternativeIndices"`
 	DefaultValue       *string `json:"defaultValue" yaml:"defaultValue"`
+	picker             picker.Picker
 }
 
 type VID struct {
-	Index    *int    `json:"index" yaml:"index"`
-	Function *string `json:"function" yaml:"function"`
-	Type     *string `json:"type" yaml:"type"`
-	Prefix   *string `json:"prefix" yaml:"prefix"`
+	Index       *int          `json:"index" yaml:"index"`
+	ConcatItems []interface{} `json:"concatItems" yaml:"concatItems"` // only string and int is support, int is for Index
+	Function    *string       `json:"function" yaml:"function"`
+	Type        *string       `json:"type" yaml:"type"`
+	Prefix      *string       `json:"prefix" yaml:"prefix"`
+	picker      picker.Picker
 }
 
 type Rank struct {
@@ -494,7 +498,6 @@ func (s *Schema) validateAndReset(prefix string) error {
 func (v *VID) ParseFunction(str string) (err error) {
 	i := strings.Index(str, "(")
 	j := strings.Index(str, ")")
-	err = nil
 	if i < 0 && j < 0 {
 		v.Function = nil
 		v.Type = &kDefaultVidType
@@ -533,25 +536,11 @@ func (v *VID) String(vid string) string {
 }
 
 func (v *VID) FormatValue(record base.Record) (string, error) {
-	if len(record) <= *v.Index {
-		return "", fmt.Errorf("vid index(%d) out of range record length(%d)", *v.Index, len(record))
+	value, err := v.picker.Pick(record)
+	if err != nil {
+		return "", err
 	}
-	vid := record[*v.Index]
-	if v.Prefix != nil {
-		vid = *v.Prefix + vid
-	}
-	if v.Function == nil || *v.Function == "" {
-		if err := checkVidFormat(vid, *v.Type == "int"); err != nil {
-			return "", err
-		}
-		if *v.Type == "string" {
-			return fmt.Sprintf("%q", vid), nil
-		} else {
-			return vid, nil
-		}
-	} else {
-		return fmt.Sprintf("%s(%q)", *v.Function, vid), nil
-	}
+	return value.Val, nil
 }
 
 func (v *VID) checkFunction(prefix string) error {
@@ -585,7 +574,48 @@ func (v *VID) validateAndReset(prefix string, defaultVal int) error {
 		v.Type = &kDefaultVidType
 		logger.Log.Warnf("Not set %s.Type, reset to default value `%s'", prefix, *v.Type)
 	}
-	return nil
+
+	return v.InitPicker()
+}
+
+func (v *VID) InitPicker() error {
+	pickerConfig := picker.Config{
+		Type:     *v.Type,
+		Function: v.Function,
+	}
+
+	hasPrefix := v.Prefix != nil && *v.Prefix != ""
+
+	if len(v.ConcatItems) > 0 {
+		if hasPrefix {
+			pickerConfig.ConcatItems.AddConstant(*v.Prefix)
+		}
+		for i, item := range v.ConcatItems {
+			switch val := item.(type) {
+			case int:
+				pickerConfig.ConcatItems.AddIndex(val)
+			case string:
+				pickerConfig.ConcatItems.AddConstant(val)
+			default:
+				return fmt.Errorf("ConcatItems only support int or string, but the %d is %v", i, val)
+			}
+		}
+	} else if hasPrefix {
+		pickerConfig.ConcatItems.AddConstant(*v.Prefix)
+		pickerConfig.ConcatItems.AddIndex(*v.Index)
+	} else {
+		pickerConfig.Indices = []int{*v.Index}
+	}
+
+	if (v.Function == nil || *v.Function == "") && strings.EqualFold(*v.Type, "int") {
+		pickerConfig.CheckOnPost = func(v *picker.Value) error {
+			return checkVidFormat(v.Val, true)
+		}
+	}
+
+	var err error
+	v.picker, err = pickerConfig.Build()
+	return err
 }
 
 func (r *Rank) validateAndReset(prefix string, defaultVal int) error {
@@ -690,22 +720,23 @@ func (e *Edge) validateAndReset(prefix string) error {
 	if e.Name == nil {
 		return fmt.Errorf("Please configure edge name in: %s.name", prefix)
 	}
-	if e.SrcVID != nil {
-		if err := e.SrcVID.validateAndReset(fmt.Sprintf("%s.srcVID", prefix), 0); err != nil {
-			return err
-		}
-	} else {
+
+	if e.SrcVID == nil {
 		index := 0
 		e.SrcVID = &VID{Index: &index, Type: &kDefaultVidType}
 	}
-	if e.DstVID != nil {
-		if err := e.DstVID.validateAndReset(fmt.Sprintf("%s.dstVID", prefix), 1); err != nil {
-			return err
-		}
-	} else {
+	if err := e.SrcVID.validateAndReset(fmt.Sprintf("%s.srcVID", prefix), 0); err != nil {
+		return err
+	}
+
+	if e.DstVID == nil {
 		index := 1
 		e.DstVID = &VID{Index: &index, Type: &kDefaultVidType}
 	}
+	if err := e.DstVID.validateAndReset(fmt.Sprintf("%s.dstVID", prefix), 1); err != nil {
+		return err
+	}
+
 	start := 2
 	if e.Rank != nil {
 		if err := e.Rank.validateAndReset(fmt.Sprintf("%s.rank", prefix), 2); err != nil {
@@ -792,13 +823,12 @@ func (v *Vertex) validateAndReset(prefix string) error {
 	// if v.Tags == nil {
 	// 	return fmt.Errorf("Please configure %.tags", prefix)
 	// }
-	if v.VID != nil {
-		if err := v.VID.validateAndReset(fmt.Sprintf("%s.vid", prefix), 0); err != nil {
-			return err
-		}
-	} else {
+	if v.VID == nil {
 		index := 0
 		v.VID = &VID{Index: &index, Type: &kDefaultVidType}
+	}
+	if err := v.VID.validateAndReset(fmt.Sprintf("%s.vid", prefix), 0); err != nil {
+		return err
 	}
 	j := 1
 	for i := range v.Tags {
@@ -834,28 +864,11 @@ func (p *Prop) IsGeographyType() bool {
 }
 
 func (p *Prop) FormatValue(record base.Record) (string, error) {
-	r, isNull, err := p.getValue(record)
+	value, err := p.picker.Pick(record)
 	if err != nil {
 		return "", err
 	}
-	if isNull {
-		return r, err
-	}
-	if p.IsStringType() {
-		return fmt.Sprintf("%q", r), nil
-	}
-	if p.IsDateOrTimeType() {
-		if p.IsTimestampType() && reTimestampInteger.MatchString(r) {
-			return fmt.Sprintf("%s(%s)", strings.ToLower(*p.Type), r), nil
-		}
-		return fmt.Sprintf("%s(%q)", strings.ToLower(*p.Type), r), nil
-	}
-	// Only support wkt for geography currently
-	if p.IsGeographyType() {
-		return fmt.Sprintf("ST_GeogFromText(%q)", r), nil
-	}
-
-	return r, nil
+	return value.Val, nil
 }
 
 func (p *Prop) getValue(record base.Record) (string, bool, error) {
@@ -903,7 +916,29 @@ func (p *Prop) validateAndReset(prefix string, val int) error {
 			return fmt.Errorf("Invalid prop index: %d, name: %s, type: %s", *p.Index, *p.Name, *p.Type)
 		}
 	}
-	return nil
+	return p.InitPicker()
+}
+
+func (p *Prop) InitPicker() error {
+	pickerConfig := picker.Config{
+		Indices: []int{*p.Index},
+		Type:    *p.Type,
+	}
+
+	if p.Nullable {
+		pickerConfig.Nullable = func(s string) bool {
+			return s == p.NullValue
+		}
+		pickerConfig.NullValue = dbNULL
+		if len(p.AlternativeIndices) > 0 {
+			pickerConfig.Indices = append(pickerConfig.Indices, p.AlternativeIndices...)
+		}
+		pickerConfig.DefaultValue = p.DefaultValue
+	}
+
+	var err error
+	p.picker, err = pickerConfig.Build()
+	return err
 }
 
 func (t *Tag) FormatValues(record base.Record) (string, bool, error) {

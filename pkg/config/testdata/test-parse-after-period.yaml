@@ -14,7 +14,7 @@ clientSettings:
      commands: SHOW HOSTS
      {{ .AfterPeriod }}
 files:
-  - path: ../../examples/v2/choose.csv
+  - path: ../../../examples/v2/choose.csv
     batchSize: 2
     inOrder: false
     type: csv
