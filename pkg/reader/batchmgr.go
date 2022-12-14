@@ -42,7 +42,6 @@ func (bm *BatchMgr) Done() {
 }
 
 func (bm *BatchMgr) InitSchema(header base.Record, runnerLogger *logger.RunnerLogger) (err error) {
-	err = nil
 	if bm.initializedSchema {
 		logger.Log.Info("Batch manager schema has been initialized!")
 		return
@@ -56,12 +55,15 @@ func (bm *BatchMgr) InitSchema(header base.Record, runnerLogger *logger.RunnerLo
 			case strings.HasPrefix(c, base.LABEL_VID):
 				*bm.Schema.Vertex.VID.Index = i
 				err = bm.Schema.Vertex.VID.ParseFunction(c)
+				_ = bm.Schema.Vertex.VID.InitPicker()
 			case strings.HasPrefix(c, base.LABEL_SRC_VID):
 				*bm.Schema.Edge.SrcVID.Index = i
 				err = bm.Schema.Edge.SrcVID.ParseFunction(c)
+				_ = bm.Schema.Edge.SrcVID.InitPicker()
 			case strings.HasPrefix(c, base.LABEL_DST_VID):
 				*bm.Schema.Edge.DstVID.Index = i
 				err = bm.Schema.Edge.DstVID.ParseFunction(c)
+				_ = bm.Schema.Edge.DstVID.InitPicker()
 			case c == base.LABEL_RANK:
 				if bm.Schema.Edge.Rank == nil {
 					rank := i
@@ -100,6 +102,7 @@ func (bm *BatchMgr) addVertexTags(r string, i int) {
 		Type:  &columnType,
 		Index: &i,
 	}
+	_ = p.InitPicker()
 	tag.Props = append(tag.Props, &p)
 }
 
@@ -115,6 +118,7 @@ func (bm *BatchMgr) addEdgeProps(r string, i int) {
 		Type:  &columnType,
 		Index: &i,
 	}
+	_ = p.InitPicker()
 	bm.Schema.Edge.Props = append(bm.Schema.Edge.Props, &p)
 }
 

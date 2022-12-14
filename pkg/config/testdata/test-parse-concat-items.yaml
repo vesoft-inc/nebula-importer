@@ -1,4 +1,4 @@
-{{ .Version }}
+version: v2
 description: example
 removeTempFiles: false
 clientSettings:
@@ -21,6 +21,9 @@ files:
     schema:
       type: edge
       edge:
+        srcVID:
+          {{ .ConcatItems }}
+          type: string
         name: choose
         withRanking: false
         props:

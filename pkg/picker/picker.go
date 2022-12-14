@@ -1,6 +1,9 @@
 package picker
 
-var _ Picker = ConverterPicker{}
+var (
+	_ Picker = ConverterPicker{}
+	_ Picker = NullablePickers{}
+)
 
 type (
 	Picker interface {

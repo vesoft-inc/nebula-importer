@@ -217,6 +217,16 @@ schema:
             alternativeIndices:
               - 7
               - 8
+
+# concatItems examples
+schema:
+  type: vertex
+  vertex:
+    vid:
+      concatItems:
+        - "abc"
+        - 1
+      function: hash
 ```
 
 ##### `schema.vertex.vid`
@@ -224,6 +234,7 @@ schema:
 **Optional**. Describes the vertex ID column and the function used for the vertex ID.
 
 * `index`: **Optional**. The column number in the CSV file. Started with 0. The default value is 0.
+* `concatItems`: **Optional**. The concat item can be `string`, `int` or mixed. `string` represents a constant, and `int` represents an index column. Then connect all items.If set, the above `index` will have no effect.
 * `function`: **Optional**. Functions to generate the VIDs. Currently, we only support function `hash` and `uuid`.
 * `type`: **Optional**. The type for VIDs. The default value is `string`.
 * `prefix`: **Optional**. Add prefix to the original vid. When `function` is specified also, `prefix` is applied to the original vid before `function`.

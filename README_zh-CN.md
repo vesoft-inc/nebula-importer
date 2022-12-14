@@ -191,6 +191,15 @@ schema:
             alternativeIndices:
               - 7
               - 8
+# concatItems examples
+schema:
+  type: vertex
+  vertex:
+    vid:
+      concatItems:
+        - "abc"
+        - 1
+      function: hash
 ```
 
 ##### `schema.vertex.vid`
@@ -198,6 +207,7 @@ schema:
 **可选**。描述点 VID 所在的列和使用的函数。
 
 - `index`：**可选**。在 CSV 文件中的列标，从 0 开始计数。默认值 0。
+- `concatItems`: **可选**. 连接项可以是`string`、`int`或者混合。`string`代表常量，`int`表示索引列。然后连接所有的项。如果设置了，上面的`index`将不生效。
 - `function`：**可选**。用来生成 VID 时的函数，有 `hash` 和 `uuid` 两种函数可选。
 - `prefix`: **可选**。给 原始vid 添加的前缀，当同时指定了 `function` 时, 生成 VID 的方法是先添加 `prefix` 前缀, 再用 `function`生成 VID。
 

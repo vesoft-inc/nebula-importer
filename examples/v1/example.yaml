@@ -76,6 +76,38 @@ files:
               - name: name
                 type: string
 
+  - path: ./course.csv
+    failDataPath: ./err/course-concat.csv
+    batchSize: 2
+    inOrder: true
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          type: int
+          concatItems: # "c1{index0}c2{index1}2"
+            - "c1"
+            - 0
+            - c2
+            - 1
+            - "2"
+          function: hash
+        tags:
+          - name: course
+            props:
+              - name: name
+                type: string
+              - name: credits
+                type: int
+          - name: building
+            props:
+              - name: name
+                type: string
+
   - path: ./course-with-header.csv
     failDataPath: ./err/course-with-header.csv
     batchSize: 2
