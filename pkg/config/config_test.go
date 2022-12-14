@@ -1181,3 +1181,12 @@ func TestParseFunction(t *testing.T) {
 		})
 	}
 }
+
+func Benchmark_checkVidFormat(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = checkVidFormat("-0xfedcba9876543210", true)
+		_ = checkVidFormat("-076543210", true)
+		_ = checkVidFormat("-9876543210", true)
+		_ = checkVidFormat("hash(\"abcdefg\")", true)
+	}
+}

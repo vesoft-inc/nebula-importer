@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
@@ -15,15 +14,12 @@ import (
 	ierrors "github.com/vesoft-inc/nebula-importer/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/pkg/picker"
+	"github.com/vesoft-inc/nebula-importer/pkg/utils"
 	"gopkg.in/yaml.v2"
 )
 
 const (
 	dbNULL = "NULL"
-)
-
-var (
-	reTimestampInteger = regexp.MustCompile(`^(0[xX][0-9a-fA-F]+|0[0-7]+|\d+)$`)
 )
 
 type NebulaClientConnection struct {
@@ -628,11 +624,16 @@ func (r *Rank) validateAndReset(prefix string, defaultVal int) error {
 	return nil
 }
 
-var re = regexp.MustCompile(`^(0[xX][0-9a-fA-F]+|0[0-7]+|[+-]?\d+|hash\(".+"\)|uuid\(".+"\))$`)
-
 func checkVidFormat(vid string, isInt bool) error {
-	if isInt && !re.MatchString(vid) {
-		return fmt.Errorf("Invalid vid format: %s", vid)
+	if isInt {
+		if utils.IsInteger(vid) {
+			return nil
+		}
+		vidLen := len(vid)
+		if vidLen > 8 /* hash("") */ && strings.HasSuffix(vid, "\")") && strings.HasPrefix(vid, "hash(\"") {
+			return nil
+		}
+		return fmt.Errorf("Invalid vid format: " + vid)
 	}
 	return nil
 }
