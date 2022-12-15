@@ -314,7 +314,6 @@ files:
       vertex:
         vid:
           index: 1
-          # function: uuid
         tags:
           - name: student
             props:
@@ -344,7 +343,6 @@ files:
           # function: hash
         dstVID:
           index: 1
-          # function: uuid
         rank:
           index: 2
         props:
@@ -383,7 +381,6 @@ files:
           # function: hash
         dstVID:
           index: 1
-          # function: uuid
         rank:
           index: 2
         props:

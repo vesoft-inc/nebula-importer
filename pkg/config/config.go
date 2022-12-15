@@ -542,10 +542,9 @@ func (v *VID) FormatValue(record base.Record) (string, error) {
 func (v *VID) checkFunction(prefix string) error {
 	if v.Function != nil {
 		switch strings.ToLower(*v.Function) {
-		// FIXME: uuid is not supported in nebula-graph-v2, and hash returns int which is not the valid vid type.
-		case "", "hash", "uuid":
+		case "", "hash":
 		default:
-			return fmt.Errorf("Invalid %s.function: %s, only following values are supported: \"\", hash, uuid", prefix, *v.Function)
+			return fmt.Errorf("Invalid %s.function: %s, only following values are supported: \"\", hash", prefix, *v.Function)
 		}
 	}
 	return nil

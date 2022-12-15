@@ -208,7 +208,7 @@ schema:
 
 - `index`：**可选**。在 CSV 文件中的列标，从 0 开始计数。默认值 0。
 - `concatItems`: **可选**. 连接项可以是`string`、`int`或者混合。`string`代表常量，`int`表示索引列。然后连接所有的项。如果设置了，上面的`index`将不生效。
-- `function`：**可选**。用来生成 VID 时的函数，有 `hash` 和 `uuid` 两种函数可选。
+- `function`：**可选**。用来生成 VID 时的函数，支持 `hash` 函数。
 - `prefix`: **可选**。给 原始vid 添加的前缀，当同时指定了 `function` 时, 生成 VID 的方法是先添加 `prefix` 前缀, 再用 `function`生成 VID。
 
 ##### `schema.vertex.tags`
@@ -243,7 +243,7 @@ schema:
       function: hash
     dstVID:
       index: 1
-      function: uuid
+      function: hash
     rank:
       index: 2
     props:
@@ -320,7 +320,7 @@ example 中 course 点的示例：
 ```csv
 :LABEL,:VID,course.name,building.name:string,:IGNORE,course.credits:int
 +,"hash(""Math"")",Math,No5,1,3
-+,"uuid(""English"")",English,"No11 B\",2,6
++,"hash(""English"")",English,"No11 B\",2,6
 ```
 
 ##### LABEL (可选）
@@ -339,10 +339,10 @@ example 中 course 点的示例：
 :VID
 123,
 "hash(""Math"")",
-"uuid(""English"")"
+"hash(""English"")"
 ```
 
-在 `:VID` 这列除了常见的整数值（例如 123），还可以使用 `hash` 和 `uuid` 两个内置函数来自动计算生成点的 VID（例如 hash("Math")）。
+在 `:VID` 这列除了常见的整数值（例如 123），还可以使用 `hash` 内置函数来自动计算生成点的 VID（例如 hash("Math")）。
 
 > 需要注意的是在 CSV 文件中对双引号(")的转义处理。如 `hash("Math")` 要写成 `"hash(""Math"")"`。
 
