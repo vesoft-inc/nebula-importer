@@ -235,7 +235,7 @@ schema:
 
 * `index`: **Optional**. The column number in the CSV file. Started with 0. The default value is 0.
 * `concatItems`: **Optional**. The concat item can be `string`, `int` or mixed. `string` represents a constant, and `int` represents an index column. Then connect all items.If set, the above `index` will have no effect.
-* `function`: **Optional**. Functions to generate the VIDs. Currently, we only support function `hash` and `uuid`.
+* `function`: **Optional**. Functions to generate the VIDs. Currently, we only support function `hash`.
 * `type`: **Optional**. The type for VIDs. The default value is `string`.
 * `prefix`: **Optional**. Add prefix to the original vid. When `function` is specified also, `prefix` is applied to the original vid before `function`.
 
@@ -271,7 +271,7 @@ schema:
       function: hash
     dstVID:
       index: 1
-      function: uuid
+      function: hash
     rank:
       index: 2
     props:
@@ -348,7 +348,7 @@ Take vertex course as example:
 ```csv
 :LABEL,:VID,course.name,building.name:string,:IGNORE,course.credits:int
 +,"hash(""Math"")",Math,No5,1,3
-+,"uuid(""English"")",English,"No11 B\",2,6
++,"hash(""English"")",English,"No11 B\",2,6
 ```
 
 ##### LABEL (optional)
@@ -367,10 +367,10 @@ Indicates the column is the insertion (+) or deletion (-) operation.
 :VID
 123,
 "hash(""Math"")",
-"uuid(""English"")"
+"hash(""English"")"
 ```
 
-In the `:VID` column, in addition to the common integer values (such as 123), you can also use the two built-in functions `hash` and `uuid` to automatically generate the VID for the vertices (for example, hash("Math")).
+In the `:VID` column, in addition to the common integer values (such as 123), you can also use the two built-in function `hash` to automatically generate the VID for the vertices (for example, hash("Math")).
 
 > **NOTE**: The double quotes (") are escaped in the CSV file. For example, `hash("Math")` must be written as `"hash(""Math"")"`.
 

@@ -297,7 +297,7 @@ files:
           type: int
         dstVID:
           index: 1
-          # function: uuid
+          # function: hash
           type: int
         rank:
           index: 2

@@ -3,6 +3,8 @@ package picker
 import (
 	"fmt"
 	"strings"
+
+	"github.com/vesoft-inc/nebula-importer/pkg/utils"
 )
 
 var (
@@ -113,7 +115,7 @@ func (tc TypeStringConverter) Convert(v *Value) (*Value, error) {
 }
 
 func (tc TypeTimestampConverter) Convert(v *Value) (*Value, error) {
-	if isUnsignedInteger(v.Val) {
+	if utils.IsUnsignedInteger(v.Val) {
 		return tc.fc.Convert(v)
 	}
 	return tc.fsc.Convert(v)
