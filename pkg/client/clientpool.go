@@ -221,6 +221,8 @@ func (p *ClientPool) startWorker(i int) {
 				}
 
 				// Case 2. retry as much as possible
+				// TODO: compare with E_RAFT_BUFFER_OVERFLOW
+				// Can not get the E_RAFT_BUFFER_OVERFLOW inside storage now.
 				if strings.Contains(errorMsg, "raft buffer is full") {
 					retry = p.retry
 					return retryErr

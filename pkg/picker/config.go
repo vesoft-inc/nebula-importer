@@ -60,13 +60,13 @@ func (c *Config) Build() (Picker, error) {
 
 	var converters []Converter
 
-	if !nullHandled && c.Nullable != nil {
-		converters = append(converters, NullableConverter{
-			Nullable: c.Nullable,
-		})
-	}
-
 	if c.Nullable != nil {
+		if !nullHandled {
+			converters = append(converters, NullableConverter{
+				Nullable: c.Nullable,
+			})
+		}
+
 		if c.DefaultValue != nil {
 			converters = append(converters, DefaultConverter{
 				Value: *c.DefaultValue,
