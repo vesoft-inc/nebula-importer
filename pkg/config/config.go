@@ -100,6 +100,7 @@ type CSVConfig struct {
 	WithHeader *bool   `json:"withHeader" yaml:"withHeader"`
 	WithLabel  *bool   `json:"withLabel" yaml:"withLabel"`
 	Delimiter  *string `json:"delimiter" yaml:"delimiter"`
+	LazyQuotes *bool   `json:"lazyQuotes" yaml:"lazyQuotes"`
 }
 
 type File struct {

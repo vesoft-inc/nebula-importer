@@ -49,6 +49,9 @@ func (r *CSVReader) InitReader(file *os.File, runnerLogger *logger.RunnerLogger)
 			logger.Log.Infof("The delimiter of %s is %#U", file.Name(), r.reader.Comma)
 		}
 	}
+	if r.CSVConfig.LazyQuotes != nil {
+		r.reader.LazyQuotes = *r.CSVConfig.LazyQuotes
+	}
 	stat, err := file.Stat()
 	if err != nil {
 		logger.Log.Infof("The stat of %s is wrong, %s", file.Name(), err)

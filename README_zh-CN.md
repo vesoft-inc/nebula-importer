@@ -131,6 +131,7 @@ files:
       withHeader: false
       withLabel: false
       delimiter: ","
+      lazyQuotes: false
 ```
 
 #### 数据文件
@@ -146,6 +147,7 @@ files:
   - `withHeader`：默认是 `false`，文件头的格式在后面描述。
   - `withLabel`：默认是 `false`，label 的格式也在后面描述。
   - `delimiter`：**可选**。指定 CSV 文件的分隔符，默认是 `","`。目前只有单字符的分隔符被支持。
+  - `lazyQuotes`：**可选**。如果 `lazyQuotes` 设置为 `true`，引号可能出现在不带引号的字段中，非双引号可能出现在带引号的字段中。
 
 #### `schema`
 

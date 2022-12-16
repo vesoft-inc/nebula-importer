@@ -77,6 +77,30 @@ files:
               - name: name
                 type: string
 
+  - path: ./course-lazy-quotes.csv
+    failDataPath: ./err/course-lazy-quotes
+    batchSize: 2
+    inOrder: true
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+      lazyQuotes: true
+    schema:
+      type: vertex
+      vertex:
+        tags:
+          - name: course
+            props:
+              - name: name
+                type: string
+              - name: credits
+                type: int
+          - name: building
+            props:
+              - name: name
+                type: string
+
   - path: ./course.csv
     failDataPath: ./err/course-concat
     batchSize: 2
