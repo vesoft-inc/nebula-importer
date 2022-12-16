@@ -138,7 +138,7 @@ clientSettings:
 
 The following three configurations are related to the log and data files:
 
-* `workingDir`: **Optional**. If you have multiple directories containing data with the same file structure, you can use this parameter to switch between them. For example, the value of `path` and `failDataPath` of the configuration below will be automatically changed to `./data/student.csv` and `./data/err/student.csv`. If you change workingDir to `./data1`, the path will be changed accordingly. The param can be either absolute or relative.
+* `workingDir`: **Optional**. If you have multiple directories containing data with the same file structure, you can use this parameter to switch between them. For example, the value of `path` and `failDataPath` of the configuration below will be automatically changed to `./data/student.csv` and `./data/err/student`. If you change workingDir to `./data1`, the path will be changed accordingly. The param can be either absolute or relative.
 * `logPath`: **Optional**. Specifies the log path when importing data. The default path is `/tmp/nebula-importer-{timestamp}.log`.
 * `files`: **Required**. It is an array type to configure different data files. You can also import data from a HTTP link by inputting the link in the file path.
 
@@ -147,7 +147,7 @@ workingDir: ./data/
 logPath: ./err/test.log
 files:
   - path: ./student.csv
-    failDataPath: ./err/student.csv
+    failDataPath: ./err/student
     batchSize: 128
     limit: 10
     inOrder: false
@@ -163,7 +163,7 @@ files:
 One CSV file can only store one type of vertex or edge. Vertices and edges of the different schema must be stored in different files.
 
 * `path`: **Required**. Specifies the path where the data files are stored. If a relative path is used, the `path` and current configuration file directory are spliced. Wildcard filename is also supported, for example: `./follower-*.csv`, please make sure that all matching files with the same schema.
-* `failDataPath`: **Required**. Specifies the path for data that failed in inserting so that the failed data are reinserted.
+* `failDataPath`: **Required**. Specifies the directory for data that failed in inserting so that the failed data are reinserted.
 * `batchSize`: **Optional**. Specifies the batch size of the inserted data. The default value is 128.
 * `limit`: **Optional**. Limits the max data reading rows.
 * `inOrder`: **Optional**. Whether to insert the data rows in the file in order. If you do not specify it, you avoid the decrease in importing rate caused by the data skew.
