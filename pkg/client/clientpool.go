@@ -6,10 +6,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	nebula "github.com/vesoft-inc/nebula-go/v3"
 	"github.com/vesoft-inc/nebula-importer/pkg/base"
 	"github.com/vesoft-inc/nebula-importer/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/pkg/logger"
+)
+
+const (
+	DefaultRetryInitialInterval     = time.Second
+	DefaultRetryRandomizationFactor = 0.1
+	DefaultRetryMultiplier          = 1.5
+	DefaultRetryMaxInterval         = 2 * time.Minute
+	DefaultRetryMaxElapsedTime      = time.Hour
 )
 
 type ClientPool struct {
@@ -171,15 +180,62 @@ func (p *ClientPool) startWorker(i int) {
 
 		now := time.Now()
 
-		var err error = nil
-		var resp *nebula.ResultSet = nil
-		for retry := p.retry; retry > 0; retry-- {
+		exp := backoff.NewExponentialBackOff()
+		exp.InitialInterval = DefaultRetryInitialInterval
+		exp.RandomizationFactor = DefaultRetryRandomizationFactor
+		exp.Multiplier = DefaultRetryMultiplier
+		exp.MaxInterval = DefaultRetryMaxInterval
+		exp.MaxElapsedTime = DefaultRetryMaxElapsedTime
+
+		var (
+			err   error
+			resp  *nebula.ResultSet
+			retry = p.retry
+		)
+
+		// There are three cases of retry
+		// * Case 1: retry no more
+		// * Case 2. retry as much as possible
+		// * Case 3: retry with limit times
+		_ = backoff.Retry(func() error {
 			resp, err = p.Sessions[i].Execute(data.Stmt)
 			if err == nil && resp.IsSucceed() {
-				break
+				return nil
 			}
-			time.Sleep(1 * time.Second)
-		}
+			retryErr := err
+			if resp != nil {
+				errorCode, errorMsg := resp.GetErrorCode(), resp.GetErrorMsg()
+				retryErr = fmt.Errorf("%d:%s", errorCode, errorMsg)
+
+				// Case 1: retry no more
+				var isPermanentError = true
+				switch errorCode {
+				case nebula.ErrorCode_E_SYNTAX_ERROR:
+				case nebula.ErrorCode_E_SEMANTIC_ERROR:
+				default:
+					isPermanentError = false
+				}
+				if isPermanentError {
+					// stop the retry
+					return backoff.Permanent(retryErr)
+				}
+
+				// Case 2. retry as much as possible
+				// TODO: compare with E_RAFT_BUFFER_OVERFLOW
+				// Can not get the E_RAFT_BUFFER_OVERFLOW inside storage now.
+				if strings.Contains(errorMsg, "raft buffer is full") {
+					retry = p.retry
+					return retryErr
+				}
+			}
+			// Case 3: retry with limit times
+			if retry <= 0 {
+				// stop the retry
+				return backoff.Permanent(retryErr)
+			}
+			retry--
+			return retryErr
+		}, exp)
 
 		if err != nil {
 			err = fmt.Errorf("Client %d fail to execute: %s, Error: %s", i, data.Stmt, err.Error())
