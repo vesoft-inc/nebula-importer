@@ -226,7 +226,7 @@ func (config *YAMLConfig) expandDirectoryToFiles(dir string) (err error) {
 	var newFiles []*File
 
 	for _, file := range config.Files {
-		err, files := file.expandFiles(dir)
+		files, err := file.expandFiles(dir)
 		if err != nil {
 			logger.Log.Errorf("error when expand file: %s", err)
 			return err
@@ -331,6 +331,11 @@ func (f *File) validateAndReset(dir, prefix string) error {
 			f.FailDataPath = &failDataPath
 			logger.Log.Warnf("You have not configured the failed data output file path in: %s.failDataPath, reset to tmp path: %s",
 				prefix, *f.FailDataPath)
+		} else {
+			if !filepath.IsAbs(*f.FailDataPath) {
+				absPath := filepath.Join(dir, *f.FailDataPath)
+				f.FailDataPath = &absPath
+			}
 		}
 	} else {
 		if !filepath.IsAbs(*f.Path) {
@@ -382,8 +387,18 @@ func (f *File) validateAndReset(dir, prefix string) error {
 	return f.Schema.validateAndReset(fmt.Sprintf("%s.schema", prefix))
 }
 
-func (f *File) expandFiles(dir string) (err error, files []*File) {
+func (f *File) expandFiles(dir string) ([]*File, error) {
+	var files []*File
 	if base.HasHttpPrefix(*f.Path) {
+		if f.FailDataPath != nil {
+			_, filename, err := base.ExtractFilename(*f.Path)
+			if err != nil {
+				return nil, err
+			}
+			failedDataPath := filepath.Join(*f.FailDataPath, filename)
+			f.FailDataPath = &failedDataPath
+			logger.Log.Infof("Failed data path: %v", failedDataPath)
+		}
 		files = append(files, f)
 	} else {
 		if !filepath.IsAbs(*f.Path) {
@@ -394,7 +409,7 @@ func (f *File) expandFiles(dir string) (err error, files []*File) {
 		fileNames, err := filepath.Glob(*f.Path)
 		if err != nil || len(fileNames) == 0 {
 			logger.Log.Errorf("error file path: %s", *f.Path)
-			return err, files
+			return files, err
 		}
 
 		for i := range fileNames {
@@ -413,7 +428,7 @@ func (f *File) expandFiles(dir string) (err error, files []*File) {
 		}
 	}
 
-	return err, files
+	return files, nil
 }
 
 func (c *CSVConfig) validateAndReset(prefix string) error {
