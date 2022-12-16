@@ -156,6 +156,7 @@ files:
       withHeader: false
       withLabel: false
       delimiter: ","
+      lazyQuotes: false
 ```
 
 #### CSV data files
@@ -172,6 +173,7 @@ One CSV file can only store one type of vertex or edge. Vertices and edges of th
   * `withHeader`: The default value is false. The format of the header is described in the following section.
   * `withLabel`: The default value is false. The format of the label is described in the following section.
   * `delimiter`: **Optional**. Specify the delimiter for the CSV files. The default value is `","`. And only a 1-character string delimiter is supported.
+  * `lazyQuotes`: **Optional**. If `lazyQuotes` is true, a quote may appear in an unquoted field and a non-doubled quote may appear in a quoted field.
 
 #### `schema`
 
