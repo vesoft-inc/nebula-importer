@@ -19,7 +19,7 @@ clientSettings:
       CREATE TAG IF NOT EXISTS `Tag`(`name` string,`url` string);
       CREATE TAG IF NOT EXISTS `Organisation`(`type` string,`name` string,`url` string);
       CREATE TAG IF NOT EXISTS `Post`(`imageFile` string,`creationDate` datetime,`locationIP` string,`browserUsed` string,`language` string,`content` string,`length` int);
-      CREATE TAG IF NOT EXISTS `Person`(`firstName` string,`lastName` string,`gender` string,`birthday` string,`creationDate` datetime,`locationIP` string,`browserUsed` string,`email` string,`speaks` string);
+      CREATE TAG IF NOT EXISTS `Person`(`firstName` string,`lastName` string,`gender` string,`birthday` string,`creationDate` datetime,`locationIP` string,`browserUsed` string);
       CREATE TAG IF NOT EXISTS `Place`(`name` string,`url` string,`type` string);
       CREATE TAG IF NOT EXISTS `Tagclass`(`name` string,`url` string);
       CREATE EDGE IF NOT EXISTS `HAS_MEMBER`(`joinDate` datetime);
@@ -83,12 +83,6 @@ files:
               - name: browserUsed
                 type: string
                 index: 7
-              - name: email
-                type: string
-                index: 9
-              - name: speaks
-                type: string
-                index: 11
 
   - path: ./social_network/dynamic/forum.csv
     failDataPath: ./err/data/Forum
