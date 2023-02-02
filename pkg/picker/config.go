@@ -7,14 +7,13 @@ import (
 
 // Config is the configuration to build Picker
 // The priority is as follows:
-//
-//			ConcatItems > Indices
-//			Nullable
-//			DefaultValue
-//	   NullValue, if set to null, subsequent conversions will be skipped.
-//			Type
-//			Function
-//			CheckOnPost
+//		ConcatItems > Indices
+// 		Nullable
+// 		DefaultValue
+//    NullValue, if set to null, subsequent conversions will be skipped.
+// 		Type
+// 		Function
+// 		CheckOnPost
 type Config struct {
 	ConcatItems  ConcatItems        // Concat index column, constant, or mixed.
 	Indices      []int              // Set index columns, the first non-null.
