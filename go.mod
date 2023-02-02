@@ -1,6 +1,7 @@
 module github.com/vesoft-inc/nebula-importer/v3
 
 require (
+	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/stretchr/testify v1.7.0

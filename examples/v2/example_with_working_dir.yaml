@@ -21,7 +21,7 @@ workingDir: ./data/
 logPath: ./err/test.log
 files:
   - path: ./course.csv
-    failDataPath: ./err/course.csv
+    failDataPath: ./err/course
     batchSize: 2
     inOrder: true
     type: csv

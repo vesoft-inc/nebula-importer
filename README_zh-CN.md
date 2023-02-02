@@ -113,7 +113,7 @@ clientSettings:
 
 跟日志和数据文件相关的配置跟以下三个选项有关：
 
-- `workingDir`: **可选**。如果有多个文件夹，里面有相同文件结构的数据，可以使用这个参数在多个文件夹中切换。比如对于下面代码块的配置来说，`path`和`failDataPath`的值会被自动替换成`./data/student.csv`和`./data/err/student.csv`，如果把`workingDir`换成`./data1`，这两个值也会做相应改变。这个参数可以是绝对路径，也可以是相对路径。
+- `workingDir`: **可选**。如果有多个文件夹，里面有相同文件结构的数据，可以使用这个参数在多个文件夹中切换。比如对于下面代码块的配置来说，`path`和`failDataPath`的值会被自动替换成`./data/student.csv`和`./data/err/student`，如果把`workingDir`换成`./data1`，这两个值也会做相应改变。这个参数可以是绝对路径，也可以是相对路径。
 - `logPath`：**可选**。指定导入过程中的错误等日志信息输出的文件路径，默认输出到 `/tmp/nebula-importer-{timestamp}.log` 中。
 - `files`：**必填**。数组类型，用来配置不同的数据文件。您也可以从 HTTP 链接导入数据，在文件路径中输入链接即可。
 
@@ -122,7 +122,7 @@ workingDir: ./data/
 logPath: ./err/test.log
 files:
   - path: ./student.csv
-    failDataPath: ./err/student.csv
+    failDataPath: ./err/student
     batchSize: 128
     limit: 10
     inOrder: false
@@ -131,6 +131,7 @@ files:
       withHeader: false
       withLabel: false
       delimiter: ","
+      lazyQuotes: false
 ```
 
 #### 数据文件
@@ -138,7 +139,7 @@ files:
 一个数据文件中只能存放一种点或者边，不同 schema 的点或者边数据需要放置在不同的文件中。
 
 - `path`：**必填**。指定数据文件的存放路径，如果使用相对路径，则会拼接当前配置文件的目录和 `path`。
-- `failDataPath`：**必填**。指定插入失败的数据输出的文件，以便后面补写出错数据。
+- `failDataPath`：**必填**。指定插入失败的数据输出的文件目录，以便后面补写出错数据。
 - `batchSize`：**可选**。批量插入数据的条数，默认 128。
 - `limit`：**可选**。限制读取文件的行数。
 - `inOrder`：**可选**。是否按序插入文件中的每一行。如果不指定，可以避免数据倾斜导致的导入速率的下降。
@@ -146,6 +147,7 @@ files:
   - `withHeader`：默认是 `false`，文件头的格式在后面描述。
   - `withLabel`：默认是 `false`，label 的格式也在后面描述。
   - `delimiter`：**可选**。指定 CSV 文件的分隔符，默认是 `","`。目前只有单字符的分隔符被支持。
+  - `lazyQuotes`：**可选**。如果 `lazyQuotes` 设置为 `true`，引号可能出现在不带引号的字段中，非双引号可能出现在带引号的字段中。
 
 #### `schema`
 
@@ -177,6 +179,29 @@ schema:
             index: 1
           - name: gender
             type: string
+            defaultValue: "male"
+          - name: phone
+            type: string
+            nullable: true
+          - name: email
+            type: string
+            nullable: true
+            nullValue: "__NULL__"
+          - name: address
+            type: string
+            nullable: true
+            alternativeIndices:
+              - 7
+              - 8
+# concatItems examples
+schema:
+  type: vertex
+  vertex:
+    vid:
+      concatItems:
+        - "abc"
+        - 1
+      function: hash
 ```
 
 ##### `schema.vertex.vid`
@@ -184,7 +209,8 @@ schema:
 **可选**。描述点 VID 所在的列和使用的函数。
 
 - `index`：**可选**。在 CSV 文件中的列标，从 0 开始计数。默认值 0。
-- `function`：**可选**。用来生成 VID 时的函数，有 `hash` 和 `uuid` 两种函数可选。
+- `concatItems`: **可选**. 连接项可以是`string`、`int`或者混合。`string`代表常量，`int`表示索引列。然后连接所有的项。如果设置了，上面的`index`将不生效。
+- `function`：**可选**。用来生成 VID 时的函数，支持 `hash` 函数。
 - `prefix`: **可选**。给 原始vid 添加的前缀，当同时指定了 `function` 时, 生成 VID 的方法是先添加 `prefix` 前缀, 再用 `function`生成 VID。
 
 ##### `schema.vertex.tags`
@@ -198,6 +224,10 @@ schema:
   - `name`：**必填**。属性名称，同 Nebula Graph 中创建的 TAG 的属性名称一致。
   - `type`：**必填**。属性类型，目前支持 `bool`、`int`、`float`、`double`、`timestamp`、`string`、`geography`、`geography(point)`、`geography(linestring)`和`geography(polygon)` 几种类型。
   - `index`：**可选**。在 CSV 文件中的列标。
+  - `nullable`：**可选**。此属性是否可以为 `NULL`，可选 `true` 或者 `false`，默认值为 `false` 。
+  - `nullValue`：**可选**。当 `nullable` 为 `false` 时被忽略。当值等于 `nullValue` 的时候属性将被设置为 `NULL` ，默认值为 `""`。
+  - `alternativeIndices`: **可选**。当 `nullable` 为 `false` 时被忽略。该属性根据索引顺序从 csv 中获取，直到不等于 `nullValue`。
+  - `defaultValue`: **可选**。当 `nullable` 为 `false` 时被忽略。属性默认值，当根据 `index` 和 `alternativeIndices` 获取的所有值为 `nullValue` 时设置默认值。
 
 > **注意**：上述 `props` 中的属性描述**顺序**必须同数据文件中的对应数据排列顺序一致。
 
@@ -215,7 +245,7 @@ schema:
       function: hash
     dstVID:
       index: 1
-      function: uuid
+      function: hash
     rank:
       index: 2
     props:
@@ -292,7 +322,7 @@ example 中 course 点的示例：
 ```csv
 :LABEL,:VID,course.name,building.name:string,:IGNORE,course.credits:int
 +,"hash(""Math"")",Math,No5,1,3
-+,"uuid(""English"")",English,"No11 B\",2,6
++,"hash(""English"")",English,"No11 B\",2,6
 ```
 
 ##### LABEL (可选）
@@ -311,10 +341,10 @@ example 中 course 点的示例：
 :VID
 123,
 "hash(""Math"")",
-"uuid(""English"")"
+"hash(""English"")"
 ```
 
-在 `:VID` 这列除了常见的整数值（例如 123），还可以使用 `hash` 和 `uuid` 两个内置函数来自动计算生成点的 VID（例如 hash("Math")）。
+在 `:VID` 这列除了常见的整数值（例如 123），还可以使用 `hash` 内置函数来自动计算生成点的 VID（例如 hash("Math")）。
 
 > 需要注意的是在 CSV 文件中对双引号(")的转义处理。如 `hash("Math")` 要写成 `"hash(""Math"")"`。
 

@@ -22,34 +22,16 @@ type BatchMgr struct {
 
 func NewBatchMgr(schema *config.Schema, batchSize int, clientRequestChs []chan base.ClientRequest, errCh chan<- base.ErrData) *BatchMgr {
 	bm := BatchMgr{
-		Schema:             &config.Schema{},
+		Schema:             schema,
 		Batches:            make([]*Batch, len(clientRequestChs)),
 		initializedSchema:  false,
 		emptyPropsTagNames: schema.CollectEmptyPropsTagNames(),
 	}
 
-	bm.Schema.Type = schema.Type
-
-	if bm.Schema.IsVertex() {
-		index := 0
-		bm.Schema.Vertex = &config.Vertex{
-			VID:  &config.VID{Index: &index},
-			Tags: []*config.Tag{},
-		}
-	} else {
-		srcIdx, dstIdx := 0, 1
-		bm.Schema.Edge = &config.Edge{
-			Name:   schema.Edge.Name,
-			SrcVID: &config.VID{Index: &srcIdx},
-			DstVID: &config.VID{Index: &dstIdx},
-			Rank:   nil,
-			Props:  []*config.Prop{},
-		}
-	}
-
 	for i := range bm.Batches {
 		bm.Batches[i] = NewBatch(&bm, batchSize, clientRequestChs[i], errCh)
 	}
+	bm.generateInsertStmtPrefix()
 	return &bm
 }
 
@@ -60,7 +42,6 @@ func (bm *BatchMgr) Done() {
 }
 
 func (bm *BatchMgr) InitSchema(header base.Record, runnerLogger *logger.RunnerLogger) (err error) {
-	err = nil
 	if bm.initializedSchema {
 		logger.Log.Info("Batch manager schema has been initialized!")
 		return
@@ -74,12 +55,15 @@ func (bm *BatchMgr) InitSchema(header base.Record, runnerLogger *logger.RunnerLo
 			case strings.HasPrefix(c, base.LABEL_VID):
 				*bm.Schema.Vertex.VID.Index = i
 				err = bm.Schema.Vertex.VID.ParseFunction(c)
+				_ = bm.Schema.Vertex.VID.InitPicker()
 			case strings.HasPrefix(c, base.LABEL_SRC_VID):
 				*bm.Schema.Edge.SrcVID.Index = i
 				err = bm.Schema.Edge.SrcVID.ParseFunction(c)
+				_ = bm.Schema.Edge.SrcVID.InitPicker()
 			case strings.HasPrefix(c, base.LABEL_DST_VID):
 				*bm.Schema.Edge.DstVID.Index = i
 				err = bm.Schema.Edge.DstVID.ParseFunction(c)
+				_ = bm.Schema.Edge.DstVID.InitPicker()
 			case c == base.LABEL_RANK:
 				if bm.Schema.Edge.Rank == nil {
 					rank := i
@@ -118,6 +102,7 @@ func (bm *BatchMgr) addVertexTags(r string, i int) {
 		Type:  &columnType,
 		Index: &i,
 	}
+	_ = p.InitPicker()
 	tag.Props = append(tag.Props, &p)
 }
 
@@ -133,6 +118,7 @@ func (bm *BatchMgr) addEdgeProps(r string, i int) {
 		Type:  &columnType,
 		Index: &i,
 	}
+	_ = p.InitPicker()
 	bm.Schema.Edge.Props = append(bm.Schema.Edge.Props, &p)
 }
 
@@ -173,12 +159,11 @@ func (bm *BatchMgr) getOrCreateVertexTagByName(name string) *config.Tag {
 			return bm.Schema.Vertex.Tags[i]
 		}
 	}
-	newTag := config.Tag{
+	newTag := &config.Tag{
 		Name: &name,
 	}
-	idx := len(bm.Schema.Vertex.Tags)
-	bm.Schema.Vertex.Tags = append(bm.Schema.Vertex.Tags, &newTag)
-	return bm.Schema.Vertex.Tags[idx]
+	bm.Schema.Vertex.Tags = append(bm.Schema.Vertex.Tags, newTag)
+	return newTag
 }
 
 func (bm *BatchMgr) parseTag(s string) (tag, field string) {

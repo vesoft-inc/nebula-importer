@@ -19,7 +19,7 @@ clientSettings:
       CREATE TAG IF NOT EXISTS `Tag`(`name` string,`url` string);
       CREATE TAG IF NOT EXISTS `Organisation`(`type` string,`name` string,`url` string);
       CREATE TAG IF NOT EXISTS `Post`(`imageFile` string,`creationDate` datetime,`locationIP` string,`browserUsed` string,`language` string,`content` string,`length` int);
-      CREATE TAG IF NOT EXISTS `Person`(`firstName` string,`lastName` string,`gender` string,`birthday` string,`creationDate` datetime,`locationIP` string,`browserUsed` string,`email` string,`speaks` string);
+      CREATE TAG IF NOT EXISTS `Person`(`firstName` string,`lastName` string,`gender` string,`birthday` string,`creationDate` datetime,`locationIP` string,`browserUsed` string);
       CREATE TAG IF NOT EXISTS `Place`(`name` string,`url` string,`type` string);
       CREATE TAG IF NOT EXISTS `Tagclass`(`name` string,`url` string);
       CREATE EDGE IF NOT EXISTS `HAS_MEMBER`(`joinDate` datetime);
@@ -45,7 +45,7 @@ clientSettings:
 logPath: ./err/test.log
 files:
   - path: ./social_network/dynamic/person_final.csv
-    failDataPath: ./err/data/Person.csv
+    failDataPath: ./err/data/Person
     batchSize: 100
     type: csv
     csv:
@@ -83,15 +83,9 @@ files:
               - name: browserUsed
                 type: string
                 index: 7
-              - name: email
-                type: string
-                index: 9
-              - name: speaks
-                type: string
-                index: 11
 
   - path: ./social_network/dynamic/forum.csv
-    failDataPath: ./err/data/Forum.csv
+    failDataPath: ./err/data/Forum
     batchSize: 100
     type: csv
     csv:
@@ -116,7 +110,7 @@ files:
                 index: 2
 
   - path: ./social_network/dynamic/comment.csv
-    failDataPath: ./err/data/Comment.csv
+    failDataPath: ./err/data/Comment
     batchSize: 100
     type: csv
     csv:
@@ -150,7 +144,7 @@ files:
                 index: 5
 
   - path: ./social_network/dynamic/post.csv
-    failDataPath: ./err/data/Post.csv
+    failDataPath: ./err/data/Post
     batchSize: 100
     type: csv
     csv:
@@ -190,7 +184,7 @@ files:
                 index: 7
 
   - path: ./social_network/static/tagclass.csv
-    failDataPath: ./err/data/Tagclass.csv
+    failDataPath: ./err/data/Tagclass
     batchSize: 100
     type: csv
     csv:
@@ -215,7 +209,7 @@ files:
                 index: 2
 
   - path: ./social_network/static/organisation.csv
-    failDataPath: ./err/data/Organisation.csv
+    failDataPath: ./err/data/Organisation
     batchSize: 100
     type: csv
     csv:
@@ -243,7 +237,7 @@ files:
                 index: 3
 
   - path: ./social_network/static/place.csv
-    failDataPath: ./err/data/Place.csv
+    failDataPath: ./err/data/Place
     batchSize: 100
     type: csv
     csv:
@@ -271,7 +265,7 @@ files:
                 index: 3
 
   - path: ./social_network/static/tag.csv
-    failDataPath: ./err/data/Tag.csv
+    failDataPath: ./err/data/Tag
     batchSize: 100
     type: csv
     csv:
@@ -296,7 +290,7 @@ files:
                 index: 2
 
   - path: ./social_network/dynamic/forum_hasModerator_person.csv
-    failDataPath: ./err/data/HAS_MODERATOR.csv
+    failDataPath: ./err/data/HAS_MODERATOR
     batchSize: 100
     type: csv
     csv:
@@ -319,7 +313,7 @@ files:
         props:
 
   - path: ./social_network/dynamic/person_likes_comment.csv
-    failDataPath: ./err/data/LIKES_COMMENT.csv
+    failDataPath: ./err/data/LIKES_COMMENT
     batchSize: 100
     type: csv
     csv:
@@ -345,7 +339,7 @@ files:
             index: 2
 
   - path: ./social_network/dynamic/forum_hasMember_person.csv
-    failDataPath: ./err/data/HAS_MEMBER.csv
+    failDataPath: ./err/data/HAS_MEMBER
     batchSize: 100
     type: csv
     csv:
@@ -371,7 +365,7 @@ files:
             index: 2
 
   - path: ./social_network/dynamic/person_likes_post.csv
-    failDataPath: ./err/data/LIKES_POST.csv
+    failDataPath: ./err/data/LIKES_POST
     batchSize: 100
     type: csv
     csv:
@@ -397,7 +391,7 @@ files:
             index: 2
 
   - path: ./social_network/dynamic/post_hasTag_tag.csv
-    failDataPath: ./err/data/HAS_TAG.csv
+    failDataPath: ./err/data/HAS_TAG
     batchSize: 100
     type: csv
     csv:
@@ -420,7 +414,7 @@ files:
         props:
 
   - path: ./social_network/dynamic/comment_hasTag_tag.csv
-    failDataPath: ./err/data/HAS_TAG.csv
+    failDataPath: ./err/data/HAS_TAG
     batchSize: 100
     type: csv
     csv:
@@ -443,7 +437,7 @@ files:
         props:
 
   - path: ./social_network/dynamic/forum_containerOf_post.csv
-    failDataPath: ./err/data/CONTAINER_OF.csv
+    failDataPath: ./err/data/CONTAINER_OF
     batchSize: 100
     type: csv
     csv:
@@ -466,7 +460,7 @@ files:
         props:
 
   - path: ./social_network/dynamic/person_knows_person.csv
-    failDataPath: ./err/data/KNOWS.csv
+    failDataPath: ./err/data/KNOWS
     batchSize: 100
     type: csv
     csv:
@@ -492,7 +486,7 @@ files:
             index: 2
 
   - path: ./social_network/dynamic/person_hasInterest_tag.csv
-    failDataPath: ./err/data/HAS_INTEREST.csv
+    failDataPath: ./err/data/HAS_INTEREST
     batchSize: 100
     type: csv
     csv:
@@ -515,7 +509,7 @@ files:
         props:
 
   - path: ./social_network/dynamic/person_workAt_organisation.csv
-    failDataPath: ./err/data/WORK_AT.csv
+    failDataPath: ./err/data/WORK_AT
     batchSize: 100
     type: csv
     csv:
@@ -541,7 +535,7 @@ files:
             index: 2
 
   - path: ./social_network/dynamic/person_isLocatedIn_place.csv
-    failDataPath: ./err/data/IS_LOCATED_IN.csv
+    failDataPath: ./err/data/IS_LOCATED_IN
     batchSize: 100
     type: csv
     csv:
@@ -564,7 +558,7 @@ files:
         props:
 
   - path: ./social_network/dynamic/forum_hasTag_tag.csv
-    failDataPath: ./err/data/HAS_TAG.csv
+    failDataPath: ./err/data/HAS_TAG
     batchSize: 100
     type: csv
     csv:
@@ -587,7 +581,7 @@ files:
         props:
 
   - path: ./social_network/dynamic/comment_replyOf_post.csv
-    failDataPath: ./err/data/REPLY_OF_POST.csv
+    failDataPath: ./err/data/REPLY_OF_POST
     batchSize: 100
     type: csv
     csv:
@@ -610,7 +604,7 @@ files:
         props:
 
   - path: ./social_network/dynamic/post_isLocatedIn_place.csv
-    failDataPath: ./err/data/IS_LOCATED_IN.csv
+    failDataPath: ./err/data/IS_LOCATED_IN
     batchSize: 100
     type: csv
     csv:
@@ -633,7 +627,7 @@ files:
         props:
 
   - path: ./social_network/dynamic/comment_replyOf_comment.csv
-    failDataPath: ./err/data/REPLY_OF_COMMENT.csv
+    failDataPath: ./err/data/REPLY_OF_COMMENT
     batchSize: 100
     type: csv
     csv:
@@ -656,7 +650,7 @@ files:
         props:
 
   - path: ./social_network/dynamic/comment_isLocatedIn_place.csv
-    failDataPath: ./err/data/IS_LOCATED_IN.csv
+    failDataPath: ./err/data/IS_LOCATED_IN
     batchSize: 100
     type: csv
     csv:
@@ -679,7 +673,7 @@ files:
         props:
 
   - path: ./social_network/dynamic/person_studyAt_organisation.csv
-    failDataPath: ./err/data/STUDY_AT.csv
+    failDataPath: ./err/data/STUDY_AT
     batchSize: 100
     type: csv
     csv:
@@ -705,7 +699,7 @@ files:
             index: 2
 
   - path: ./social_network/dynamic/comment_hasCreator_person_new.csv
-    failDataPath: ./err/data/COMMENT_HAS_CREATOR.csv
+    failDataPath: ./err/data/COMMENT_HAS_CREATOR
     batchSize: 100
     type: csv
     csv:
@@ -743,7 +737,7 @@ files:
             index: 7
 
   - path: ./social_network/dynamic/post_hasCreator_person_new.csv
-    failDataPath: ./err/data/POST_HAS_CREATOR.csv
+    failDataPath: ./err/data/POST_HAS_CREATOR
     batchSize: 100
     type: csv
     csv:
@@ -787,7 +781,7 @@ files:
             index: 9
 
   - path: ./social_network/static/tagclass_isSubclassOf_tagclass.csv
-    failDataPath: ./err/data/IS_SUBCLASS_OF.csv
+    failDataPath: ./err/data/IS_SUBCLASS_OF
     batchSize: 100
     type: csv
     csv:
@@ -810,7 +804,7 @@ files:
         props:
 
   - path: ./social_network/static/place_isPartOf_place.csv
-    failDataPath: ./err/data/IS_PART_OF.csv
+    failDataPath: ./err/data/IS_PART_OF
     batchSize: 100
     type: csv
     csv:
@@ -833,7 +827,7 @@ files:
         props:
 
   - path: ./social_network/static/tag_hasType_tagclass.csv
-    failDataPath: ./err/data/HAS_TYPE.csv
+    failDataPath: ./err/data/HAS_TYPE
     batchSize: 100
     type: csv
     csv:
@@ -856,7 +850,7 @@ files:
         props:
 
   - path: ./social_network/static/organisation_isLocatedIn_place.csv
-    failDataPath: ./err/data/IS_LOCATED_IN.csv
+    failDataPath: ./err/data/IS_LOCATED_IN
     batchSize: 100
     type: csv
     csv:

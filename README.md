@@ -138,7 +138,7 @@ clientSettings:
 
 The following three configurations are related to the log and data files:
 
-* `workingDir`: **Optional**. If you have multiple directories containing data with the same file structure, you can use this parameter to switch between them. For example, the value of `path` and `failDataPath` of the configuration below will be automatically changed to `./data/student.csv` and `./data/err/student.csv`. If you change workingDir to `./data1`, the path will be changed accordingly. The param can be either absolute or relative.
+* `workingDir`: **Optional**. If you have multiple directories containing data with the same file structure, you can use this parameter to switch between them. For example, the value of `path` and `failDataPath` of the configuration below will be automatically changed to `./data/student.csv` and `./data/err/student`. If you change workingDir to `./data1`, the path will be changed accordingly. The param can be either absolute or relative.
 * `logPath`: **Optional**. Specifies the log path when importing data. The default path is `/tmp/nebula-importer-{timestamp}.log`.
 * `files`: **Required**. It is an array type to configure different data files. You can also import data from a HTTP link by inputting the link in the file path.
 
@@ -147,7 +147,7 @@ workingDir: ./data/
 logPath: ./err/test.log
 files:
   - path: ./student.csv
-    failDataPath: ./err/student.csv
+    failDataPath: ./err/student
     batchSize: 128
     limit: 10
     inOrder: false
@@ -156,6 +156,7 @@ files:
       withHeader: false
       withLabel: false
       delimiter: ","
+      lazyQuotes: false
 ```
 
 #### CSV data files
@@ -163,7 +164,7 @@ files:
 One CSV file can only store one type of vertex or edge. Vertices and edges of the different schema must be stored in different files.
 
 * `path`: **Required**. Specifies the path where the data files are stored. If a relative path is used, the `path` and current configuration file directory are spliced. Wildcard filename is also supported, for example: `./follower-*.csv`, please make sure that all matching files with the same schema.
-* `failDataPath`: **Required**. Specifies the path for data that failed in inserting so that the failed data are reinserted.
+* `failDataPath`: **Required**. Specifies the directory for data that failed in inserting so that the failed data are reinserted.
 * `batchSize`: **Optional**. Specifies the batch size of the inserted data. The default value is 128.
 * `limit`: **Optional**. Limits the max data reading rows.
 * `inOrder`: **Optional**. Whether to insert the data rows in the file in order. If you do not specify it, you avoid the decrease in importing rate caused by the data skew.
@@ -172,6 +173,7 @@ One CSV file can only store one type of vertex or edge. Vertices and edges of th
   * `withHeader`: The default value is false. The format of the header is described in the following section.
   * `withLabel`: The default value is false. The format of the label is described in the following section.
   * `delimiter`: **Optional**. Specify the delimiter for the CSV files. The default value is `","`. And only a 1-character string delimiter is supported.
+  * `lazyQuotes`: **Optional**. If `lazyQuotes` is true, a quote may appear in an unquoted field and a non-doubled quote may appear in a quoted field.
 
 #### `schema`
 
@@ -203,6 +205,30 @@ schema:
             index: 1
           - name: gender
             type: string
+            defaultValue: "male"
+          - name: phone
+            type: string
+            nullable: true
+          - name: email
+            type: string
+            nullable: true
+            nullValue: "__NULL__"
+          - name: address
+            type: string
+            nullable: true
+            alternativeIndices:
+              - 7
+              - 8
+
+# concatItems examples
+schema:
+  type: vertex
+  vertex:
+    vid:
+      concatItems:
+        - "abc"
+        - 1
+      function: hash
 ```
 
 ##### `schema.vertex.vid`
@@ -210,7 +236,8 @@ schema:
 **Optional**. Describes the vertex ID column and the function used for the vertex ID.
 
 * `index`: **Optional**. The column number in the CSV file. Started with 0. The default value is 0.
-* `function`: **Optional**. Functions to generate the VIDs. Currently, we only support function `hash` and `uuid`.
+* `concatItems`: **Optional**. The concat item can be `string`, `int` or mixed. `string` represents a constant, and `int` represents an index column. Then connect all items.If set, the above `index` will have no effect.
+* `function`: **Optional**. Functions to generate the VIDs. Currently, we only support function `hash`.
 * `type`: **Optional**. The type for VIDs. The default value is `string`.
 * `prefix`: **Optional**. Add prefix to the original vid. When `function` is specified also, `prefix` is applied to the original vid before `function`.
 
@@ -225,6 +252,10 @@ Each tag contains the following two properties:
   * `name`: **Required**. The property name, must be the same with the tag property in Nebula Graph.
   * `type`: **Optional**. The property type, currently  `bool`, `int`, `float`, `double`, `string`, `time`, `timestamp`, `date`, `datetime`, `geography`, `geography(point)`, `geography(linestring)` and `geography(polygon)` are supported.
   * `index`: **Optional**. The column number in the CSV file.
+  * `nullable`: **Optional**. Whether this prop property can be `NULL`, optional values is `true` or `false`, default `false`.
+  * `nullValue`: **Optional**. Ignored when `nullable` is `false`. The property is set to `NULL` when the value is equal to `nullValue`, default `""`.
+  * `alternativeIndices`: **Optional**. Ignored when `nullable` is `false`. The property is fetched from csv according to the indices in order until not equal to `nullValue`.
+  * `defaultValue`: **Optional**. Ignored when `nullable` is `false`. The property default value, when all the values obtained by `index` and `alternativeIndices` are `nullValue`.
 
 > **NOTE**: The properties in the preceding `prop` parameter must be sorted in the **same** way as in the CSV data file.
 
@@ -242,7 +273,7 @@ schema:
       function: hash
     dstVID:
       index: 1
-      function: uuid
+      function: hash
     rank:
       index: 2
     props:
@@ -319,7 +350,7 @@ Take vertex course as example:
 ```csv
 :LABEL,:VID,course.name,building.name:string,:IGNORE,course.credits:int
 +,"hash(""Math"")",Math,No5,1,3
-+,"uuid(""English"")",English,"No11 B\",2,6
++,"hash(""English"")",English,"No11 B\",2,6
 ```
 
 ##### LABEL (optional)
@@ -338,10 +369,10 @@ Indicates the column is the insertion (+) or deletion (-) operation.
 :VID
 123,
 "hash(""Math"")",
-"uuid(""English"")"
+"hash(""English"")"
 ```
 
-In the `:VID` column, in addition to the common integer values (such as 123), you can also use the two built-in functions `hash` and `uuid` to automatically generate the VID for the vertices (for example, hash("Math")).
+In the `:VID` column, in addition to the common integer values (such as 123), you can also use the two built-in function `hash` to automatically generate the VID for the vertices (for example, hash("Math")).
 
 > **NOTE**: The double quotes (") are escaped in the CSV file. For example, `hash("Math")` must be written as `"hash(""Math"")"`.
 

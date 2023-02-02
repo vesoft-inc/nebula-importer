@@ -24,13 +24,14 @@ clientSettings:
       CREATE TAG course_no_props();
       CREATE TAG building_no_props();
       CREATE EDGE follow_no_props();
-      CREATE TAG basic_type_test(b bool, i int, f float, d double, s string);
-      CREATE EDGE edge_basic_type_test(b bool, i int, f float, d double, s string);
-      CREATE TAG date_test(c1 date, c2 time, c3 datetime, c4 timestamp);
-      CREATE EDGE edge_date_test(c1 date, c2 time, c3 datetime, c4 timestamp);
-      CREATE TAG geography_test(any_shape geography, only_point geography(point), only_linestring geography(linestring), only_polygon geography(polygon));
-      CREATE EDGE edge_geography_test(any_shape geography, only_point geography(point), only_linestring geography(linestring), only_polygon geography(polygon))
-    afterPeriod: 8s
+      CREATE TAG basic_type_test(b bool NULL, i int NULL, f float NULL, d double NULL, s string NULL);
+      CREATE EDGE edge_basic_type_test(b bool NULL, i int NULL, f float NULL, d double NULL, s string NULL);
+      CREATE TAG date_test(c1 date NULL, c2 time NULL, c3 datetime NULL, c4 timestamp NULL);
+      CREATE EDGE edge_date_test(c1 date NULL, c2 time NULL, c3 datetime NULL, c4 timestamp NULL);
+      CREATE TAG geography_test(any_shape geography NULL, only_point geography(point) NULL, only_linestring geography(linestring) NULL, only_polygon geography(polygon) NULL);
+      CREATE EDGE edge_geography_test(any_shape geography NULL, only_point geography(point) NULL, only_linestring geography(linestring) NULL, only_polygon geography(polygon) NULL)
+
+    afterPeriod: 10s
   preStop:
     commands: |
       UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };
@@ -54,7 +55,7 @@ files:
             type: int
 
   - path: ./course.csv
-    failDataPath: ./err/course.csv
+    failDataPath: ./err/course
     batchSize: 2
     inOrder: true
     type: csv
@@ -76,8 +77,63 @@ files:
               - name: name
                 type: string
 
+  - path: ./course-lazy-quotes.csv
+    failDataPath: ./err/course-lazy-quotes
+    batchSize: 2
+    inOrder: true
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+      lazyQuotes: true
+    schema:
+      type: vertex
+      vertex:
+        tags:
+          - name: course
+            props:
+              - name: name
+                type: string
+              - name: credits
+                type: int
+          - name: building
+            props:
+              - name: name
+                type: string
+
+  - path: ./course.csv
+    failDataPath: ./err/course-concat
+    batchSize: 2
+    inOrder: true
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          type: string
+          concatItems: # "c1{index0}c2{index1}2"
+            - "c1"
+            - 0
+            - c2
+            - 1
+            - "2"
+        tags:
+          - name: course
+            props:
+              - name: name
+                type: string
+              - name: credits
+                type: int
+          - name: building
+            props:
+              - name: name
+                type: string
+
   - path: ./course-with-header.csv
-    failDataPath: ./err/course-with-header.csv
+    failDataPath: ./err/course-with-header
     batchSize: 2
     inOrder: true
     type: csv
@@ -88,7 +144,7 @@ files:
       type: vertex
 
   - path: ./follow-with-label.csv
-    failDataPath: ./err/follow-with-label.csv
+    failDataPath: ./err/follow-with-label
     batchSize: 2
     inOrder: true
     type: csv
@@ -112,7 +168,7 @@ files:
             index: 1
 
   - path: ./follow-with-label-and-str-vid.csv
-    failDataPath: ./err/follow-with-label-and-str-vid.csv
+    failDataPath: ./err/follow-with-label-and-str-vid
     batchSize: 2
     inOrder: true
     type: csv
@@ -138,7 +194,7 @@ files:
             index: 1
 
   - path: ./follow.csv
-    failDataPath: ./err/follow.csv
+    failDataPath: ./err/follow
     batchSize: 2
     type: csv
     csv:
@@ -154,7 +210,7 @@ files:
             type: double
 
   - path: ./follow.csv
-    failDataPath: ./err/follow_test_prefix.csv
+    failDataPath: ./err/follow_test_prefix
     batchSize: 2
     type: csv
     csv:
@@ -174,7 +230,7 @@ files:
             type: double
 
   - path: ./glob-follow-*.csv
-    failDataPath: ./err/follow-glob.csv
+    failDataPath: ./err/follow-glob
     batchSize: 2
     type: csv
     csv:
@@ -191,7 +247,7 @@ files:
 
 
   - path: ./follow-with-header.csv
-    failDataPath: ./err/follow-with-header.csv
+    failDataPath: ./err/follow-with-header
     batchSize: 2
     type: csv
     csv:
@@ -204,7 +260,7 @@ files:
         withRanking: true
 
   - path: ./student.csv
-    failDataPath: ./err/student.csv
+    failDataPath: ./err/student
     batchSize: 2
     type: csv
     csv:
@@ -224,7 +280,7 @@ files:
                 type: string
 
   - path: ./student.csv
-    failDataPath: ./err/student_test_prefix.csv
+    failDataPath: ./err/student_test_prefix
     batchSize: 2
     type: csv
     csv:
@@ -246,7 +302,7 @@ files:
                 type: string
 
   - path: ./student.csv
-    failDataPath: ./err/student_index.csv
+    failDataPath: ./err/student_index
     batchSize: 2
     type: csv
     csv:
@@ -271,7 +327,7 @@ files:
                 type: string
 
   - path: ./student-with-label-and-str-vid.csv
-    failDataPath: ./err/student_label_str_vid.csv
+    failDataPath: ./err/student_label_str_vid
     batchSize: 2
     type: csv
     csv:
@@ -282,7 +338,6 @@ files:
       vertex:
         vid:
           index: 1
-          # function: uuid
         tags:
           - name: student
             props:
@@ -296,7 +351,7 @@ files:
                 type: string
 
   - path: ./follow.csv
-    failDataPath: ./err/follow_index.csv
+    failDataPath: ./err/follow_index
     batchSize: 2
     limit: 3
     type: csv
@@ -312,7 +367,6 @@ files:
           # function: hash
         dstVID:
           index: 1
-          # function: uuid
         rank:
           index: 2
         props:
@@ -321,7 +375,7 @@ files:
             index: 3
 
   - path: ./follow-delimiter.csv
-    failDataPath: ./err/follow-delimiter.csv
+    failDataPath: ./err/follow-delimiter
     batchSize: 2
     type: csv
     csv:
@@ -335,7 +389,7 @@ files:
         withRanking: true
 
   - path: https://raw.githubusercontent.com/vesoft-inc/nebula-importer/master/examples/v2/follow.csv
-    failDataPath: ./err/follow_http.csv
+    failDataPath: ./err/follow_http
     batchSize: 2
     limit: 3
     type: csv
@@ -351,7 +405,6 @@ files:
           # function: hash
         dstVID:
           index: 1
-          # function: uuid
         rank:
           index: 2
         props:
@@ -360,7 +413,7 @@ files:
             index: 3
 
   - path: ./course.csv
-    failDataPath: ./err/course-empty-props.csv
+    failDataPath: ./err/course-empty-props
     batchSize: 2
     inOrder: true
     type: csv
@@ -377,7 +430,7 @@ files:
           - name: course_no_props
 
   - path: ./course.csv
-    failDataPath: ./err/course-multi-empty-props.csv
+    failDataPath: ./err/course-multi-empty-props
     batchSize: 2
     inOrder: true
     type: csv
@@ -395,7 +448,7 @@ files:
           - name: building_no_props
 
   - path: ./course.csv
-    failDataPath: ./err/course-mix-empty-props.csv
+    failDataPath: ./err/course-mix-empty-props
     batchSize: 2
     inOrder: true
     type: csv
@@ -417,7 +470,7 @@ files:
                 index: 3
 
   - path: ./course.csv
-    failDataPath: ./err/course-mix-empty-props-2.csv
+    failDataPath: ./err/course-mix-empty-props-2
     batchSize: 2
     inOrder: true
     type: csv
@@ -441,7 +494,7 @@ files:
 
 
   - path: ./follow.csv
-    failDataPath: ./err/follow-empty-props.csv
+    failDataPath: ./err/follow-empty-props
     batchSize: 2
     type: csv
     csv:
@@ -459,7 +512,7 @@ files:
           index: 0
 
   - path: ./basic_type_test.csv
-    failDataPath: ./err/basic_type_test.csv
+    failDataPath: ./err/basic_type_test
     batchSize: 2
     inOrder: true
     type: csv
@@ -478,21 +531,33 @@ files:
               - name: b
                 type: bool
                 index: 1
+                nullable: true
               - name: i
                 type: int
                 index: 2
+                nullable: true
+                defaultValue: "0"
               - name: f
                 type: float
                 index: 3
+                nullable: true
+                alternativeIndices:
+                  - 2
               - name: d
                 type: double
                 index: 4
+                nullable: true
+                alternativeIndices:
+                  - 3
+                  - 2
+                defaultValue: "0"
               - name: s
                 type: string
                 index: 5
+                nullable: true
 
   - path: ./basic_type_test.csv
-    failDataPath: ./err/edge_basic_type_test.csv
+    failDataPath: ./err/edge_basic_type_test
     batchSize: 2
     inOrder: true
     type: csv
@@ -513,21 +578,33 @@ files:
           - name: b
             type: bool
             index: 1
+            nullable: true
           - name: i
             type: int
             index: 2
+            nullable: true
           - name: f
             type: float
             index: 3
+            nullable: true
+            alternativeIndices:
+              - 2
+            defaultValue: "0"
           - name: d
             type: double
             index: 4
+            nullable: true
+            alternativeIndices:
+              - 3
+              - 2
           - name: s
             type: string
             index: 5
+            nullable: true
+            nullValue: "__NULL__"
 
   - path: ./date_test.csv
-    failDataPath: ./err/date_test.csv
+    failDataPath: ./err/date_test
     batchSize: 2
     inOrder: true
     type: csv
@@ -546,18 +623,22 @@ files:
               - name: c1
                 type: date
                 index: 1
+                nullable: true
               - name: c2
                 type: time
                 index: 2
+                nullable: true
               - name: c3
                 type: datetime
                 index: 3
+                nullable: true
               - name: c4
                 type: timestamp
                 index: 4
+                nullable: true
 
   - path: ./date_test.csv
-    failDataPath: ./err/edge_date_test.csv
+    failDataPath: ./err/edge_date_test
     batchSize: 2
     inOrder: true
     type: csv
@@ -578,18 +659,22 @@ files:
           - name: c1
             type: date
             index: 1
+            nullable: true
           - name: c2
             type: time
             index: 2
+            nullable: true
           - name: c3
             type: datetime
             index: 3
+            nullable: true
           - name: c4
             type: timestamp
             index: 4
+            nullable: true
 
   - path: ./geography_test.csv
-    failDataPath: ./err/geography_test.csv
+    failDataPath: ./err/geography_test
     batchSize: 2
     inOrder: true
     type: csv
@@ -608,18 +693,22 @@ files:
               - name: any_shape
                 type: geography
                 index: 1
+                nullable: true
               - name: only_point
                 type: geography(point)
                 index: 2
+                nullable: true
               - name: only_linestring
                 type: geography(linestring)
                 index: 3
+                nullable: true
               - name: only_polygon
                 type: geography(polygon)
                 index: 4
+                nullable: true
 
   - path: ./geography_test.csv
-    failDataPath: ./err/edge_geography_test.csv
+    failDataPath: ./err/edge_geography_test
     batchSize: 2
     inOrder: true
     type: csv
@@ -640,12 +729,16 @@ files:
           - name: any_shape
             type: geography
             index: 1
+            nullable: true
           - name: only_point
             type: geography(point)
             index: 2
+            nullable: true
           - name: only_linestring
             type: geography(linestring)
             index: 3
+            nullable: true
           - name: only_polygon
             type: geography(polygon)
             index: 4
+            nullable: true

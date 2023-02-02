@@ -312,6 +312,87 @@ func TestParseLogPath(t *testing.T) {
 	}
 }
 
+func TestParseConcatItems(t *testing.T) {
+	testcases := []struct {
+		concatItems string
+		fnCheck     func(ast *assert.Assertions, concatItems []interface{})
+	}{
+		{
+			concatItems: "",
+			fnCheck: func(ast *assert.Assertions, concatItems []interface{}) {
+				ast.Len(concatItems, 0)
+			},
+		},
+		{
+			concatItems: "concatItems: [\"c1\"]",
+			fnCheck: func(ast *assert.Assertions, concatItems []interface{}) {
+				if ast.Len(concatItems, 1) {
+					ast.Equal(concatItems[0], "c1")
+				}
+			},
+		},
+		{
+			concatItems: "concatItems: [3]",
+			fnCheck: func(ast *assert.Assertions, concatItems []interface{}) {
+				if ast.Len(concatItems, 1) {
+					ast.Equal(concatItems[0], 3)
+				}
+			},
+		},
+		{
+			concatItems: "concatItems: [3, \"c1\", 1, \"c2\", 2]",
+			fnCheck: func(ast *assert.Assertions, concatItems []interface{}) {
+				if ast.Len(concatItems, 5) {
+					ast.Equal(concatItems[0], 3)
+					ast.Equal(concatItems[1], "c1")
+					ast.Equal(concatItems[2], 1)
+					ast.Equal(concatItems[3], "c2")
+					ast.Equal(concatItems[4], 2)
+				}
+			},
+		},
+		{
+			concatItems: "concatItems: [\"c1\", 3, \"c2\", 1, \"2\"]",
+			fnCheck: func(ast *assert.Assertions, concatItems []interface{}) {
+				if ast.Len(concatItems, 5) {
+					ast.Equal(concatItems[0], "c1")
+					ast.Equal(concatItems[1], 3)
+					ast.Equal(concatItems[2], "c2")
+					ast.Equal(concatItems[3], 1)
+					ast.Equal(concatItems[4], "2")
+				}
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.concatItems, func(t *testing.T) {
+			ast := assert.New(t)
+
+			tmpl, err := template.ParseFiles("testdata/test-parse-concat-items.yaml")
+			ast.NoError(err)
+
+			f, err := os.CreateTemp("testdata", ".test-parse-concat-items.yaml")
+			ast.NoError(err)
+			filename := f.Name()
+			defer func() {
+				_ = f.Close()
+				_ = os.Remove(filename)
+			}()
+
+			err = tmpl.ExecuteTemplate(f, "test-parse-concat-items.yaml", map[string]string{
+				"ConcatItems": tc.concatItems,
+			})
+			ast.NoError(err)
+
+			c, err := Parse(filename, logger.NewRunnerLogger(""))
+			if ast.NoError(err) {
+				tc.fnCheck(ast, c.Files[0].Schema.Edge.SrcVID.ConcatItems)
+			}
+		})
+	}
+}
+
 func TestParseNoFiles(t *testing.T) {
 	_, err := Parse("./testdata/test-parse-no-files.yaml", logger.NewRunnerLogger(""))
 	assert.Error(t, err)
@@ -386,10 +467,11 @@ func TestVidFormatValue(t *testing.T) {
 			name: "index out of range",
 			vid: VID{
 				Index: &idx1,
+				Type:  &tString,
 			},
 			want:          "",
 			record:        base.Record{""},
-			wantErrString: "out of range record length",
+			wantErrString: "out range",
 		},
 		{
 			name: "type string",
@@ -459,6 +541,7 @@ func TestVidFormatValue(t *testing.T) {
 			name: "function hash",
 			vid: VID{
 				Index:    &idx0,
+				Type:     &tString,
 				Function: &fHash,
 			},
 			record: base.Record{"str"},
@@ -478,6 +561,9 @@ func TestVidFormatValue(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			ast := assert.New(t)
+
+			ast.NoError(tc.vid.InitPicker())
+
 			str, err := tc.vid.FormatValue(tc.record)
 			if tc.wantErrString != "" {
 				ast.Error(err)
@@ -582,6 +668,7 @@ func TestPropFormatValue(t *testing.T) {
 	var (
 		idx0                 = 0
 		idx1                 = 1
+		vZero                = "0"
 		tBool                = "bool"
 		tInt                 = "int"
 		tFloat               = "float"
@@ -608,6 +695,7 @@ func TestPropFormatValue(t *testing.T) {
 			name: "index out of range",
 			prop: Prop{
 				Index: &idx1,
+				Type:  &tString,
 			},
 			want:          "",
 			record:        base.Record{""},
@@ -623,6 +711,16 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "false",
 		},
 		{
+			name: "type bool null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tBool,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
 			name: "type int",
 			prop: Prop{
 				Index: &idx0,
@@ -630,6 +728,16 @@ func TestPropFormatValue(t *testing.T) {
 			},
 			record: base.Record{"1"},
 			want:   "1",
+		},
+		{
+			name: "type int null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tInt,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type float",
@@ -641,6 +749,16 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "1.1",
 		},
 		{
+			name: "type float null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tFloat,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
 			name: "type double",
 			prop: Prop{
 				Index: &idx0,
@@ -648,6 +766,16 @@ func TestPropFormatValue(t *testing.T) {
 			},
 			record: base.Record{"2.2"},
 			want:   "2.2",
+		},
+		{
+			name: "type double null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tDouble,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type string",
@@ -659,13 +787,44 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "\"str\"",
 		},
 		{
+			name: "type string null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tString,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
+			name: "type string null value",
+			prop: Prop{
+				Index:     &idx0,
+				Type:      &tString,
+				Nullable:  true,
+				NullValue: "__NULL__",
+			},
+			record: base.Record{"__NULL__"},
+			want:   dbNULL,
+		},
+		{
 			name: "type time",
 			prop: Prop{
 				Index: &idx0,
 				Type:  &tTime,
 			},
 			record: base.Record{"18:38:23.284"},
-			want:   "time(\"18:38:23.284\")",
+			want:   "TIME(\"18:38:23.284\")",
+		},
+		{
+			name: "type time null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tTime,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type timestamp",
@@ -674,7 +833,7 @@ func TestPropFormatValue(t *testing.T) {
 				Type:  &tTimestamp,
 			},
 			record: base.Record{"2020-01-11T19:28:23"},
-			want:   "timestamp(\"2020-01-11T19:28:23\")",
+			want:   "TIMESTAMP(\"2020-01-11T19:28:23\")",
 		},
 		{
 			name: "type timestamp integer",
@@ -683,7 +842,7 @@ func TestPropFormatValue(t *testing.T) {
 				Type:  &tTimestamp,
 			},
 			record: base.Record{"1578770903"},
-			want:   "timestamp(1578770903)",
+			want:   "TIMESTAMP(1578770903)",
 		},
 		{
 			name: "type timestamp integer",
@@ -692,7 +851,7 @@ func TestPropFormatValue(t *testing.T) {
 				Type:  &tTimestamp,
 			},
 			record: base.Record{"0123"},
-			want:   "timestamp(0123)",
+			want:   "TIMESTAMP(0123)",
 		},
 		{
 			name: "type timestamp integer",
@@ -701,7 +860,17 @@ func TestPropFormatValue(t *testing.T) {
 				Type:  &tTimestamp,
 			},
 			record: base.Record{"0XF0"},
-			want:   "timestamp(0XF0)",
+			want:   "TIMESTAMP(0XF0)",
+		},
+		{
+			name: "type timestamp null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tTimestamp,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type date",
@@ -710,7 +879,17 @@ func TestPropFormatValue(t *testing.T) {
 				Type:  &tDate,
 			},
 			record: base.Record{"2020-01-02"},
-			want:   "date(\"2020-01-02\")",
+			want:   "DATE(\"2020-01-02\")",
+		},
+		{
+			name: "type date null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tDate,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type datetime",
@@ -719,7 +898,17 @@ func TestPropFormatValue(t *testing.T) {
 				Type:  &tDatetime,
 			},
 			record: base.Record{"2020-01-11T19:28:23.284"},
-			want:   "datetime(\"2020-01-11T19:28:23.284\")",
+			want:   "DATETIME(\"2020-01-11T19:28:23.284\")",
+		},
+		{
+			name: "type datetime null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tDatetime,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type geography",
@@ -731,6 +920,16 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "ST_GeogFromText(\"Polygon((-85.1 34.8,-80.7 28.4,-76.9 34.9,-85.1 34.8))\")",
 		},
 		{
+			name: "type geography null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tGeography,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
 			name: "type geography(point)",
 			prop: Prop{
 				Index: &idx0,
@@ -738,6 +937,16 @@ func TestPropFormatValue(t *testing.T) {
 			},
 			record: base.Record{"Point(0.0 0.0)"},
 			want:   "ST_GeogFromText(\"Point(0.0 0.0)\")",
+		},
+		{
+			name: "type geography(point) null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tGeographyPoint,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
 		},
 		{
 			name: "type geography(linestring)",
@@ -749,6 +958,16 @@ func TestPropFormatValue(t *testing.T) {
 			want:   "ST_GeogFromText(\"linestring(0 1, 179.99 89.99)\")",
 		},
 		{
+			name: "type geography(linestring) null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tGeographyLineString,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
 			name: "type geography(polygon)",
 			prop: Prop{
 				Index: &idx0,
@@ -757,17 +976,131 @@ func TestPropFormatValue(t *testing.T) {
 			record: base.Record{"polygon((0 1, 2 4, 3 5, 4 9, 0 1))"},
 			want:   "ST_GeogFromText(\"polygon((0 1, 2 4, 3 5, 4 9, 0 1))\")",
 		},
+		{
+			name: "type geography(polygon) null",
+			prop: Prop{
+				Index:    &idx0,
+				Type:     &tGeographyPolygon,
+				Nullable: true,
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
+			name: "alternative indices 0",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{},
+			},
+			record: base.Record{""},
+			want:   dbNULL,
+		},
+		{
+			name: "alternative indices 1 out range",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{1},
+			},
+			record:        base.Record{""},
+			wantErrString: "out range",
+		},
+		{
+			name: "alternative indices 1 use index",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{1},
+			},
+			record: base.Record{"1"},
+			want:   "1",
+		},
+		{
+			name: "alternative indices 1 null",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{1},
+			},
+			record: base.Record{"", ""},
+			want:   dbNULL,
+		},
+		{
+			name: "alternative indices 1 not null",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{2},
+			},
+			record: base.Record{"", "1", "2"},
+			want:   "2",
+		},
+		{
+			name: "alternative indices n not null",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{3, 2, 1},
+			},
+			record: base.Record{"", "1", "2", ""},
+			want:   "2",
+		},
+		{
+			name: "default value not nullable",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           false,
+				AlternativeIndices: []int{1},
+				DefaultValue:       &vZero,
+			},
+			record: base.Record{"", "1", "2"},
+			want:   "",
+		},
+		{
+			name: "default value nullable",
+			prop: Prop{
+				Index:        &idx0,
+				Type:         &tInt,
+				Nullable:     true,
+				DefaultValue: &vZero,
+			},
+			record: base.Record{""},
+			want:   "0",
+		},
+		{
+			name: "default value nullable alternative indices",
+			prop: Prop{
+				Index:              &idx0,
+				Type:               &tInt,
+				Nullable:           true,
+				AlternativeIndices: []int{1, 2, 3, 4, 5, 6},
+				DefaultValue:       &vZero,
+			},
+			record: base.Record{"", "", "", "", "", "", ""},
+			want:   "0",
+		},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			ast := assert.New(t)
+
+			ast.NoError(tc.prop.InitPicker())
+
 			str, err := tc.prop.FormatValue(tc.record)
 			if tc.wantErrString != "" {
 				ast.Error(err)
 				ast.Contains(err.Error(), tc.wantErrString)
 			} else {
 				ast.NoError(err)
-				ast.Contains(str, tc.want)
+				ast.Equal(str, tc.want)
 			}
 		})
 	}
@@ -846,5 +1179,14 @@ func TestParseFunction(t *testing.T) {
 				ast.Contains(err.Error(), "Invalid function format")
 			}
 		})
+	}
+}
+
+func Benchmark_checkVidFormat(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = checkVidFormat("-0xfedcba9876543210", true)
+		_ = checkVidFormat("-076543210", true)
+		_ = checkVidFormat("-9876543210", true)
+		_ = checkVidFormat("hash(\"abcdefg\")", true)
 	}
 }
