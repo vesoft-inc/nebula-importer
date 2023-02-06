@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/vesoft-inc/nebula-importer/pkg/utils"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/utils"
 )
 
 var (

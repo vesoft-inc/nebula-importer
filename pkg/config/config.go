@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vesoft-inc/nebula-importer/pkg/base"
-	ierrors "github.com/vesoft-inc/nebula-importer/pkg/errors"
-	"github.com/vesoft-inc/nebula-importer/pkg/logger"
-	"github.com/vesoft-inc/nebula-importer/pkg/picker"
-	"github.com/vesoft-inc/nebula-importer/pkg/utils"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/base"
+	ierrors "github.com/vesoft-inc/nebula-importer/v3/pkg/errors"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/logger"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/picker"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/utils"
 	"gopkg.in/yaml.v2"
 )
 

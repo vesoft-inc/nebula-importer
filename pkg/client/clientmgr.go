@@ -1,9 +1,9 @@
 package client
 
 import (
-	"github.com/vesoft-inc/nebula-importer/pkg/base"
-	"github.com/vesoft-inc/nebula-importer/pkg/config"
-	"github.com/vesoft-inc/nebula-importer/pkg/logger"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/logger"
 )
 
 type NebulaClientMgr struct {

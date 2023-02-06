@@ -8,10 +8,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/vesoft-inc/nebula-importer/pkg/cmd"
-	"github.com/vesoft-inc/nebula-importer/pkg/config"
-	"github.com/vesoft-inc/nebula-importer/pkg/errors"
-	"github.com/vesoft-inc/nebula-importer/pkg/logger"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/cmd"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/config"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/errors"
+	"github.com/vesoft-inc/nebula-importer/v3/pkg/logger"
 )
 
 type WebServer struct {
