@@ -1,0 +1,115 @@
+project_name: nebula-importer
+
+release:
+  name_template: "Nebula Importer {{.Version}}"
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    main: ./cmd/nebula-importer
+    binary: nebula-importer
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/vesoft-inc/nebula-importer/v4/pkg/version.buildVersion={{ .Version }}
+      - -X github.com/vesoft-inc/nebula-importer/v4/pkg/version.buildCommit={{ .FullCommit }}
+      - -X github.com/vesoft-inc/nebula-importer/v4/pkg/version.buildCommitDate={{ .CommitDate }}
+      - -X github.com/vesoft-inc/nebula-importer/v4/pkg/version.buildDate={{ .Date }}
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - "7"
+
+archives:
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    files:
+      - README.md
+    format_overrides:
+      - goos: windows
+        format: zip
+
+dockers:
+  - &dockers
+    image_templates:
+      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-amd64"
+    use: buildx
+    dockerfile: Dockerfile.goreleaser
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--pull"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.url=https://github.com/vesoft-inc/nebula-importer"
+      - "--label=org.opencontainers.image.source=https://github.com/vesoft-inc/nebula-importer"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+  - <<: *dockers
+    image_templates:
+      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-armv7"
+    goarch: arm
+    goarm: 7
+    build_flag_templates:
+      - "--platform=linux/arm/v7"
+      - "--pull"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.url=https://github.com/vesoft-inc/nebula-importer"
+      - "--label=org.opencontainers.image.source=https://github.com/vesoft-inc/nebula-importer"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+  - <<: *dockers
+    image_templates:
+      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-arm64v8"
+    goarch: arm64
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+      - "--pull"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.url=https://github.com/vesoft-inc/nebula-importer"
+      - "--label=org.opencontainers.image.source=https://github.com/vesoft-inc/nebula-importer"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+docker_manifests:
+  - &docker_manifests
+    name_template: "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:latest"
+    image_templates:
+      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-armv7"
+      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-arm64v8"
+  - <<: *docker_manifests
+    name_template: "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}"
+
+nfpms:
+- file_name_template: '{{ .ConventionalFileName }}'
+  id: packages
+  homepage: https://github.com/vesoft-inc/nebula-importer
+  description: Nebula Importer.
+  maintainer: Vee Zhang <vee.zhang@vesoft.com>
+  vendor: Vesoft Inc.
+  bindir: /usr/bin
+  formats:
+  - deb
+  - rpm
+  - apk

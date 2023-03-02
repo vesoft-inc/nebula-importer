@@ -1,25 +1,16 @@
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-
-# Test binary, build with `go test -c`
-*.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
+# editor and IDE paraphernalia
+.idea
+vendor
+*.swp
+*.swo
+*.log
+*.gz
+*.tgz
+*~
+bin
+.DS_Store
 *.out
 *.log
+dist/
 
-# macOS
-.DS_Store
-
-err/
-vendor/
-nebula-importer
 coverage.*
-
-# IDE
-.vscode/
-.idea/

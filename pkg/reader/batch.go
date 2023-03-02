@@ -1,80 +1,92 @@
+//go:generate mockgen -source=batch.go -destination batch_mock.go -package reader BatchRecordReader
 package reader
 
 import (
-	"fmt"
+	stderrors "errors"
 
-	"github.com/vesoft-inc/nebula-importer/v3/pkg/base"
+	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
+	"github.com/vesoft-inc/nebula-importer/v4/pkg/source"
+	"github.com/vesoft-inc/nebula-importer/v4/pkg/spec"
 )
 
-type Batch struct {
-	errCh           chan<- base.ErrData
-	clientRequestCh chan base.ClientRequest
-	bufferSize      int
-	currentIndex    int
-	buffer          []base.Data
-	batchMgr        *BatchMgr
-}
-
-func NewBatch(mgr *BatchMgr, bufferSize int, clientReq chan base.ClientRequest, errCh chan<- base.ErrData) *Batch {
-	b := Batch{
-		errCh:           errCh,
-		clientRequestCh: clientReq,
-		bufferSize:      bufferSize,
-		currentIndex:    0,
-		buffer:          make([]base.Data, bufferSize),
-		batchMgr:        mgr,
-	}
-	return &b
-}
-
-func (b *Batch) IsFull() bool {
-	return b.currentIndex == b.bufferSize
-}
-
-func (b *Batch) Add(data base.Data) {
-	if b.IsFull() {
-		b.requestClient()
-	}
-	b.buffer[b.currentIndex] = data
-	b.currentIndex++
-}
-
-func (b *Batch) Done() {
-	if b.currentIndex > 0 {
-		b.requestClient()
+type (
+	BatchRecordReader interface {
+		Source() source.Source
+		source.Sizer
+		ReadBatch() (int, spec.Records, error)
 	}
 
-	b.clientRequestCh <- base.ClientRequest{
-		ErrCh: b.errCh,
-		Stmt:  base.STAT_FILEDONE,
+	continueError struct {
+		Err error
+	}
+
+	defaultBatchReader struct {
+		*options
+		rr RecordReader
+	}
+)
+
+func NewBatchRecordReader(rr RecordReader, opts ...Option) BatchRecordReader {
+	brr := &defaultBatchReader{
+		options: newOptions(opts...),
+		rr:      rr,
+	}
+	brr.logger = brr.logger.With(logger.Field{Key: "source", Value: rr.Source().Name()})
+	return brr
+}
+
+func NewContinueError(err error) error {
+	return &continueError{
+		Err: err,
 	}
 }
 
-func (b *Batch) requestClient() {
-	var stmt string
-	var err error
-	if b.batchMgr.Schema.IsVertex() {
-		stmt, err = b.batchMgr.MakeVertexStmt(b.buffer[:b.currentIndex])
-	} else {
-		stmt, err = b.batchMgr.MakeEdgeStmt(b.buffer[:b.currentIndex])
-	}
-
-	if err != nil {
-		stmt = fmt.Sprintf("%s(%s)", "THERE_ARE_SOME_ERRORS", err.Error())
-	}
-
-	b.clientRequestCh <- base.ClientRequest{
-		Stmt:  stmt,
-		ErrCh: b.errCh,
-		Data:  b.buffer[:b.currentIndex],
-	}
-
-	b.currentIndex = 0
+func (r *defaultBatchReader) Source() source.Source {
+	return r.rr.Source()
 }
 
-func (b *Batch) SendErrorData(d base.Data, err error) {
-	b.errCh <- base.ErrData{
-		Error: err,
-		Data:  []base.Data{d},
+func (r *defaultBatchReader) Size() (int64, error) {
+	return r.rr.Size()
+}
+
+func (r *defaultBatchReader) ReadBatch() (int, spec.Records, error) {
+	var (
+		totalBytes int
+		records    = make(spec.Records, 0, r.batch)
+	)
+
+	for batch := 0; batch < r.batch; {
+		n, record, err := r.rr.Read()
+		totalBytes += n
+		if err != nil {
+			// case1: Read continue error.
+			if ce := new(continueError); stderrors.As(err, &ce) {
+				r.logger.WithError(ce.Err).Error("read source failed")
+				continue
+			}
+
+			// case2: Read error and still have records.
+			if totalBytes > 0 {
+				break
+			}
+
+			// Read error and have no records.
+			return 0, nil, err
+		}
+		batch++
+		records = append(records, record)
 	}
+	return totalBytes, records, nil
+}
+
+func (ce *continueError) Error() string {
+	return ce.Err.Error()
+}
+
+func (ce *continueError) Cause() error {
+	return ce.Err
+}
+
+func (ce *continueError) Unwrap() error {
+	return ce.Err
 }
