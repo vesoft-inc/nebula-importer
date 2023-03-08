@@ -232,9 +232,7 @@ func (config *YAMLConfig) expandDirectoryToFiles(dir string) (err error) {
 			logger.Log.Errorf("error when expand file: %s", err)
 			return err
 		}
-		for _, f := range files {
-			newFiles = append(newFiles, f)
-		}
+		newFiles = append(newFiles, files...)
 	}
 	config.Files = newFiles
 
@@ -408,7 +406,10 @@ func (f *File) expandFiles(dir string) ([]*File, error) {
 		}
 
 		fileNames, err := filepath.Glob(*f.Path)
-		if err != nil || len(fileNames) == 0 {
+		if len(fileNames) == 0 && err == nil {
+			err = fmt.Errorf("file: %s doesn't exist", *f.Path)
+		}
+		if err != nil {
 			logger.Log.Errorf("error file path: %s", *f.Path)
 			return files, err
 		}
