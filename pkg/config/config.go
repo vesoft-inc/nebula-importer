@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -406,12 +407,13 @@ func (f *File) expandFiles(dir string) ([]*File, error) {
 		}
 
 		fileNames, err := filepath.Glob(*f.Path)
-		if len(fileNames) == 0 && err == nil {
-			err = fmt.Errorf("file: %s doesn't exist", *f.Path)
-		}
 		if err != nil {
 			logger.Log.Errorf("error file path: %s", *f.Path)
 			return files, err
+		}
+
+		if len(fileNames) == 0 {
+			return files, &os.PathError{Op: "open", Path: *f.Path, Err: fs.ErrNotExist}
 		}
 
 		for i := range fileNames {
