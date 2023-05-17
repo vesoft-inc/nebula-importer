@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"fmt"
-	"io/fs"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -413,7 +412,7 @@ func (f *File) expandFiles(dir string) ([]*File, error) {
 		}
 
 		if len(fileNames) == 0 {
-			return files, &os.PathError{Op: "open", Path: *f.Path, Err: fs.ErrNotExist}
+			return files, &os.PathError{Op: "open", Path: *f.Path, Err: os.ErrNotExist}
 		}
 
 		for i := range fileNames {
