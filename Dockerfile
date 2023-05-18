@@ -1,21 +1,24 @@
-FROM golang:1.13.2-alpine as builder
+FROM reg.vesoft-inc.com/ci/golang:1.18-alpine AS builder
 
-ENV GO111MODULE on
-ENV GOPROXY https://goproxy.cn
-ENV NEBULA_IMPORTER /home/nebula-importer
+LABEL stage=gobuilder
 
-COPY . ${NEBULA_IMPORTER}
+ENV CGO_ENABLED 0
+ENV GOOS linux
+WORKDIR /build/zero
 
-WORKDIR ${NEBULA_IMPORTER}
+ADD go.mod .
+ADD go.sum .
+COPY pkg pkg
+COPY cmd cmd
+RUN go mod download
 
-RUN cd cmd \
-  && go build -o target/nebula-importer \
-  && cp target/nebula-importer /usr/local/bin/nebula-importer
+RUN go build -ldflags="-s -w" -o /usr/bin/nebula-importer ./cmd/nebula-importer
 
-FROM alpine
+FROM reg.vesoft-inc.com/ci/alpine
 
-COPY --from=builder /usr/local/bin/nebula-importer /usr/local/bin/nebula-importer
+RUN apk update --no-cache && apk add --no-cache ca-certificates tzdata
+ENV TZ Asia/Shanghai
 
-WORKDIR /root
+COPY --from=builder /usr/bin/nebula-importer /usr/bin/nebula-importer
 
-ENTRYPOINT ["nebula-importer"]
+ENTRYPOINT ["/usr/bin/nebula-importer"]

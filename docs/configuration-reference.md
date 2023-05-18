@@ -1,56 +1,91 @@
 # Nebula Importer Configuration Description
 
-| options                                       | description                                                               | default        |
-| :--                                           | :--                                                                       | :--            |
-| version                                       | Configuration file version                                                | v1             |
-| description                                   | Description of this configure file                                        | ""             |
-| removeTempFiles                               | Whether to remove generated temporary data and log files                  | false          |
-| clientSettings                                | Graph client settings                                                     | -              |
-| clientSettings.retry                          | Number of graph clients retry to execute failed nGQL                      | 1              |
-| clientSettings.concurrency                    | Number of graph clients                                                   | 4              |
-| clientSettings.channelBufferSize              | Buffer size of client channels                                            | 128            |
-| clientSettings.space                          | Space name of all data to be inserted                                     | ""             |
-| clientSettings.connection                     | Connection options of graph client                                        | -              |
-| clientSettings.connection.user                | Username                                                                  | user           |
-| clientSettings.connection.password            | Password                                                                  | password       |
-| clientSettings.connection.address             | Address of graph client                                                   | 127.0.0.1:9669 |
-| clientSettings.postStart.commands             | Post scripts after connecting nebula                                      | ""             |
-| clientSettings.postStart.afterPeriod          | The period time between running post scripts and inserting data           | 0s             |
-| clientSettings.preStop.commands               | Prescripts before disconnecting nebula                                    | ""             |
-| logPath                                       | Path of log file                                                          | ""             |
-| files                                         | File list to be imported                                                  | -              |
-| files[0].path                                 | File path                                                                 | ""             |
-| files[0].failDataPath                         | Failed data file path                                                     | ""             |
-| files[0].batchSize                            | Size of each batch for inserting stmt construction                        | 128            |
-| files[0].limit                                | Limit rows to be read                                                     | NULL           |
-| files[0].inOrder                              | Whether to insert rows in order                                           | false          |
-| files[0].type                                 | File type                                                                 | csv            |
-| files[0].csv                                  | CSV file options                                                          | -              |
-| files[0].csv.withHeader                       | Whether csv file has header                                               | false          |
-| files[0].csv.withLabel                        | Whether csv file has `+/-` label to represent **delete/insert** operation | false          |
-| files[0].csv.delimiter                        | The delimiter of csv file to separate different columns                   | ","            |
-| files[0].schema                               | Schema definition for this file data                                      | -              |
-| files[0].schema.type                          | Schema type: vertex or edge                                               | vertex         |
-| files[0].schema.edge                          | Edge options                                                              | -              |
-| files[0].schema.edge.srcVID.index             | Column index of source vertex id of edge                                  | 0              |
-| files[0].schema.edge.srcVID.function          | The generation function of edge source vertex id                          | ""             |
-| files[0].schema.edge.srcVID.type              | Type of source vertex id of edge                                          | 0              |
-| files[0].schema.edge.dstVID.index             | Column index of destination vertex id of edge                             | 1              |
-| files[0].schema.edge.dstVID.function          | The generation function of edge destination vertex id                     | ""             |
-| files[0].schema.edge.dstVID.type              | Type of destination vertex id of edge                             | 1              |
-| files[0].schema.edge.rank.index               | Column index of the edge rank                                             | 2              |
-| files[0].schema.edge.name                     | Edge name in above space                                                  | ""             |
-| files[0].schema.edge.props                    | Properties of the edge                                                    | -              |
-| files[0].schema.edge.props[0].name            | Property name                                                             | ""             |
-| files[0].schema.edge.props[0].type            | Property type                                                             | ""             |
-| files[0].schema.edge.props[0].index           | Property index                                                            |                |
-| files[0].schema.vertex                        | Vertex options                                                            | -              |
-| files[0].schema.vertex.vid.index              | Column index of vertex vid                                                | 0              |
-| files[0].schema.vertex.vid.function           | The generation function of vertex vid                                     | ""             |
-| files[0].schema.vertex.vid.type               | The type of vertex vid                                                    | "string"       |
-| files[0].schema.vertex.tags                   | Vertex tags options                                                       | -              |
-| files[0].schema.vertex.tags[0].name           | Vertex tag name                                                           | ""             |
-| files[0].schema.vertex.tags[0].props          | Vertex tag's properties                                                   | -              |
-| files[0].schema.vertex.tags[0].props[0].name  | Vertex tag's property name                                                | ""             |
-| files[0].schema.vertex.tags[0].props[0].type  | Vertex tag's property type                                                | ""             |
-| files[0].schema.vertex.tags[0].props[0].index | Vertex tag's property index                                               |                |
+| options                                      | description                                                               | default    |
+| :--                                          | :--                                                                       | :--        |
+| client                                       | The NebulaGraph client configuration options.                             | -          |
+| client.version                               | Specifies which version of NebulaGraph, currently only `v3` is supported. | -          |
+| client.address                               | The address of graph in NebulaGraph.                                      | -          |
+| client.user                                  | The user of NebulaGraph.                                                  | root       |
+| client.password                              | The password of NebulaGraph.                                              | nebula     |
+| client.concurrencyPerAddress                 | The number of client connections to each graph in NebulaGraph.            | 10         |
+| client.reconnectInitialInterval              | The initialization interval for reconnecting NebulaGraph.                 | 1s         |
+| client.retry                                 | The failed retrying times to execute nGQL queries in NebulaGraph client.  | 3          |
+| client.retryInitialInterval                  | The initialization interval retrying.                                     | 1s         |
+|                                              |                                                                           |            |
+| manager                                      | The global control configuration options related to Nebula Importer.      | -          |
+| manager.spaceName                            | Specifies which space the data is imported into.                          | -          |
+| manager.batch                                | Specifies the batch size for all sources of the inserted data.            | 128        |
+| manager.readerConcurrency                    | Specifies the concurrency of reader to read from sources.                 | 50         |
+| manager.importerConcurrency                  | Specifies the concurrency of generating statement, call client to import. | 512        |
+| manager.statsInterval                        | Specifies the interval at which statistics are printed.                   | 10s        |
+| manager.hooks.before                         | Configures the statements before the import begins.                       | -          |
+| manager.hooks.before.[].statements           | Defines the list of statements.                                           | -          |
+| manager.hooks.before.[].wait                 | Defines the waiting time after executing the above statements.            | -          |
+| manager.hooks.after                          | Configures the statements after the import is complete.                   | -          |
+| manager.hooks.after.[].statements            | Defines the list of statements.                                           | -          |
+| manager.hooks.after.[].wait                  | Defines the waiting time after executing the above statements.            | -          |
+|                                              |                                                                           |            |
+| log                                          | The log configuration options.                                            | -          |
+| log.level                                    | Specifies the log level.                                                  | "INFO"     |
+| log.console                                  | Specifies whether to print logs to the console.                           | true       |
+| log.files                                    | Specifies which files to print logs to.                                   | -          |
+|                                              |                                                                           |            |
+| sources                                      | The data sources to be imported                                           | -          |
+| sources[].path                               | Local file path                                                           | -          |
+| sources[].s3.endpoint                        | The endpoint of s3 service.                                               | -          |
+| sources[].s3.region                          | The region of s3 service.                                                 | -          |
+| sources[].s3.bucket                          | The bucket of file in s3 service.                                         | -          |
+| sources[].s3.key                             | The object key of file in s3 service.                                     | -          |
+| sources[].s3.accessKey                       | The access key of s3 service.                                             | -          |
+| sources[].s3.secretKey                       | The secret key of s3 service.                                             | -          |
+| sources[].oss.endpoint                       | The endpoint of oss service.                                              | -          |
+| sources[].oss.bucket                         | The bucket of file in oss service.                                        | -          |
+| sources[].oss.key                            | The object key of file in oss service.                                    | -          |
+| sources[].oss.accessKey                      | The access key of oss service.                                            | -          |
+| sources[].oss.secretKey                      | The secret key of oss service.                                            | -          |
+| sources[].ftp.host                           | The host of ftp service.                                                  | -          |
+| sources[].ftp.host                           | The port of ftp service.                                                  | -          |
+| sources[].ftp.user                           | The user of ftp service.                                                  | -          |
+| sources[].ftp.password                       | The password of ftp service.                                              | -          |
+| sources[].ftp.path                           | The path of file in the ftp service.                                      | -          |
+| sources[].sftp.host                          | The host of sftp service.                                                 | -          |
+| sources[].sftp.host                          | The port of sftp service.                                                 | -          |
+| sources[].sftp.user                          | The user of sftp service.                                                 | -          |
+| sources[].sftp.password                      | The password of sftp service.                                             | -          |
+| sources[].sftp.keyFile                       | The ssh key file path of sftp service.                                    | -          |
+| sources[].sftp.keyData                       | The ssh key file content of sftp service.                                 | -          |
+| sources[].sftp.passphrase                    | The ssh key passphrase of sftp service.                                   | -          |
+| sources[].sftp.path                          | The path of file in the ftp service.                                      | -          |
+| sources[].hdfs.address                       | The address of hdfs service.                                              | -          |
+| sources[].hdfs.user                          | The user of hdfs service.                                                 | -          |
+| sources[].hdfs.path                          | The path of file in the sftp service.                                     | -          |
+| sources[].batch                              | Specifies the batch size for this source of the inserted data.            | -          |
+| sources[].csv                                | Describes the csv file format information.                                | -          |
+| sources[].csv.delimiter                      | Specifies the delimiter for the CSV files.                                | ","        |
+| sources[].csv.withHeader                     | Specifies whether to ignore the first record in csv file.                 | false      |
+| sources[].csv.lazyQuotes                     | Specifies lazy quotes of csv file.                                        | false      |
+| sources[].tags                               | Describes the schema definition for tags.                                 | -          |
+| sources[].tags[].name                        | The tag name.                                                             | -          |
+| sources[].tags[].id                          | Describes the tag ID information.                                         | -          |
+| sources[].tags[].id.type                     | The type for ID                                                           | "STRING"   |
+| sources[].tags[].id.index                    | The column number in the records.                                         | -          |
+| sources[].tags[].id.concatItems              | The concat items to generate for IDs.                                     | -          |
+| sources[].tags[].id.function                 | Function to generate the IDs.                                             | -          |
+| sources[].tags[].ignoreExistedIndex          | Specifies whether to enable `IGNORE_EXISTED_INDEX`.                       | true       |
+| sources[].tags[].props                       | Describes the tag props definition.                                       | -          |
+| sources[].tags[].props[].name                | The property name, must be the same with the tag property in NebulaGraph. | -          |
+| sources[].tags[].props[].type                | The property type.                                                        | -          |
+| sources[].tags[].props[].index               | The column number in the records.                                         | -          |
+| sources[].tags[].props[].nullable            | Whether this prop property can be `NULL`.                                 | false      |
+| sources[].tags[].props[].nullValue           | The value used to determine whether it is a `NULL`.                       | ""         |
+| sources[].tags[].props[].alternativeIndices  | The alternative indices.                                                  | -          |
+| sources[].tags[].props[].defaultValue        | The property default value.                                               | -          |
+| sources[].edges                              | Describes the schema definition for edges.                                | -          |
+| sources[].edges[].name                       | The edge name.                                                            | -          |
+| sources[].edges[].src                        | Describes the source definition for the edge.                             | -          |
+| sources[].edges[].src.id                     | The `id` here is similar to `id` in the `tags` above.                     | -          |
+| sources[].edges[].dst                        | Describes the destination definition for the edge.                        | -          |
+| sources[].edges[].dst.id                     | The `id` here is similar to `id` in the `tags` above.                     | -          |
+| sources[].edges[].rank                       | Describes the rank definition for the edge.                               | -          |
+| sources[].edges[].rank.index                 | The column number in the records.                                         | -          |
+| sources[].edges[].props                      | Similar to the `props` in the `tags`, but for edges.                      | -          |

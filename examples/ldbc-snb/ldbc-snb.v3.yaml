@@ -1,0 +1,575 @@
+client:
+  version: v3
+  address: "127.0.0.1:9669"
+  user: root
+  password: nebula
+  concurrencyPerAddress: 10
+  reconnectInitialInterval: 1s
+  retry: 3
+  retryInitialInterval: 1s
+
+manager:
+  spaceName: ldbc_snb_examples
+  batch: 1280
+  readerConcurrency: 50
+  importerConcurrency: 512
+  statsInterval: 10s
+  hooks:
+    before:
+      - statements:
+        - |
+          CREATE SPACE IF NOT EXISTS `ldbc_snb_examples`(PARTITION_NUM = 120, REPLICA_FACTOR = 1, vid_type = INT);
+          USE `ldbc_snb_examples`;
+          CREATE TAG IF NOT EXISTS `Comment`(`creationDate` DATETIME,`locationIP` STRING,`browserUsed` STRING,`content` STRING,`length` INT);
+          CREATE TAG IF NOT EXISTS `Forum`(`title` STRING,`creationDate` DATETIME);
+          CREATE TAG IF NOT EXISTS `Tag`(`name` STRING,`url` STRING);
+          CREATE TAG IF NOT EXISTS `Organisation`(`type` STRING,`name` STRING,`url` STRING);
+          CREATE TAG IF NOT EXISTS `Post`(`imageFile` STRING,`creationDate` DATETIME,`locationIP` STRING,`browserUsed` STRING,`language` STRING,`content` STRING,`length` INT);
+          CREATE TAG IF NOT EXISTS `Person`(`firstName` STRING,`lastName` STRING,`gender` STRING,`birthday` DATE,`creationDate` DATETIME,`locationIP` STRING,`browserUsed` STRING);
+          CREATE TAG IF NOT EXISTS `Place`(`name` STRING,`url` STRING,`type` STRING);
+          CREATE TAG IF NOT EXISTS `TagClass`(`name` STRING,`url` STRING);
+          CREATE EDGE IF NOT EXISTS `HAS_MEMBER`(`joinDate` DATETIME);
+          CREATE EDGE IF NOT EXISTS `HAS_TAG`();
+          CREATE EDGE IF NOT EXISTS `STUDY_AT`(`classYear` INT);
+          CREATE EDGE IF NOT EXISTS `IS_PART_OF`();
+          CREATE EDGE IF NOT EXISTS `IS_LOCATED_IN`();
+          CREATE EDGE IF NOT EXISTS `WORK_AT`(`workFrom` INT);
+          CREATE EDGE IF NOT EXISTS `CONTAINER_OF`();
+          CREATE EDGE IF NOT EXISTS `IS_SUBCLASS_OF`();
+          CREATE EDGE IF NOT EXISTS `HAS_MODERATOR`();
+          CREATE EDGE IF NOT EXISTS `HAS_TYPE`();
+          CREATE EDGE IF NOT EXISTS `KNOWS`(`creationDate` DATETIME);
+          CREATE EDGE IF NOT EXISTS `HAS_INTEREST`();
+          CREATE EDGE IF NOT EXISTS `COMMENT_HAS_CREATOR`(`creationDate` DATETIME,`locationIP` STRING,`browserUsed` STRING,`content` STRING,`length` INT64);
+          CREATE EDGE IF NOT EXISTS `REPLY_OF_COMMENT`();
+          CREATE EDGE IF NOT EXISTS `LIKES_COMMENT`(`creationDate` DATETIME);
+          CREATE EDGE IF NOT EXISTS `POST_HAS_CREATOR`(`imageFile` STRING,`creationDate` DATETIME,`locationIP` STRING,`browserUsed` STRING,`language` STRING,`content` STRING,`length` INT64);
+          CREATE EDGE IF NOT EXISTS `REPLY_OF_POST`();
+          CREATE EDGE IF NOT EXISTS `LIKES_POST`(`creationDate` DATETIME);
+        wait: 10s
+
+log:
+  level: INFO
+  console: true
+  files:
+   - logs/nebula-importer.log
+
+sources:
+  - path: ./social_network/static/place.csv
+    csv:
+      delimiter: "|"
+    tags:
+      - name: Place
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "name"
+            type: "STRING"
+            index: 1
+          - name: "url"
+            type: "STRING"
+            index: 2
+          - name: "type"
+            type: "STRING"
+            index: 3
+
+  - path: ./social_network/static/organisation.csv
+    csv:
+      delimiter: "|"
+    tags:
+      - name: Organisation
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "type"
+            type: "STRING"
+            index: 1
+          - name: "name"
+            type: "STRING"
+            index: 2
+          - name: "url"
+            type: "STRING"
+            index: 3
+
+  - path: ./social_network/dynamic/person.csv
+    csv:
+      delimiter: "|"
+    tags:
+      - name: Person
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "firstName"
+            type: "STRING"
+            index: 1
+          - name: "lastName"
+            type: "STRING"
+            index: 2
+          - name: "gender"
+            type: "STRING"
+            index: 3
+          - name: "birthday"
+            type: "DATE"
+            index: 4
+          - name: "creationDate"
+            type: "DATETIME"
+            index: 5
+          - name: "locationIP"
+            type: "STRING"
+            index: 6
+          - name: "browserUsed"
+            type: "STRING"
+            index: 7
+
+  - path: ./social_network/dynamic/forum.csv
+    csv:
+      delimiter: "|"
+    tags:
+      - name: Forum
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "title"
+            type: "STRING"
+            index: 1
+          - name: "creationDate"
+            type: "DATETIME"
+            index: 2
+
+  - path: ./social_network/dynamic/post.csv
+    csv:
+      delimiter: "|"
+    tags:
+      - name: Post
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "imageFile"
+            type: "STRING"
+            index: 1
+          - name: "creationDate"
+            type: "DATETIME"
+            index: 2
+          - name: "locationIP"
+            type: "STRING"
+            index: 3
+          - name: "browserUsed"
+            type: "STRING"
+            index: 4
+          - name: "language"
+            type: "STRING"
+            index: 5
+          - name: "content"
+            type: "STRING"
+            index: 6
+          - name: "length"
+            type: "INT"
+            index: 7
+
+  - path: ./social_network/dynamic/comment.csv
+    csv:
+      delimiter: "|"
+    tags:
+      - name: Comment
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "creationDate"
+            type: "DATETIME"
+            index: 1
+          - name: "locationIP"
+            type: "STRING"
+            index: 2
+          - name: "browserUsed"
+            type: "STRING"
+            index: 3
+          - name: "content"
+            type: "STRING"
+            index: 4
+          - name: "length"
+            type: "INT"
+            index: 5
+
+  - path: ./social_network/static/tag.csv
+    csv:
+      delimiter: "|"
+    tags:
+      - name: Tag
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "name"
+            type: "STRING"
+            index: 1
+          - name: "url"
+            type: "STRING"
+            index: 2
+
+  - path: ./social_network/static/tagclass.csv
+    csv:
+      delimiter: "|"
+    tags:
+      - name: TagClass
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "name"
+            type: "STRING"
+            index: 1
+          - name: "url"
+            type: "STRING"
+            index: 2
+
+  - path: ./social_network/static/place_isPartOf_place.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: IS_PART_OF # PLACE_IS_PART_OF_PLACE
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/static/organisation_isLocatedIn_place.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: IS_LOCATED_IN # ORGANISATION_IS_LOCATED_IN_PLACE
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/person_isLocatedIn_place.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: IS_LOCATED_IN # PERSON_IS_LOCATED_IN_PLACE
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/person_studyAt_organisation.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: STUDY_AT # PERSON_STUDY_AT_ORGANISATION
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+        props:
+          - name: "classYear"
+            type: "INT"
+            index: 2
+
+  - path: ./social_network/dynamic/person_workAt_organisation.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: WORK_AT # PERSON_WORK_AT_ORGANISATION
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+        props:
+          - name: "workFrom"
+            type: "INT"
+            index: 2
+
+  - path: ./social_network/dynamic/person_knows_person.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: KNOWS # PERSON_KNOWS_PERSON
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+        props:
+          - name: "creationDate"
+            type: "DATETIME"
+            index: 2
+
+  - path: ./social_network/dynamic/person_likes_post.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: LIKES_POST # PERSON_LIKES_POST
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+        props:
+          - name: "creationDate"
+            type: "DATETIME"
+            index: 2
+
+  - path: ./social_network/dynamic/person_likes_comment.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: LIKES_COMMENT # PERSON_LIKES_COMMENT
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+        props:
+          - name: "creationDate"
+            type: "DATETIME"
+            index: 2
+
+  - path: ./social_network/dynamic/person_hasInterest_tag.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: HAS_INTEREST # PERSON_HAS_INTEREST_TAG
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/forum_hasMember_person.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: HAS_MEMBER # FORUM_HAS_MEMBER_PERSON
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+        props:
+          - name: "joinDate"
+            type: "DATETIME"
+            index: 2
+
+  - path: ./social_network/dynamic/forum_hasModerator_person.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: HAS_MODERATOR # FORUM_HAS_MODERATOR_PERSON
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/forum_containerOf_post.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: CONTAINER_OF # FORUM_CONTAINER_OF_POST
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/forum_hasTag_tag.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: HAS_TAG # FORUM_HAS_TAG_TAG
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/post_isLocatedIn_place.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: IS_LOCATED_IN # POST_IS_LOCATED_IN_PLACE
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/post_hasCreator_person.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: POST_HAS_CREATOR # POST_HAS_CREATOR_PERSON
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/post_hasTag_tag.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: HAS_TAG # POST_HAS_TAG_TAG
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/comment_isLocatedIn_place.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: IS_LOCATED_IN # COMMENT_IS_LOCATED_IN_PLACE
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/comment_hasCreator_person.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: COMMENT_HAS_CREATOR # COMMENT_HAS_CREATOR_PERSON
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/comment_replyOf_post.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: REPLY_OF_POST # COMMENT_REPLY_OF_POST
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/comment_replyOf_comment.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: REPLY_OF_COMMENT # COMMENT_REPLY_OF_COMMENT
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/dynamic/comment_hasTag_tag.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: HAS_TAG # COMMENT_HAS_TAG_TAG
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/static/tag_hasType_tagclass.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: HAS_TYPE # TAG_HAS_TYPE_TAGCLASS
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1
+
+  - path: ./social_network/static/tagclass_isSubclassOf_tagclass.csv
+    csv:
+      delimiter: "|"
+    edges:
+      - name: IS_SUBCLASS_OF # TAGCLASS_IS_SUBCLASS_OF_TAGCLASS
+        src:
+          id:
+            type: "INT"
+            index: 0
+        dst:
+          id:
+            type: "INT"
+            index: 1

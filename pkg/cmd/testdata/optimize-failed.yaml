@@ -1,0 +1,32 @@
+client:
+  version: v3
+  address: "127.0.0.1:0"
+  user: root
+  password: nebula
+  concurrencyPerAddress: 10
+  reconnectInitialInterval: 1s
+  retry: 3
+  retryInitialInterval: 1s
+
+manager:
+  graphName: graphName
+  batch: 100
+  readerConcurrency: 10
+  importerConcurrency: 10
+  statsInterval: 10s
+  hooks:
+    before:
+      - statements:
+        - statement1
+      - statements:
+        - statement2
+        wait: 1ms
+
+log:
+  level: INFO
+  console: true
+  files:
+   - nebula-importer.log
+
+sources:
+  - path: ./node[a-b.csv

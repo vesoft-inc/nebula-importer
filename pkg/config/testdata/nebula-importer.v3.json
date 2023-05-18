@@ -1,0 +1,230 @@
+{
+  "client": {
+    "version": "v3",
+    "address": "127.0.0.1:0",
+    "user": "root",
+    "password": "nebula",
+    "concurrencyPerAddress": 10,
+    "reconnectInitialInterval": "1s",
+    "retry": 3,
+    "retryInitialInterval": "1s"
+  },
+  "manager": {
+    "spaceName": "graphName",
+    "batch": 100,
+    "readerConcurrency": 10,
+    "importerConcurrency": 10,
+    "statsInterval": "10s",
+    "hooks": {
+      "before": [
+        {
+          "statements": [
+            "statement1"
+          ]
+        },
+        {
+          "statements": [
+            "statement2"
+          ],
+          "wait": "1ms"
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "path": "./node1.csv",
+      "tags": [
+        {
+          "name": "node1",
+          "id": {
+            "type": "INT",
+            "index": 0
+          },
+          "props": [
+            {
+              "name": "prop1",
+              "type": "STRING",
+              "index": 1
+            },
+            {
+              "name": "prop2",
+              "type": "int",
+              "index": 2
+            },
+            {
+              "name": "prop3",
+              "type": "Double",
+              "index": 3
+            }
+          ]
+        },
+        {
+          "name": "node2",
+          "id": {
+            "type": "INT",
+            "index": 0
+          },
+          "props": [
+            {
+              "name": "prop1",
+              "type": "STRING",
+              "index": 1
+            },
+            {
+              "name": "prop2",
+              "type": "int",
+              "index": 2
+            },
+            {
+              "name": "prop3",
+              "type": "Double",
+              "index": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "./edge1.csv",
+      "edges": [
+        {
+          "name": "edge1",
+          "src": {
+            "id": {
+              "type": "INT",
+              "index": 0
+            }
+          },
+          "dst": {
+            "id": {
+              "type": "INT",
+              "index": 1
+            }
+          },
+          "props": [
+            {
+              "name": "prop1",
+              "type": "STRING",
+              "index": 2
+            }
+          ]
+        },
+        {
+          "name": "edge2",
+          "src": {
+            "id": {
+              "type": "INT",
+              "index": 0
+            }
+          },
+          "dst": {
+            "id": {
+              "type": "INT",
+              "index": 1
+            }
+          },
+          "props": [
+            {
+              "name": "prop1",
+              "type": "STRING",
+              "index": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "./node1.csv",
+      "tags": [
+        {
+          "name": "node1",
+          "id": {
+            "type": "INT",
+            "index": 0
+          },
+          "props": [
+            {
+              "name": "prop1",
+              "type": "STRING",
+              "index": 1
+            },
+            {
+              "name": "prop2",
+              "type": "int",
+              "index": 2
+            },
+            {
+              "name": "prop3",
+              "type": "Double",
+              "index": 3
+            }
+          ]
+        },
+        {
+          "name": "node2",
+          "id": {
+            "type": "INT",
+            "index": 0
+          },
+          "props": [
+            {
+              "name": "prop1",
+              "type": "STRING",
+              "index": 1
+            },
+            {
+              "name": "prop2",
+              "type": "int",
+              "index": 2
+            },
+            {
+              "name": "prop3",
+              "type": "Double",
+              "index": 3
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "name": "edge1",
+          "src": {
+            "id": {
+              "type": "INT",
+              "index": 0
+            }
+          },
+          "dst": {
+            "id": {
+              "type": "INT",
+              "index": 1
+            }
+          }
+        },
+        {
+          "name": "edge2",
+          "src": {
+            "id": {
+              "type": "INT",
+              "index": 0
+            }
+          },
+          "dst": {
+            "id": {
+              "type": "INT",
+              "index": 1
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "log": {
+    "level": "INFO",
+    "console": true,
+    "files": [
+      "nebula-importer.log"
+    ]
+  }
+}

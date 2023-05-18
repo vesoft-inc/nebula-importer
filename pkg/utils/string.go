@@ -1,5 +1,7 @@
 package utils
 
+import "strings"
+
 func IsInteger(s string) bool {
 	if s == "" {
 		return false
@@ -43,4 +45,20 @@ func IsDigit(b byte) bool {
 
 func IsHexDigit(b byte) bool {
 	return IsDigit(b) || ('a' <= b && b <= 'f') || ('A' <= b && b <= 'F')
+}
+
+func ConvertIdentifier(s string) string {
+	const (
+		backslashChar   = '\\'
+		backslashString = string(backslashChar)
+		backtickChar    = '`'
+		backtickString  = string(backtickChar)
+	)
+	if strings.IndexByte(s, backslashChar) >= 0 {
+		s = strings.ReplaceAll(s, backslashString, backslashString+backslashString)
+	}
+	if strings.IndexByte(s, backtickChar) >= 0 {
+		s = strings.ReplaceAll(s, backtickString, backslashString+backtickString)
+	}
+	return backtickString + s + backtickString
 }

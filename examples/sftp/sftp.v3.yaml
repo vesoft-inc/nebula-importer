@@ -1,0 +1,86 @@
+client:
+  version: v3
+  address: "127.0.0.1:9669"
+  user: root
+  password: nebula
+  concurrencyPerAddress: 10
+  reconnectInitialInterval: 1s
+  retry: 3
+  retryInitialInterval: 1s
+
+manager:
+  spaceName: sftp_examples
+  batch: 128
+  readerConcurrency: 50
+  importerConcurrency: 512
+  statsInterval: 10s
+  hooks:
+    before:
+      - statements:
+        - |
+          CREATE SPACE IF NOT EXISTS `sftp_examples`(PARTITION_NUM = 20, REPLICA_FACTOR = 1, vid_type = INT);
+          USE `sftp_examples`;
+          CREATE TAG IF NOT EXISTS `Tag`(`date` STRING);
+        wait: 10s
+
+log:
+  level: INFO
+  console: true
+  files:
+   - logs/nebula-importer.log
+
+sources:
+  - sftp:
+      host: 192.168.0.10
+      port: 22
+      user: user
+      password: password
+      path: "/events/20190918.export.csv"
+    csv:
+      delimiter: "\t"
+    tags:
+      - name: Tag
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "date"
+            type: "STRING"
+            index: 1
+  - sftp:
+      host: 192.168.0.10
+      port: 22
+      user: user
+      keyFile: /home/user/.ssh/id_rsa
+      path: "/events/20190918.export.csv"
+    csv:
+      delimiter: "\t"
+    tags:
+      - name: Tag
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "date"
+            type: "STRING"
+            index: 1
+  - sftp:
+      host: 192.168.0.10
+      port: 22
+      user: user
+      keyData: |
+        -----BEGIN OPENSSH PRIVATE KEY-----
+        YOUR KEY DATA
+        -----END OPENSSH PRIVATE KEY-----
+      path: "/events/20190918.export.csv"
+    csv:
+      delimiter: "\t"
+    tags:
+      - name: Tag
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "date"
+            type: "STRING"
+            index: 1
