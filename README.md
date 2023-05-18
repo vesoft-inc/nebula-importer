@@ -3,9 +3,9 @@
 [![GolangCI](https://golangci.com/badges/github.com/vesoft-inc/nebula-importer.svg)](https://golangci.com/r/github.com/vesoft-inc/nebula-importer)
 [![GoDoc](https://godoc.org/github.com/vesoft-inc/nebula-importer?status.svg)](https://godoc.org/github.com/vesoft-inc/nebula-importer)
 
-# What is Nebula Importer?
+# What is NebulaGraph Importer?
 
-**Nebula Importer** is a tool to import data into [NebulaGraph](https://github.com/vesoft-inc/nebula).
+**NebulaGraph Importer** is a tool to import data into [NebulaGraph](https://github.com/vesoft-inc/nebula).
 
 ## Features
 
@@ -28,6 +28,7 @@ Download the packages on the [Releases page](https://github.com/vesoft-inc/nebul
 You can choose according to your needs, the following installation packages are supported:
 
 * binary
+* archives
 * apk
 * deb
 * rpm
@@ -41,8 +42,17 @@ $ go install github.com/vesoft-inc/nebula-importer/cmd/nebula-importer@latest
 ### From docker
 
 ```shell
-$ docker pull vesoft/nebula-importer
-$ docker run -it -v <path-to-config>:/config.yaml --rm vesoft/nebula-importer -c /config.yaml
+$ docker pull vesoft/nebula-importer:<version>
+$ docker run --rm -ti \
+      --network=host \
+      -v <config_file>:<config_file> \
+      -v <data_dir>:<data_dir> \
+      vesoft/nebula-importer:<version>
+      --config <config_file>
+
+# config_file: the absolute path to the configuration file.
+# data_dir: the absolute path to the data directory, ignore if not a local file.
+# version: the version of NebulaGraph Importer.
 ```
 
 ### From Source Code
@@ -57,12 +67,12 @@ You can find a binary named `nebula-importer` in `bin` directory.
 
 ## Configuration Instructions
 
-`Nebula Importer`'s configuration file is in YAML format. You can find some examples in [examples](examples/).
+`NebulaGraph Importer`'s configuration file is in YAML format. You can find some examples in [examples](examples/).
 
 Configuration options are divided into four groups:
 
 * `client` is configuration options related to the NebulaGraph connection client.
-* `manager` is global control configuration options related to Nebula Importer.
+* `manager` is global control configuration options related to NebulaGraph Importer.
 * `log` is configuration options related to printing logs.
 * `sources` is the data source configuration items.
 
@@ -100,14 +110,19 @@ client:
   hooks:
     before:
       - statements:
-          - statements1
-          - statements2
-        wait: 10s
+          - UPDATE CONFIGS storage:wal_ttl=3600;
+          - UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = true };
       - statements:
-          - statements3
+          - |
+            DROP SPACE IF EXISTS basic_int_examples;
+            CREATE SPACE IF NOT EXISTS basic_int_examples(partition_num=5, replica_factor=1, vid_type=int);
+            USE basic_int_examples;
+        wait: 10s
     after:
       - statements:
-          - statements4
+          - |
+            UPDATE CONFIGS storage:wal_ttl=86400;
+            UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };
 ```
 
 * `manager.spaceName`: **Required**. Specifies which space the data is imported into.
@@ -132,7 +147,7 @@ log:
    - logs/nebula-importer.log
 ```
 
-* `log.level`: **Optional**. Specifies the log level. The default value is `INFO`.
+* `log.level`: **Optional**. Specifies the log level, optional values is `DEBUG`, `INFO`, `WARN`, `ERROR`, `PANIC` or `FATAL`. The default value is `INFO`.
 * `log.console`: **Optional**. Specifies whether to print logs to the console. The default value is `true`.
 * `log.files`: **Optional**. Specifies which files to print logs to.
 
@@ -168,16 +183,16 @@ s3:
   region: <region>
   bucket: <bucket>
   key: <key>
-  accessKey: <accessKey>
-  secretKey: <secretKey>
+  accessKeyID: <Access Key ID>
+  accessKeySecret: <Access Key Secret>
 ```
 
 * `endpoint`: **Optional**. The endpoint of s3 service, can be omitted if using aws s3.
 * `region`: **Required**. The region of s3 service.
 * `bucket`: **Required**. The bucket of file in s3 service.
 * `key`: **Required**. The object key of file in s3 service.
-* `accessKey`: **Optional**. The access key of s3 service. If it is public data, no need to configure.
-* `secretKey`: **Optional**. The secret key of s3 service. If it is public data, no need to configure.
+* `accessKeyID`: **Optional**. The `Access Key ID` of s3 service. If it is public data, no need to configure.
+* `accessKeySecret`: **Optional**. The `Access Key Secret` of s3 service. If it is public data, no need to configure.
 
 #### oss
 
@@ -188,15 +203,15 @@ oss:
   endpoint: <endpoint>
   bucket: <bucket>
   key: <key>
-  accessKey: <accessKey>
-  secretKey: <secretKey>
+  accessKeyID: <Access Key ID>
+  accessKeySecret: <Access Key Secret>
 ```
 
 * `endpoint`: **Required**. The endpoint of oss service.
 * `bucket`: **Required**. The bucket of file in oss service.
 * `key`: **Required**. The object key of file in oss service.
-* `accessKey`: **Required**. The access key of oss service.
-* `secretKey`: **Required**. The secret key of oss service.
+* `accessKeyID`: **Required**. The `Access Key ID` of oss service.
+* `accessKeySecret`: **Required**. The `Access Key Secret` of oss service.
 
 #### ftp
 

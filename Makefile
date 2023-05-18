@@ -44,6 +44,9 @@ build:
 test:
 	go test -gcflags=all="-l" -race -coverprofile=coverage.txt -covermode=atomic ./pkg/...
 
+test-it: # integration-testing
+	docker-compose -f integration-testing/docker-compose.yaml up --build --exit-code-from importer
+
 docker-build:
 	docker build -t "${DOCKER_REPO}/nebula-importer:${IMAGE_TAG}" -f Dockerfile .
 

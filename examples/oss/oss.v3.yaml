@@ -32,10 +32,10 @@ log:
 sources:
   - oss:
       endpoint: https://oss-cn-hangzhou.aliyuncs.com
-      bucket: bucketName
-      key: objectKey
-      accessKey: accessKey
-      secretKey: secretKey
+      bucket: bucket-name
+      key: object-key
+      accessKeyID: "Access Key ID"
+      accessKeySecret: "Access Key Secret"
     csv:
       delimiter: "\t"
     tags:

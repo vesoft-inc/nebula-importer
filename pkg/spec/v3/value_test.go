@@ -17,6 +17,7 @@ var _ = Describe("Value", func() {
 		Entry(nil, ValueTypeFloat, true),
 		Entry(nil, ValueTypeDouble, true),
 		Entry(nil, ValueTypeDate, true),
+		Entry(nil, ValueTypeTime, true),
 		Entry(nil, ValueTypeDateTime, true),
 		Entry(nil, ValueTypeTimestamp, true),
 		Entry(nil, ValueTypeGeo, true),

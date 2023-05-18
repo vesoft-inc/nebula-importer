@@ -14,13 +14,13 @@ var _ Source = (*s3Source)(nil)
 
 type (
 	S3Config struct {
-		Endpoint  string `yaml:"endpoint,omitempty"`
-		Region    string `yaml:"region,omitempty"`
-		AccessKey string `yaml:"accessKey,omitempty"`
-		SecretKey string `yaml:"secretKey,omitempty"`
-		Token     string `yaml:"token,omitempty"`
-		Bucket    string `yaml:"bucket,omitempty"`
-		Key       string `yaml:"key,omitempty"`
+		Endpoint        string `yaml:"endpoint,omitempty"`
+		Region          string `yaml:"region,omitempty"`
+		AccessKeyID     string `yaml:"accessKeyID,omitempty"`
+		AccessKeySecret string `yaml:"accessKeySecret,omitempty"`
+		Token           string `yaml:"token,omitempty"`
+		Bucket          string `yaml:"bucket,omitempty"`
+		Key             string `yaml:"key,omitempty"`
 	}
 
 	s3Source struct {
@@ -46,8 +46,8 @@ func (s *s3Source) Open() error {
 		S3ForcePathStyle: aws.Bool(true),
 	}
 
-	if s.c.S3.AccessKey != "" || s.c.S3.SecretKey != "" || s.c.S3.Token != "" {
-		awsConfig.Credentials = credentials.NewStaticCredentials(s.c.S3.AccessKey, s.c.S3.SecretKey, s.c.S3.Token)
+	if s.c.S3.AccessKeyID != "" || s.c.S3.AccessKeySecret != "" || s.c.S3.Token != "" {
+		awsConfig.Credentials = credentials.NewStaticCredentials(s.c.S3.AccessKeyID, s.c.S3.AccessKeySecret, s.c.S3.Token)
 	}
 
 	sess, err := session.NewSession(awsConfig)

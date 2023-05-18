@@ -23,6 +23,10 @@ type (
 	}
 )
 
+func (s *Stats) IsFailed() bool {
+	return s.FailedRecords > 0 || s.FailedRequest > 0 || s.FailedProcessed > 0
+}
+
 func (s *Stats) Percentage() float64 {
 	if s.TotalBytes == 0 {
 		return 0

@@ -90,12 +90,12 @@ func (l *zapLogger) Error(msg string, fields ...Field) {
 	l.l.Error(msg, toZapFields(fields...)...)
 }
 
-func (l *zapLogger) Fatal(msg string, fields ...Field) {
-	l.l.Fatal(msg, toZapFields(fields...)...)
-}
-
 func (l *zapLogger) Panic(msg string, fields ...Field) {
 	l.l.Panic(msg, toZapFields(fields...)...)
+}
+
+func (l *zapLogger) Fatal(msg string, fields ...Field) {
+	l.l.Fatal(msg, toZapFields(fields...)...)
 }
 
 func (l *zapLogger) Sync() error {

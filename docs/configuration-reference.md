@@ -1,4 +1,4 @@
-# Nebula Importer Configuration Description
+# NebulaGraph Importer Configuration Description
 
 | options                                      | description                                                               | default    |
 | :--                                          | :--                                                                       | :--        |
@@ -12,7 +12,7 @@
 | client.retry                                 | The failed retrying times to execute nGQL queries in NebulaGraph client.  | 3          |
 | client.retryInitialInterval                  | The initialization interval retrying.                                     | 1s         |
 |                                              |                                                                           |            |
-| manager                                      | The global control configuration options related to Nebula Importer.      | -          |
+| manager                                      | The global control configuration options related to NebulaGraph Importer. | -          |
 | manager.spaceName                            | Specifies which space the data is imported into.                          | -          |
 | manager.batch                                | Specifies the batch size for all sources of the inserted data.            | 128        |
 | manager.readerConcurrency                    | Specifies the concurrency of reader to read from sources.                 | 50         |
@@ -36,13 +36,13 @@
 | sources[].s3.region                          | The region of s3 service.                                                 | -          |
 | sources[].s3.bucket                          | The bucket of file in s3 service.                                         | -          |
 | sources[].s3.key                             | The object key of file in s3 service.                                     | -          |
-| sources[].s3.accessKey                       | The access key of s3 service.                                             | -          |
-| sources[].s3.secretKey                       | The secret key of s3 service.                                             | -          |
+| sources[].s3.accessKeyID                     | The `Access Key ID` of s3 service.                                        | -          |
+| sources[].s3.accessKeySecret                 | The `Access Key Secret` of s3 service.                                    | -          |
 | sources[].oss.endpoint                       | The endpoint of oss service.                                              | -          |
 | sources[].oss.bucket                         | The bucket of file in oss service.                                        | -          |
 | sources[].oss.key                            | The object key of file in oss service.                                    | -          |
-| sources[].oss.accessKey                      | The access key of oss service.                                            | -          |
-| sources[].oss.secretKey                      | The secret key of oss service.                                            | -          |
+| sources[].oss.accessKeyID                    | The `Access Key ID` of oss service.                                       | -          |
+| sources[].oss.accessKeySecret                | The `Access Key Secret` of oss service.                                   | -          |
 | sources[].ftp.host                           | The host of ftp service.                                                  | -          |
 | sources[].ftp.host                           | The port of ftp service.                                                  | -          |
 | sources[].ftp.user                           | The user of ftp service.                                                  | -          |

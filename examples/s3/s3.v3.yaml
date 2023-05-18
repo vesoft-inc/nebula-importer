@@ -34,8 +34,8 @@ sources:
       region: us-east-1
       bucket: gdelt-open-data
       key: events/20190918.export.csv
-      # accessKey: ""
-      # secretKey: ""
+      # accessKeyID: ""
+      # accessKeySecret: ""
     csv:
       delimiter: "\t"
     tags:
@@ -52,8 +52,8 @@ sources:
       region: us-east-1
       bucket: gdelt-open-data
       key: events/20190918.export.csv
-      accessKey: "accessKey"
-      secretKey: "secretKey"
+      accessKeyID: "Access Key ID"
+      accessKeySecret: "Access Key Secret"
     csv:
       delimiter: "\t"
     tags:

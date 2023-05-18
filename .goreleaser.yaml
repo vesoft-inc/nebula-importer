@@ -1,7 +1,7 @@
 project_name: nebula-importer
 
 release:
-  name_template: "Nebula Importer {{.Version}}"
+  name_template: "NebulaGraph Importer {{.Version}}"
 
 before:
   hooks:
@@ -33,7 +33,9 @@ builds:
       - "7"
 
 archives:
-  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+  - id: archives
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    wrap_in_directory: true
     replacements:
       darwin: Darwin
       linux: Linux
@@ -41,17 +43,28 @@ archives:
       386: i386
       amd64: x86_64
     files:
-      - README.md
+      - none* # https://goreleaser.com/customization/archive/?h=archives#packaging-only-the-binaries
     format_overrides:
       - goos: windows
         format: zip
+  - id: binary
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    format: binary
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    files:
+      - none* # https://goreleaser.com/customization/archive/?h=archives#packaging-only-the-binaries
 
 dockers:
   - &dockers
     image_templates:
-      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-amd64"
     use: buildx
-    dockerfile: Dockerfile.goreleaser
+    dockerfile: Dockerfile
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--pull"
@@ -64,7 +77,7 @@ dockers:
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
   - <<: *dockers
     image_templates:
-      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-armv7"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-armv7"
     goarch: arm
     goarm: 7
     build_flag_templates:
@@ -79,7 +92,7 @@ dockers:
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
   - <<: *dockers
     image_templates:
-      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-arm64v8"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-arm64v8"
     goarch: arm64
     build_flag_templates:
       - "--platform=linux/arm64/v8"
@@ -93,19 +106,37 @@ dockers:
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
 docker_manifests:
   - &docker_manifests
-    name_template: "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:latest"
+    name_template: "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}"
     image_templates:
-      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-amd64"
-      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-armv7"
-      - "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}-arm64v8"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-amd64"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-armv7"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-arm64v8"
   - <<: *docker_manifests
-    name_template: "reg.vesoft-inc.com/vesoft-ent/{{ .ProjectName }}:{{ .Version }}"
+    name_template: "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:v{{ .Major }}"
+    skip_push: auto
+    image_templates:
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-amd64"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-armv7"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-arm64v8"
+  - <<: *docker_manifests
+    name_template: "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:v{{ .Major }}.{{ .Minor }}"
+    skip_push: auto
+    image_templates:
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-amd64"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-armv7"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-arm64v8"
+  - <<: *docker_manifests
+    name_template: "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:latest"
+    image_templates:
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-amd64"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-armv7"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}{{ .ProjectName }}:{{ .Tag }}-arm64v8"
 
 nfpms:
 - file_name_template: '{{ .ConventionalFileName }}'
   id: packages
   homepage: https://github.com/vesoft-inc/nebula-importer
-  description: Nebula Importer.
+  description: NebulaGraph Importer.
   maintainer: Vee Zhang <vee.zhang@vesoft.com>
   vendor: Vesoft Inc.
   bindir: /usr/bin
