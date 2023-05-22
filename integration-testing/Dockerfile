@@ -6,7 +6,7 @@ ENV CGO_ENABLED 0
 ENV GOOS linux
 WORKDIR /build/zero
 
-RUN go install github.com/vesoft-inc/nebula-console@latest
+RUN go install github.com/vesoft-inc/nebula-console@release-3.5
 
 ADD . .
 
