@@ -13,11 +13,11 @@ var _ Source = (*ossSource)(nil)
 
 type (
 	OSSConfig struct {
-		Endpoint  string `yaml:"endpoint,omitempty"`
-		AccessKey string `yaml:"accessKey,omitempty"`
-		SecretKey string `yaml:"secretKey,omitempty"`
-		Bucket    string `yaml:"bucket,omitempty"`
-		Key       string `yaml:"key,omitempty"`
+		Endpoint        string `yaml:"endpoint,omitempty"`
+		AccessKeyID     string `yaml:"accessKeyID,omitempty"`
+		AccessKeySecret string `yaml:"accessKeySecret,omitempty"`
+		Bucket          string `yaml:"bucket,omitempty"`
+		Key             string `yaml:"key,omitempty"`
 	}
 
 	ossSource struct {
@@ -39,7 +39,7 @@ func (s *ossSource) Name() string {
 }
 
 func (s *ossSource) Open() error {
-	cli, err := oss.New(s.c.OSS.Endpoint, s.c.OSS.AccessKey, s.c.OSS.SecretKey)
+	cli, err := oss.New(s.c.OSS.Endpoint, s.c.OSS.AccessKeyID, s.c.OSS.AccessKeySecret)
 	if err != nil {
 		return err
 	}

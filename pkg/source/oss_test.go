@@ -38,11 +38,11 @@ var _ = Describe("ossSource", func() {
 
 		c := Config{
 			OSS: &OSSConfig{
-				Endpoint:  httpServer.URL,
-				AccessKey: "accessKey",
-				SecretKey: "secretKey",
-				Bucket:    "bucket",
-				Key:       "key",
+				Endpoint:        httpServer.URL,
+				AccessKeyID:     "accessKeyID",
+				AccessKeySecret: "accessKeySecret",
+				Bucket:          "bucket",
+				Key:             "key",
 			},
 		}
 
@@ -80,11 +80,11 @@ var _ = Describe("ossSource", func() {
 	It("oss.New failed", func() {
 		c := Config{
 			OSS: &OSSConfig{
-				Endpoint:  "\t",
-				AccessKey: "accessKey",
-				SecretKey: "secretKey",
-				Bucket:    "bucket",
-				Key:       "key",
+				Endpoint:        "\t",
+				AccessKeyID:     "accessKeyID",
+				AccessKeySecret: "accessKeySecret",
+				Bucket:          "bucket",
+				Key:             "key",
 			},
 		}
 
@@ -99,11 +99,11 @@ var _ = Describe("ossSource", func() {
 	It("Bucket failed", func() {
 		c := Config{
 			OSS: &OSSConfig{
-				Endpoint:  httpServer.URL,
-				AccessKey: "accessKey",
-				SecretKey: "secretKey",
-				Bucket:    "b",
-				Key:       "key",
+				Endpoint:        httpServer.URL,
+				AccessKeyID:     "accessKeyID",
+				AccessKeySecret: "accessKeySecret",
+				Bucket:          "b",
+				Key:             "key",
 			},
 		}
 
@@ -121,11 +121,11 @@ var _ = Describe("ossSource", func() {
 		})
 		c := Config{
 			OSS: &OSSConfig{
-				Endpoint:  httpServer.URL,
-				AccessKey: "accessKey",
-				SecretKey: "secretKey",
-				Bucket:    "bucket",
-				Key:       "key",
+				Endpoint:        httpServer.URL,
+				AccessKeyID:     "accessKeyID",
+				AccessKeySecret: "accessKeySecret",
+				Bucket:          "bucket",
+				Key:             "key",
 			},
 		}
 
@@ -151,11 +151,11 @@ var _ = Describe("ossSource", func() {
 		})
 		c := Config{
 			OSS: &OSSConfig{
-				Endpoint:  httpServer.URL,
-				AccessKey: "accessKey",
-				SecretKey: "secretKey",
-				Bucket:    "bucket",
-				Key:       "key",
+				Endpoint:        httpServer.URL,
+				AccessKeyID:     "accessKeyID",
+				AccessKeySecret: "accessKeySecret",
+				Bucket:          "bucket",
+				Key:             "key",
 			},
 		}
 
@@ -185,11 +185,11 @@ var _ = Describe("ossSource", func() {
 		})
 		c := Config{
 			OSS: &OSSConfig{
-				Endpoint:  httpServer.URL,
-				AccessKey: "accessKey",
-				SecretKey: "secretKey",
-				Bucket:    "bucket",
-				Key:       "key",
+				Endpoint:        httpServer.URL,
+				AccessKeyID:     "accessKeyID",
+				AccessKeySecret: "accessKeySecret",
+				Bucket:          "bucket",
+				Key:             "key",
 			},
 		}
 

@@ -38,13 +38,13 @@ var _ = Describe("s3Source", func() {
 
 		c := Config{
 			S3: &S3Config{
-				Endpoint:  httpServer.URL,
-				Region:    "us-west-2",
-				AccessKey: "accessKey",
-				SecretKey: "secretKey",
-				Token:     "token",
-				Bucket:    "bucket",
-				Key:       "key",
+				Endpoint:        httpServer.URL,
+				Region:          "us-west-2",
+				AccessKeyID:     "accessKeyID",
+				AccessKeySecret: "accessKeySecret",
+				Token:           "token",
+				Bucket:          "bucket",
+				Key:             "key",
 			},
 		}
 
@@ -85,13 +85,13 @@ var _ = Describe("s3Source", func() {
 		})
 		c := Config{
 			S3: &S3Config{
-				Endpoint:  httpServer.URL,
-				Region:    "us-west-2",
-				AccessKey: "accessKey",
-				SecretKey: "secretKey",
-				Token:     "token",
-				Bucket:    "bucket",
-				Key:       "key",
+				Endpoint:        httpServer.URL,
+				Region:          "us-west-2",
+				AccessKeyID:     "accessKeyID",
+				AccessKeySecret: "accessKeySecret",
+				Token:           "token",
+				Bucket:          "bucket",
+				Key:             "key",
 			},
 		}
 

@@ -13,6 +13,7 @@ const (
 	ValueTypeFloat         ValueType = "FLOAT"
 	ValueTypeDouble        ValueType = "DOUBLE"
 	ValueTypeDate          ValueType = "DATE"
+	ValueTypeTime          ValueType = "TIME"
 	ValueTypeDateTime      ValueType = "DATETIME"
 	ValueTypeTimestamp     ValueType = "TIMESTAMP"
 	ValueTypeGeo           ValueType = "GEOGRAPHY"
@@ -31,6 +32,7 @@ var (
 		ValueTypeFloat:         {},
 		ValueTypeDouble:        {},
 		ValueTypeDate:          {},
+		ValueTypeTime:          {},
 		ValueTypeDateTime:      {},
 		ValueTypeTimestamp:     {},
 		ValueTypeGeo:           {},

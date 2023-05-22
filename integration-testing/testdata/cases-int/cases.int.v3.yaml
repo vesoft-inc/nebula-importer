@@ -1,0 +1,65 @@
+client:
+  version: v3
+  address: "graphd1:9669,graphd2:9669"
+  user: root
+  password: nebula
+  concurrencyPerAddress: 1
+  reconnectInitialInterval: 1s
+  retry: 3
+  retryInitialInterval: 1s
+
+manager:
+  spaceName: tests_cases_string
+  batch: 128
+  readerConcurrency: 50
+  importerConcurrency: 512
+  statsInterval: 10s
+  hooks:
+    before:
+      - statements:
+        - |
+          UPDATE CONFIGS storage:wal_ttl=3600;
+          UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = true };
+          DROP SPACE IF EXISTS tests_cases_string;
+          CREATE SPACE IF NOT EXISTS tests_cases_string(partition_num=5, replica_factor=1, vid_type=int);USE tests_cases_string;
+          CREATE TAG course(name string, credits int);
+        wait: 15s
+    after:
+      - statements:
+        - |
+          UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };
+          UPDATE CONFIGS storage:wal_ttl=86400;
+
+log:
+  level: INFO
+  console: true
+
+sources:
+  - path: ./course.csv
+    batch: 2
+    csv:
+      withHeader: false
+    tags:
+    - name: course
+      id:
+        index: 0
+        type: int
+      props:
+        - name: name
+          type: string
+          index: 1
+        - name: credits
+          type: int
+          index: 2
+    - name: course
+      id:
+        index: 0
+        type: int
+        function: hash
+      props:
+        - name: name
+          type: string
+          index: 1
+        - name: credits
+          type: int
+          index: 2

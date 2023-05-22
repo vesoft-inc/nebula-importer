@@ -29,6 +29,7 @@ var _ = Describe("Stats", func() {
 				FailedProcessed: 2,
 				TotalProcessed:  5,
 			}
+			Expect(s.IsFailed()).To(Equal(true))
 			Expect(s.String()).Should(Equal("10s 20s 33.33%(100 KiB/300 KiB) Records{Finished: 1234, Failed: 23, Rate: 123.40/s}, Requests{Finished: 12, Failed: 1, Latency: 1s/2s, Rate: 1.20/s}, Processed{Finished: 5, Failed: 2, Rate: 0.50/s}"))
 		})
 	})

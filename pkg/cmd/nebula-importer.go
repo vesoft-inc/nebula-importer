@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/client"
@@ -9,6 +10,7 @@ import (
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/manager"
+	"github.com/vesoft-inc/nebula-importer/v4/pkg/version"
 
 	"github.com/spf13/cobra"
 )
@@ -44,7 +46,7 @@ func NewDefaultImporterCommand() *cobra.Command {
 func NewImporterCommand(o *ImporterOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "nebula-importer",
-		Short: `The Nebula Importer Tool.`,
+		Short: `The NebulaGraph Importer Tool.`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer func() {
 				if err != nil {
@@ -76,7 +78,13 @@ func NewImporterCommand(o *ImporterOptions) *cobra.Command {
 			}
 			return o.Run(cmd, args)
 		},
+		Version:       version.GetVersion().String(),
+		SilenceErrors: true,
+		SilenceUsage:  true,
 	}
+
+	cmd.SetVersionTemplate("{{.Version}}")
+
 	o.AddFlags(cmd)
 	return cmd
 }
@@ -114,6 +122,9 @@ func (o *ImporterOptions) Run(_ *cobra.Command, _ []string) error {
 	//revive:disable-next-line:if-return
 	if err := o.mgr.Wait(); err != nil {
 		return err
+	}
+	if o.mgr.Stats().IsFailed() {
+		return fmt.Errorf("failed to import")
 	}
 	return nil
 }

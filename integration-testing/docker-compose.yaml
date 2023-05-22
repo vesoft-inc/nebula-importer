@@ -1,0 +1,142 @@
+version: '3'
+services:
+  metad:
+    image: vesoft/nebula-metad:nightly
+    environment:
+      USER: root
+      TZ: UTC
+    command:
+      - --meta_server_addrs=metad:9559
+      - --local_ip=metad
+      - --ws_ip=metad
+      - --port=9559
+      - --ws_http_port=19559
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://metad:19559/status"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      nebula-net:
+    restart: on-failure
+    cap_add:
+      - SYS_PTRACE
+
+  graphd1:
+    image: vesoft/nebula-graphd:nightly
+    environment:
+      USER: root
+      TZ: UTC
+    command:
+      - --meta_server_addrs=metad:9559
+      - --local_ip=graphd1
+      - --ws_ip=graphd1
+      - --port=9669
+      - --ws_http_port=19669
+      - --local_config=false
+    depends_on:
+      - metad
+      - storaged
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://graphd1:19669/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      nebula-net:
+    restart: on-failure
+    cap_add:
+      - SYS_PTRACE
+
+  graphd2:
+    image: vesoft/nebula-graphd:nightly
+    environment:
+      USER: root
+      TZ: UTC
+    command:
+      - --meta_server_addrs=metad:9559
+      - --local_ip=graphd1
+      - --ws_ip=graphd2
+      - --port=9669
+      - --ws_http_port=19669
+      - --enable_authorize=true
+      - --local_config=false
+    depends_on:
+      - metad
+      - storaged
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://graphd2:19669/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      nebula-net:
+    restart: on-failure
+    cap_add:
+      - SYS_PTRACE
+
+  storaged:
+    image: vesoft/nebula-storaged:nightly
+    environment:
+      USER: root
+      TZ: UTC
+    command:
+      - --meta_server_addrs=metad:9559
+      - --local_ip=storaged
+      - --ws_ip=storaged
+      - --port=9779
+      - --ws_http_port=19779
+      - --local_config=false
+    depends_on:
+      - metad
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://storaged:19779/status"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      nebula-net:
+    restart: on-failure
+    cap_add:
+      - SYS_PTRACE
+
+  importer:
+    build:
+      context: ../
+      dockerfile: ./integration-testing/Dockerfile
+    depends_on:
+      - graphd1
+      - graphd2
+      - metad
+      - storaged
+    networks:
+      nebula-net:
+    entrypoint: ""
+    command:
+      - sh
+      - -c
+      - |
+        for i in `seq 1 60`; do
+          echo "Adding hosts..."
+          nebula-console -addr graphd1 -port 9669 -u root -p nebula -e 'ADD HOSTS "storaged":9779'
+          if [[ $$? == 0 ]];then
+            echo "Add hosts succeed"
+            break
+          fi
+          sleep 1
+          echo "retry to add hosts."
+        done
+
+        set -e
+
+        nebula-importer -c ./integration-testing/testdata/basic/basic.int.v3.yaml
+        nebula-importer -c ./integration-testing/testdata/basic/basic.string.v3.yaml
+        nebula-importer -c ./integration-testing/testdata/cases-string/cases.string.v3.yaml
+        nebula-importer -c ./integration-testing/testdata/cases-int/cases.int.v3.yaml
+
+networks:
+  nebula-net:
