@@ -4,6 +4,7 @@ import (
 	stderrors "errors"
 
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
+	specbase "github.com/vesoft-inc/nebula-importer/v4/pkg/spec/base"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -71,6 +72,19 @@ var _ = Describe("Node", func() {
 			Expect(stderrors.Is(err, errors.ErrUnsupportedValueType)).To(BeTrue())
 		})
 
+		It("filter validate failed", func() {
+			node := NewNode(
+				"name",
+				WithNodeID(&NodeID{Name: "id", Type: ValueTypeInt}),
+				WithNodeFilter(&specbase.Filter{
+					Expr: "",
+				}),
+			)
+			err := node.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(stderrors.Is(err, errors.ErrFilterSyntax)).To(BeTrue())
+		})
+
 		It("success without props", func() {
 			node := NewNode(
 				"name",
@@ -105,21 +119,24 @@ var _ = Describe("Node", func() {
 			})
 
 			It("one record", func() {
-				statement, err := node.InsertStatement([]string{"1", "1.1", "str1"})
+				statement, nRecord, err := node.InsertStatement([]string{"1", "1.1", "str1"})
 				Expect(err).NotTo(HaveOccurred())
+				Expect(nRecord).To(Equal(1))
 				Expect(statement).To(Equal("INSERT VERTEX IGNORE_EXISTED_INDEX `name`() VALUES 1:()"))
 			})
 
 			It("two record", func() {
-				statement, err := node.InsertStatement([]string{"1", "1.1", "str1"}, []string{"2", "2.2", "str2"})
+				statement, nRecord, err := node.InsertStatement([]string{"1", "1.1", "str1"}, []string{"2", "2.2", "str2"})
 				Expect(err).NotTo(HaveOccurred())
+				Expect(nRecord).To(Equal(2))
 				Expect(statement).To(Equal("INSERT VERTEX IGNORE_EXISTED_INDEX `name`() VALUES 1:(), 2:()"))
 			})
 
 			It("failed id no record", func() {
-				statement, err := node.InsertStatement([]string{})
+				statement, nRecord, err := node.InsertStatement([]string{})
 				Expect(err).To(HaveOccurred())
 				Expect(stderrors.Is(err, errors.ErrNoRecord)).To(BeTrue())
+				Expect(nRecord).To(Equal(0))
 				Expect(statement).To(BeEmpty())
 			})
 		})
@@ -140,28 +157,32 @@ var _ = Describe("Node", func() {
 			})
 
 			It("one record", func() {
-				statement, err := node.InsertStatement([]string{"1", "1.1", "str1"})
+				statement, nRecord, err := node.InsertStatement([]string{"1", "1.1", "str1"})
 				Expect(err).NotTo(HaveOccurred())
+				Expect(nRecord).To(Equal(1))
 				Expect(statement).To(Equal("INSERT VERTEX IGNORE_EXISTED_INDEX `name`(`prop1`) VALUES 1:(\"str1\")"))
 			})
 
 			It("two record", func() {
-				statement, err := node.InsertStatement([]string{"1", "1.1", "str1"}, []string{"2", "2.2", "str2"})
+				statement, nRecord, err := node.InsertStatement([]string{"1", "1.1", "str1"}, []string{"2", "2.2", "str2"})
 				Expect(err).NotTo(HaveOccurred())
+				Expect(nRecord).To(Equal(2))
 				Expect(statement).To(Equal("INSERT VERTEX IGNORE_EXISTED_INDEX `name`(`prop1`) VALUES 1:(\"str1\"), 2:(\"str2\")"))
 			})
 
 			It("failed id no record", func() {
-				statement, err := node.InsertStatement([]string{})
+				statement, nRecord, err := node.InsertStatement([]string{})
 				Expect(err).To(HaveOccurred())
 				Expect(stderrors.Is(err, errors.ErrNoRecord)).To(BeTrue())
+				Expect(nRecord).To(Equal(0))
 				Expect(statement).To(BeEmpty())
 			})
 
 			It("failed prop no record", func() {
-				statement, err := node.InsertStatement([]string{"1"})
+				statement, nRecord, err := node.InsertStatement([]string{"1"})
 				Expect(err).To(HaveOccurred())
 				Expect(stderrors.Is(err, errors.ErrNoRecord)).To(BeTrue())
+				Expect(nRecord).To(Equal(0))
 				Expect(statement).To(BeEmpty())
 			})
 		})
@@ -183,28 +204,32 @@ var _ = Describe("Node", func() {
 			})
 
 			It("one record", func() {
-				statement, err := node.InsertStatement([]string{"1", "1.1", "str1"})
+				statement, nRecord, err := node.InsertStatement([]string{"1", "1.1", "str1"})
 				Expect(err).NotTo(HaveOccurred())
+				Expect(nRecord).To(Equal(1))
 				Expect(statement).To(Equal("INSERT VERTEX IGNORE_EXISTED_INDEX `name`(`prop1`, `prop2`) VALUES 1:(\"str1\", 1.1)"))
 			})
 
 			It("two record", func() {
-				statement, err := node.InsertStatement([]string{"1", "1.1", "str1"}, []string{"2", "2.2", "str2"})
+				statement, nRecord, err := node.InsertStatement([]string{"1", "1.1", "str1"}, []string{"2", "2.2", "str2"})
 				Expect(err).NotTo(HaveOccurred())
+				Expect(nRecord).To(Equal(2))
 				Expect(statement).To(Equal("INSERT VERTEX IGNORE_EXISTED_INDEX `name`(`prop1`, `prop2`) VALUES 1:(\"str1\", 1.1), 2:(\"str2\", 2.2)"))
 			})
 
 			It("failed id no record", func() {
-				statement, err := node.InsertStatement([]string{})
+				statement, nRecord, err := node.InsertStatement([]string{})
 				Expect(err).To(HaveOccurred())
 				Expect(stderrors.Is(err, errors.ErrNoRecord)).To(BeTrue())
+				Expect(nRecord).To(Equal(0))
 				Expect(statement).To(BeEmpty())
 			})
 
 			It("failed prop no record", func() {
-				statement, err := node.InsertStatement([]string{"1"})
+				statement, nRecord, err := node.InsertStatement([]string{"1"})
 				Expect(err).To(HaveOccurred())
 				Expect(stderrors.Is(err, errors.ErrNoRecord)).To(BeTrue())
+				Expect(nRecord).To(Equal(0))
 				Expect(statement).To(BeEmpty())
 			})
 		})
@@ -221,8 +246,9 @@ var _ = Describe("Node", func() {
 			err := node.Validate()
 			Expect(err).NotTo(HaveOccurred())
 
-			statement, err := node.InsertStatement([]string{"1"})
+			statement, nRecord, err := node.InsertStatement([]string{"1"})
 			Expect(err).NotTo(HaveOccurred())
+			Expect(nRecord).To(Equal(1))
 			Expect(statement).To(Equal("INSERT VERTEX `name`() VALUES 1:()"))
 		})
 		It("WithNodeIgnoreExistedIndex true", func() {
@@ -235,9 +261,62 @@ var _ = Describe("Node", func() {
 			err := node.Validate()
 			Expect(err).NotTo(HaveOccurred())
 
-			statement, err := node.InsertStatement([]string{"1"})
+			statement, nRecord, err := node.InsertStatement([]string{"1"})
 			Expect(err).NotTo(HaveOccurred())
+			Expect(nRecord).To(Equal(1))
 			Expect(statement).To(Equal("INSERT VERTEX IGNORE_EXISTED_INDEX `name`() VALUES 1:()"))
+		})
+	})
+
+	When("WithNodeFilter", func() {
+		It("WithNodeFilter error", func() {
+			node := NewNode(
+				"name",
+				WithNodeID(&NodeID{Name: "id", Type: ValueTypeInt, Index: 0}),
+				WithNodeFilter(&specbase.Filter{
+					Expr: "",
+				}),
+			)
+			node.Complete()
+			err := node.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(stderrors.Is(err, errors.ErrFilterSyntax)).To(BeTrue())
+		})
+		It("WithNodeFilter successfully", func() {
+			node := NewNode(
+				"name",
+				WithNodeID(&NodeID{Name: "id", Type: ValueTypeInt, Index: 0}),
+				WithNodeFilter(&specbase.Filter{
+					Expr: `(Record[0] == "1" or Record[0] == "2" or Record[0] == "3") and Record[1] != "A"`,
+				}),
+			)
+			node.Complete()
+			err := node.Validate()
+			Expect(err).NotTo(HaveOccurred())
+
+			// all true
+			statement, nRecord, err := node.InsertStatement([]string{"1", "B"}, []string{"2", "C"}, []string{"3", "D"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(nRecord).To(Equal(3))
+			Expect(statement).To(Equal("INSERT VERTEX IGNORE_EXISTED_INDEX `name`() VALUES 1:(), 2:(), 3:()"))
+
+			// partially true
+			statement, nRecord, err = node.InsertStatement([]string{"2", "A"}, []string{"3", "D"}, []string{"4", "E"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(nRecord).To(Equal(1))
+			Expect(statement).To(Equal("INSERT VERTEX IGNORE_EXISTED_INDEX `name`() VALUES 3:()"))
+
+			// all false
+			statement, nRecord, err = node.InsertStatement([]string{"1", "A"}, []string{"2", "A"}, []string{"4", "E"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(nRecord).To(Equal(0))
+			Expect(statement).To(Equal(""))
+
+			// filter failed
+			statement, nRecord, err = node.InsertStatement([]string{"1"})
+			Expect(err).To(HaveOccurred())
+			Expect(nRecord).To(Equal(0))
+			Expect(statement).To(Equal(""))
 		})
 	})
 })

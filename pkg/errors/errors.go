@@ -23,4 +23,5 @@ var (
 	ErrNoIndicesOrConcatItems    = stderrors.New("no indices or concat items")
 	ErrUnsupportedConcatItemType = stderrors.New("unsupported concat item type")
 	ErrUnsupportedFunction       = stderrors.New("unsupported function")
+	ErrFilterSyntax              = stderrors.New("filter syntax")
 )

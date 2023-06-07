@@ -172,8 +172,9 @@ var _ = Describe("Manager", func() {
 					return nil, stderrors.New("import failed")
 				}
 				return &importer.ImportResp{
-					Latency:  2 * time.Microsecond,
-					RespTime: 3 * time.Microsecond,
+					RecordNum: len(records),
+					Latency:   2 * time.Microsecond,
+					RespTime:  3 * time.Microsecond,
 				}, nil
 			}
 

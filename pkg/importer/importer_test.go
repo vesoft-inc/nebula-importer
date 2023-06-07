@@ -35,7 +35,7 @@ var _ = Describe("Importer", func() {
 
 	Describe("New", func() {
 		It("build failed", func() {
-			mockBuilder.EXPECT().Build(gomock.Any()).Return("", errors.ErrNoRecord)
+			mockBuilder.EXPECT().Build(gomock.Any()).Return("", 0, errors.ErrNoRecord)
 
 			i := New(mockBuilder, mockClientPool)
 			resp, err := i.Import(spec.Record{})
@@ -45,7 +45,7 @@ var _ = Describe("Importer", func() {
 		})
 
 		It("execute failed", func() {
-			mockBuilder.EXPECT().Build(gomock.Any()).Return("statement", nil)
+			mockBuilder.EXPECT().Build(gomock.Any()).Return("statement", 1, nil)
 			mockClientPool.EXPECT().Execute(gomock.Any()).Return(nil, stderrors.New("test error"))
 
 			i := New(mockBuilder, mockClientPool)
@@ -58,7 +58,7 @@ var _ = Describe("Importer", func() {
 		})
 
 		It("execute IsSucceed false", func() {
-			mockBuilder.EXPECT().Build(gomock.Any()).Return("statement", nil)
+			mockBuilder.EXPECT().Build(gomock.Any()).Return("statement", 1, nil)
 			mockClientPool.EXPECT().Execute(gomock.Any()).Times(1).Return(mockResponse, nil)
 			mockResponse.EXPECT().IsSucceed().Times(1).Return(false)
 			mockResponse.EXPECT().GetError().Times(1).Return(stderrors.New("status failed"))
@@ -74,7 +74,7 @@ var _ = Describe("Importer", func() {
 		})
 
 		It("execute successfully", func() {
-			mockBuilder.EXPECT().Build(gomock.Any()).Times(1).Return("statement", nil)
+			mockBuilder.EXPECT().Build(gomock.Any()).Times(1).Return("statement", 1, nil)
 			mockClientPool.EXPECT().Execute(gomock.Any()).Times(1).Return(mockResponse, nil)
 			mockResponse.EXPECT().IsSucceed().Times(1).Return(true)
 			mockResponse.EXPECT().GetLatency().Times(1).Return(time.Microsecond * 10)
@@ -91,7 +91,7 @@ var _ = Describe("Importer", func() {
 		})
 
 		It("execute successfully with Add, Wait and Done", func() {
-			mockBuilder.EXPECT().Build(gomock.Any()).Times(2).Return("statement", nil)
+			mockBuilder.EXPECT().Build(gomock.Any()).Times(2).Return("statement", 1, nil)
 			mockClientPool.EXPECT().Execute(gomock.Any()).Times(2).Return(mockResponse, nil)
 			mockResponse.EXPECT().IsSucceed().Times(2).Return(true)
 			mockResponse.EXPECT().GetLatency().Times(2).Return(time.Microsecond * 10)

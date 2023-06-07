@@ -177,7 +177,7 @@ var _ = Describe("ImportError", func() {
 			"record":    []string{"record1", "record2"},
 			"statement": "test statement",
 		}))
-		Expect(importError.Error()).To(Equal("graph(graphName): node(nodeName): edge(edgeName): nodeID(nodeIDName): prop(propName): record([record1 record2]): statement(test statement): messagestest message, test message 1: test error"))
+		Expect(importError.Error()).To(Equal("graph(graphName): node(nodeName): edge(edgeName): nodeID(nodeIDName): prop(propName): record([record1 record2]): statement(test statement): messages: test message, test message 1: test error"))
 	})
 
 	It("withField", func() {

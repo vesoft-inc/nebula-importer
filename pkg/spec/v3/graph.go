@@ -71,30 +71,30 @@ func (g *Graph) Validate() error {
 	return nil
 }
 
-func (g *Graph) InsertNodeStatement(n *Node, records ...Record) (string, error) {
-	statement, err := n.InsertStatement(records...)
+func (g *Graph) InsertNodeStatement(n *Node, records ...Record) (statement string, nRecord int, err error) {
+	statement, nRecord, err = n.InsertStatement(records...)
 	if err != nil {
-		return "", g.importError(err).SetGraphName(g.Name).SetNodeName(n.Name)
+		return "", 0, g.importError(err).SetGraphName(g.Name).SetNodeName(n.Name)
 	}
-	return statement, nil
+	return statement, nRecord, nil
 }
 
 func (g *Graph) InsertNodeBuilder(n *Node) specbase.StatementBuilder {
-	return specbase.StatementBuilderFunc(func(records ...specbase.Record) (string, error) {
+	return specbase.StatementBuilderFunc(func(records ...specbase.Record) (string, int, error) {
 		return g.InsertNodeStatement(n, records...)
 	})
 }
 
-func (g *Graph) InsertEdgeStatement(e *Edge, records ...Record) (string, error) {
-	statement, err := e.InsertStatement(records...)
+func (g *Graph) InsertEdgeStatement(e *Edge, records ...Record) (statement string, nRecord int, err error) {
+	statement, nRecord, err = e.InsertStatement(records...)
 	if err != nil {
-		return "", g.importError(err).SetGraphName(g.Name).SetEdgeName(e.Name)
+		return "", 0, g.importError(err).SetGraphName(g.Name).SetEdgeName(e.Name)
 	}
-	return statement, nil
+	return statement, nRecord, nil
 }
 
 func (g *Graph) InsertEdgeBuilder(e *Edge) specbase.StatementBuilder {
-	return specbase.StatementBuilderFunc(func(records ...specbase.Record) (string, error) {
+	return specbase.StatementBuilderFunc(func(records ...specbase.Record) (string, int, error) {
 		return g.InsertEdgeStatement(e, records...)
 	})
 }
