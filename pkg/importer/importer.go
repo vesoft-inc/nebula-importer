@@ -20,8 +20,9 @@ type (
 	}
 
 	ImportResp struct {
-		Latency  time.Duration
-		RespTime time.Duration
+		RecordNum int
+		Latency   time.Duration
+		RespTime  time.Duration
 	}
 
 	ImportResult struct {
@@ -96,9 +97,13 @@ func WithWaitFunc(fn func()) Option {
 }
 
 func (i *defaultImporter) Import(records ...spec.Record) (*ImportResp, error) {
-	statement, err := i.builder.Build(records...)
+	statement, nRecord, err := i.builder.Build(records...)
 	if err != nil {
 		return nil, err
+	}
+
+	if nRecord == 0 {
+		return &ImportResp{}, nil
 	}
 
 	resp, err := i.pool.Execute(statement)
@@ -112,8 +117,9 @@ func (i *defaultImporter) Import(records ...spec.Record) (*ImportResp, error) {
 	}
 
 	return &ImportResp{
-		RespTime: resp.GetRespTime(),
-		Latency:  resp.GetLatency(),
+		RecordNum: nRecord,
+		RespTime:  resp.GetRespTime(),
+		Latency:   resp.GetLatency(),
 	}, nil
 }
 

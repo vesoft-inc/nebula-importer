@@ -71,6 +71,8 @@ sources:
           alternativeIndices:
             - 6
     - name: Person
+      filter:
+        expr: (Record[1] == "Mahinda" or Record[1] == "Michael") and Record[3] == "male"
       id:
         type: "INT"
         index: 0
@@ -125,6 +127,8 @@ sources:
           nullValue: _NULL_
           defaultValue: 0000-00-00T00:00:00
     - name: KNOWS # person_knows_person
+      filter:
+        expr: Record[1] == "XXX"
       src:
         id:
           type: "INT"

@@ -6,6 +6,7 @@ import (
 
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/bytebufferpool"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
+	specbase "github.com/vesoft-inc/nebula-importer/v4/pkg/spec/base"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/utils"
 )
 
@@ -17,6 +18,8 @@ type (
 		Props Props   `yaml:"props,omitempty"`
 
 		IgnoreExistedIndex *bool `yaml:"ignoreExistedIndex,omitempty"`
+
+		Filter *specbase.Filter `yaml:"filter,omitempty"`
 
 		insertPrefix string // // "INSERT EDGE name(prop_name, ..., prop_name) VALUES "
 	}
@@ -50,6 +53,12 @@ func WithNodeProps(props ...*Prop) NodeOption {
 func WithNodeIgnoreExistedIndex(ignore bool) NodeOption {
 	return func(n *Node) {
 		n.IgnoreExistedIndex = &ignore
+	}
+}
+
+func WithNodeFilter(f *specbase.Filter) NodeOption {
+	return func(n *Node) {
+		n.Filter = f
 	}
 }
 
@@ -96,26 +105,41 @@ func (n *Node) Validate() error {
 		return n.importError(err)
 	}
 
+	if n.Filter != nil {
+		if err := n.Filter.Build(); err != nil {
+			return n.importError(errors.ErrFilterSyntax, "%s", err)
+		}
+	}
+
 	return nil
 }
 
-func (n *Node) InsertStatement(records ...Record) (string, error) {
+func (n *Node) InsertStatement(records ...Record) (statement string, nRecord int, err error) {
 	buff := bytebufferpool.Get()
 	defer bytebufferpool.Put(buff)
 
 	buff.SetString(n.insertPrefix)
 
-	for i, record := range records {
+	for _, record := range records {
+		if n.Filter != nil {
+			ok, err := n.Filter.Filter(record)
+			if err != nil {
+				return "", 0, n.importError(err)
+			}
+			if !ok { // skipping those return false by Filter
+				continue
+			}
+		}
 		idValue, err := n.ID.Value(record)
 		if err != nil {
-			return "", n.importError(err)
+			return "", 0, n.importError(err)
 		}
 		propsValueList, err := n.Props.ValueList(record)
 		if err != nil {
-			return "", n.importError(err)
+			return "", 0, n.importError(err)
 		}
 
-		if i > 0 {
+		if nRecord > 0 {
 			_, _ = buff.WriteString(", ")
 		}
 
@@ -124,11 +148,18 @@ func (n *Node) InsertStatement(records ...Record) (string, error) {
 		_, _ = buff.WriteString(":(")
 		_, _ = buff.WriteStringSlice(propsValueList, ", ")
 		_, _ = buff.WriteString(")")
+
+		nRecord++
 	}
-	return buff.String(), nil
+
+	if nRecord == 0 {
+		return "", 0, nil
+	}
+
+	return buff.String(), nRecord, nil
 }
 
-func (n *Node) importError(err error, formatWithArgs ...any) *errors.ImportError { //nolint:unparam
+func (n *Node) importError(err error, formatWithArgs ...any) *errors.ImportError {
 	return errors.AsOrNewImportError(err, formatWithArgs...).SetNodeName(n.Name)
 }
 

@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/agiledragon/gomonkey/v2 v2.9.0
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.6+incompatible
+	github.com/antonmedv/expr v1.12.5
 	github.com/aws/aws-sdk-go v1.44.178
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/colinmarc/hdfs/v2 v2.3.0

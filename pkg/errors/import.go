@@ -195,7 +195,7 @@ func (e *ImportError) Error() string {
 		fields = append(fields, fmt.Sprintf("%s(%s)", fieldStatement, statement))
 	}
 	if len(e.Messages) > 0 {
-		fields = append(fields, fmt.Sprintf("%s%s", fieldMessages, strings.Join(e.Messages, ", ")))
+		fields = append(fields, fmt.Sprintf("%s: %s", fieldMessages, strings.Join(e.Messages, ", ")))
 	}
 	if e.Err != nil {
 		fields = append(fields, e.Err.Error())

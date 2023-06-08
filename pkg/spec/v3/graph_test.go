@@ -173,27 +173,31 @@ var _ = Describe("Graph", func() {
 
 		It("success", func() {
 			node := graph.Nodes[0]
-			statement, err := graph.InsertNodeStatement(node, []string{"1"})
+			statement, nRecord, err := graph.InsertNodeStatement(node, []string{"1"})
 			Expect(err).NotTo(HaveOccurred())
+			Expect(nRecord).To(Equal(1))
 			Expect(statement).To(Equal("INSERT VERTEX IGNORE_EXISTED_INDEX `node1`() VALUES 1:()"))
 
 			b := graph.InsertNodeBuilder(node)
-			statement, err = b.Build([]string{"1"})
+			statement, nRecord, err = b.Build([]string{"1"})
 			Expect(err).NotTo(HaveOccurred())
+			Expect(nRecord).To(Equal(1))
 			Expect(statement).To(Equal("INSERT VERTEX IGNORE_EXISTED_INDEX `node1`() VALUES 1:()"))
 		})
 
 		It("failed", func() {
 			node := graph.Nodes[0]
-			statement, err := graph.InsertNodeStatement(node, []string{})
+			statement, nRecord, err := graph.InsertNodeStatement(node, []string{})
 			Expect(err).To(HaveOccurred())
 			Expect(stderrors.Is(err, errors.ErrNoRecord)).To(BeTrue())
+			Expect(nRecord).To(Equal(0))
 			Expect(statement).To(Equal(""))
 
 			b := graph.InsertNodeBuilder(node)
-			statement, err = b.Build([]string{})
+			statement, nRecord, err = b.Build([]string{})
 			Expect(err).To(HaveOccurred())
 			Expect(stderrors.Is(err, errors.ErrNoRecord)).To(BeTrue())
+			Expect(nRecord).To(Equal(0))
 			Expect(statement).To(Equal(""))
 		})
 	})
@@ -232,27 +236,31 @@ var _ = Describe("Graph", func() {
 
 		It("success", func() {
 			edge := graph.Edges[0]
-			statement, err := graph.InsertEdgeStatement(edge, []string{"1", "2"})
+			statement, nRecord, err := graph.InsertEdgeStatement(edge, []string{"1", "2"})
 			Expect(err).NotTo(HaveOccurred())
+			Expect(nRecord).To(Equal(1))
 			Expect(statement).To(Equal("INSERT EDGE IGNORE_EXISTED_INDEX `edge1`() VALUES 1->2:()"))
 
 			b := graph.InsertEdgeBuilder(edge)
-			statement, err = b.Build([]string{"1", "2"})
+			statement, nRecord, err = b.Build([]string{"1", "2"})
 			Expect(err).NotTo(HaveOccurred())
+			Expect(nRecord).To(Equal(1))
 			Expect(statement).To(Equal("INSERT EDGE IGNORE_EXISTED_INDEX `edge1`() VALUES 1->2:()"))
 		})
 
 		It("failed", func() {
 			edge := graph.Edges[0]
-			statement, err := graph.InsertEdgeStatement(edge, []string{})
+			statement, nRecord, err := graph.InsertEdgeStatement(edge, []string{})
 			Expect(err).To(HaveOccurred())
 			Expect(stderrors.Is(err, errors.ErrNoRecord)).To(BeTrue())
+			Expect(nRecord).To(Equal(0))
 			Expect(statement).To(Equal(""))
 
 			b := graph.InsertEdgeBuilder(edge)
-			statement, err = b.Build([]string{})
+			statement, nRecord, err = b.Build([]string{})
 			Expect(err).To(HaveOccurred())
 			Expect(stderrors.Is(err, errors.ErrNoRecord)).To(BeTrue())
+			Expect(nRecord).To(Equal(0))
 			Expect(statement).To(Equal(""))
 		})
 	})

@@ -7,11 +7,12 @@ import (
 
 var _ = Describe("StatementBuilderFunc", func() {
 	It("", func() {
-		var b StatementBuilder = StatementBuilderFunc(func(records ...Record) (string, error) {
-			return "test statement", nil
+		var b StatementBuilder = StatementBuilderFunc(func(records ...Record) (string, int, error) {
+			return "test statement", 1, nil
 		})
-		statement, err := b.Build()
+		statement, nRecord, err := b.Build()
 		Expect(err).NotTo(HaveOccurred())
+		Expect(nRecord).To(Equal(1))
 		Expect(statement).To(Equal("test statement"))
 	})
 })

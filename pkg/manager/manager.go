@@ -379,8 +379,8 @@ func (m *defaultManager) submitImporterTask(nBytes int, records spec.Records, im
 					m.onRequestFailed(records)
 					isFailed = true
 					// do not return, continue the subsequent importer.
-				} else {
-					m.onRequestSucceeded(records, result)
+				} else if result.RecordNum > 0 {
+					m.onRequestSucceeded(result)
 				}
 			}
 		}
@@ -428,8 +428,8 @@ func (m *defaultManager) onRequestFailed(records spec.Records) {
 	m.stats.RequestFailed(int64(len(records)))
 }
 
-func (m *defaultManager) onRequestSucceeded(records spec.Records, result *importer.ImportResp) {
-	m.stats.RequestSucceeded(int64(len(records)), result.Latency, result.RespTime)
+func (m *defaultManager) onRequestSucceeded(result *importer.ImportResp) {
+	m.stats.RequestSucceeded(int64(result.RecordNum), result.Latency, result.RespTime)
 }
 
 func (m *defaultManager) logError(err error, msg string, fields ...logger.Field) {

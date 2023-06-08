@@ -69,7 +69,73 @@ sources:
         - name: "browserUsed"
           type: "STRING"
           index: 7
+  - path: ./person.csv
+    filter:
+      expr: Record[1] != "933"
+    csv:
+      delimiter: "|"
+    tags:
+    - name: Person
+      id:
+        type: "STRING"
+        concatItems:
+          - person_
+          - 0
+          - _id
+      props:
+        - name: "firstName"
+          type: "STRING"
+          index: 1
+        - name: "lastName"
+          type: "STRING"
+          index: 2
+        - name: "gender"
+          type: "STRING"
+          index: 3
+          nullable: true
+          defaultValue: female
+        - name: "birthday"
+          type: "DATE"
+          index: 4
+          nullable: true
+          nullValue: _NULL_
+        - name: "creationDate"
+          type: "DATETIME"
+          index: 5
+        - name: "locationIP"
+          type: "STRING"
+          index: 6
+        - name: "browserUsed"
+          type: "STRING"
+          index: 7
   - path: ./knows.csv
+    batch: 256
+    edges:
+    - name: KNOWS # person_knows_person
+      src:
+        id:
+          type: "STRING"
+          concatItems:
+            - person_
+            - 0
+            - _id
+      dst:
+        id:
+          type: "STRING"
+          concatItems:
+            - person_
+            - 1
+            - _id
+      props:
+        - name: "creationDate"
+          type: "DATETIME"
+          index: 2
+          nullable: true
+          nullValue: _NULL_
+          defaultValue: 0000-00-00T00:00:00
+  - path: ./knows.csv
+    filter:
+      expr: Record[1] == "XXX"
     batch: 256
     edges:
     - name: KNOWS # person_knows_person

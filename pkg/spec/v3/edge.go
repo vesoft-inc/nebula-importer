@@ -6,6 +6,7 @@ import (
 
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/bytebufferpool"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
+	specbase "github.com/vesoft-inc/nebula-importer/v4/pkg/spec/base"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/utils"
 )
 
@@ -19,7 +20,9 @@ type (
 
 		IgnoreExistedIndex *bool `yaml:"ignoreExistedIndex,omitempty"`
 
-		fnInsertStatement func(records ...Record) (string, error)
+		Filter *specbase.Filter `yaml:"filter,omitempty"`
+
+		fnInsertStatement func(records ...Record) (string, int, error)
 		insertPrefix      string // "INSERT EDGE name(prop_name, ..., prop_name) VALUES "
 	}
 
@@ -69,6 +72,12 @@ func WithEdgeProps(props ...*Prop) EdgeOption {
 func WithEdgeIgnoreExistedIndex(ignore bool) EdgeOption {
 	return func(e *Edge) {
 		e.IgnoreExistedIndex = &ignore
+	}
+}
+
+func WithEdgeFilter(f *specbase.Filter) EdgeOption {
+	return func(e *Edge) {
+		e.Filter = f
 	}
 }
 
@@ -147,34 +156,49 @@ func (e *Edge) Validate() error {
 		return e.importError(err)
 	}
 
+	if e.Filter != nil {
+		if err := e.Filter.Build(); err != nil {
+			return e.importError(errors.ErrFilterSyntax, "%s", err)
+		}
+	}
+
 	return nil
 }
 
-func (e *Edge) InsertStatement(records ...Record) (string, error) {
+func (e *Edge) InsertStatement(records ...Record) (statement string, nRecord int, err error) {
 	return e.fnInsertStatement(records...)
 }
 
-func (e *Edge) insertStatementWithoutRank(records ...Record) (string, error) {
+func (e *Edge) insertStatementWithoutRank(records ...Record) (statement string, nRecord int, err error) {
 	buff := bytebufferpool.Get()
 	defer bytebufferpool.Put(buff)
 
 	buff.SetString(e.insertPrefix)
 
-	for i, record := range records {
+	for _, record := range records {
+		if e.Filter != nil {
+			ok, err := e.Filter.Filter(record)
+			if err != nil {
+				return "", 0, e.importError(err)
+			}
+			if !ok { // skipping those return false by Filter
+				continue
+			}
+		}
 		srcIDValue, err := e.Src.IDValue(record)
 		if err != nil {
-			return "", e.importError(err)
+			return "", 0, e.importError(err)
 		}
 		dstIDValue, err := e.Dst.IDValue(record)
 		if err != nil {
-			return "", e.importError(err)
+			return "", 0, e.importError(err)
 		}
 		propsValueList, err := e.Props.ValueList(record)
 		if err != nil {
-			return "", e.importError(err)
+			return "", 0, e.importError(err)
 		}
 
-		if i > 0 {
+		if nRecord > 0 {
 			_, _ = buff.WriteString(", ")
 		}
 
@@ -185,35 +209,51 @@ func (e *Edge) insertStatementWithoutRank(records ...Record) (string, error) {
 		_, _ = buff.WriteString(":(")
 		_, _ = buff.WriteStringSlice(propsValueList, ", ")
 		_, _ = buff.WriteString(")")
+
+		nRecord++
 	}
-	return buff.String(), nil
+
+	if nRecord == 0 {
+		return "", 0, nil
+	}
+
+	return buff.String(), nRecord, nil
 }
 
-func (e *Edge) insertStatementWithRank(records ...Record) (string, error) {
+func (e *Edge) insertStatementWithRank(records ...Record) (statement string, nRecord int, err error) {
 	buff := bytebufferpool.Get()
 	defer bytebufferpool.Put(buff)
 
 	buff.SetString(e.insertPrefix)
 
-	for i, record := range records {
+	for _, record := range records {
+		if e.Filter != nil {
+			ok, err := e.Filter.Filter(record)
+			if err != nil {
+				return "", 0, e.importError(err)
+			}
+			if !ok { // skipping those return false by Filter
+				continue
+			}
+		}
 		srcIDValue, err := e.Src.IDValue(record)
 		if err != nil {
-			return "", e.importError(err)
+			return "", 0, e.importError(err)
 		}
 		dstIDValue, err := e.Dst.IDValue(record)
 		if err != nil {
-			return "", e.importError(err)
+			return "", 0, e.importError(err)
 		}
 		rankValue, err := e.Rank.Value(record)
 		if err != nil {
-			return "", e.importError(err)
+			return "", 0, e.importError(err)
 		}
 		propsValueList, err := e.Props.ValueList(record)
 		if err != nil {
-			return "", e.importError(err)
+			return "", 0, e.importError(err)
 		}
 
-		if i > 0 {
+		if nRecord > 0 {
 			_, _ = buff.WriteString(", ")
 		}
 
@@ -226,11 +266,18 @@ func (e *Edge) insertStatementWithRank(records ...Record) (string, error) {
 		_, _ = buff.WriteString(":(")
 		_, _ = buff.WriteStringSlice(propsValueList, ", ")
 		_, _ = buff.WriteString(")")
+
+		nRecord++
 	}
-	return buff.String(), nil
+
+	if nRecord == 0 {
+		return "", 0, nil
+	}
+
+	return buff.String(), nRecord, nil
 }
 
-func (e *Edge) importError(err error, formatWithArgs ...any) *errors.ImportError { //nolint:unparam
+func (e *Edge) importError(err error, formatWithArgs ...any) *errors.ImportError {
 	return errors.AsOrNewImportError(err, formatWithArgs...).SetEdgeName(e.Name)
 }
 
