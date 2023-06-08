@@ -133,8 +133,14 @@ services:
 
         set -e
 
-        nebula-importer -c ./integration-testing/testdata/basic/basic.int.v3.yaml
-        nebula-importer -c ./integration-testing/testdata/basic/basic.string.v3.yaml
+        nebula-importer -c ./integration-testing/testdata/basic/basic.int.insert.v3.yaml
+        nebula-importer -c ./integration-testing/testdata/basic/basic.int.update.v3.yaml
+        nebula-importer -c ./integration-testing/testdata/basic/basic.int.delete.v3.yaml
+
+        nebula-importer -c ./integration-testing/testdata/basic/basic.string.insert.v3.yaml
+        nebula-importer -c ./integration-testing/testdata/basic/basic.string.update.v3.yaml
+        nebula-importer -c ./integration-testing/testdata/basic/basic.string.delete.v3.yaml
+
         nebula-importer -c ./integration-testing/testdata/cases-string/cases.string.v3.yaml
         nebula-importer -c ./integration-testing/testdata/cases-int/cases.int.v3.yaml
 

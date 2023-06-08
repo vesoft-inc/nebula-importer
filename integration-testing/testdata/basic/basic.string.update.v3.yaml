@@ -1,0 +1,61 @@
+client:
+  version: v3
+  address: "graphd1:9669,graphd2:9669"
+  user: root
+  password: nebula
+  concurrencyPerAddress: 10
+  reconnectInitialInterval: 1s
+  retry: 3
+  retryInitialInterval: 1s
+
+manager:
+  spaceName: basic_string_tests
+  batch: 128
+  readerConcurrency: 50
+  importerConcurrency: 512
+  statsInterval: 10s
+
+log:
+  level: INFO
+  console: true
+  files:
+   - logs/nebula-importer.log
+
+sources:
+  - path: ./person.csv
+    csv:
+      delimiter: "|"
+    tags:
+    - name: Person
+      mode: UPDATE
+      filter:
+        expr: '!(Record[1] == "Mahinda")'
+      id:
+        type: "STRING"
+        index: 0
+      props:
+        - name: "browserUsed"
+          type: "STRING"
+          index: 7
+  - path: ./knows.csv
+    batch: 256
+    edges:
+    - name: KNOWS # person_knows_person
+      mode: UPDATE
+      filter:
+        expr: Record[0] != "10995116278700"
+      src:
+        id:
+          type: "STRING"
+          index: 0
+      dst:
+        id:
+          type: "STRING"
+          index: 1
+      props:
+        - name: "creationDate"
+          type: "DATETIME"
+          index: 2
+          nullable: true
+          nullValue: _NULL_
+          defaultValue: 0000-00-00T00:00:00

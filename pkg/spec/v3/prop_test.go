@@ -272,6 +272,77 @@ var _ = Describe("Prop", func() {
 			errors.ErrUnsupportedValueType,
 		),
 	)
+	DescribeTable(".SetValue",
+		func(p *Prop, record Record, expectValue string, expectErr error) {
+			setVal, err := func() (string, error) {
+				p.Complete()
+				err := p.Validate()
+				if err != nil {
+					return "", err
+				}
+				return p.SetValue(record)
+			}()
+			if expectErr != nil {
+				if Expect(err).To(HaveOccurred()) {
+					Expect(stderrors.Is(err, expectErr)).To(BeTrue())
+					e, ok := errors.AsImportError(err)
+					Expect(ok).To(BeTrue())
+					Expect(e.Cause()).To(Equal(expectErr))
+					Expect(e.PropName()).To(Equal(p.Name))
+				}
+				Expect(setVal).To(Equal(expectValue))
+			} else {
+				Expect(err).NotTo(HaveOccurred())
+				Expect(setVal).To(Equal(expectValue))
+			}
+		},
+		Entry("no record empty",
+			&Prop{Name: "p1"},
+			Record([]string{}),
+			"",
+			errors.ErrNoRecord,
+		),
+		Entry("no record",
+			&Prop{
+				Name:  "p1",
+				Type:  ValueTypeInt,
+				Index: 1,
+			},
+			Record([]string{"0"}),
+			"",
+			errors.ErrNoRecord,
+		),
+		Entry("record int",
+			&Prop{
+				Name:  "p1",
+				Type:  ValueTypeInt,
+				Index: 0,
+			},
+			Record([]string{"1"}),
+			"`p1` = 1",
+			nil,
+		),
+		Entry("record string",
+			&Prop{
+				Name:  "p1",
+				Type:  ValueTypeString,
+				Index: 0,
+			},
+			Record([]string{"str"}),
+			"`p1` = \"str\"",
+			nil,
+		),
+		Entry("record double",
+			&Prop{
+				Name:  "p1",
+				Type:  ValueTypeDouble,
+				Index: 0,
+			},
+			Record([]string{"1.1"}),
+			"`p1` = 1.1",
+			nil,
+		),
+	)
 })
 
 var _ = Describe("Props", func() {
@@ -383,6 +454,52 @@ var _ = Describe("Props", func() {
 			},
 			[]string{"1", "1.1", "str"},
 			[]string{"1", "\"str\"", "1.1"},
+			-1,
+		),
+		Entry("failed",
+			Props{
+				&Prop{Name: "a", Type: ValueTypeInt, Index: 0},
+			},
+			nil,
+			nil,
+			0,
+		),
+	)
+
+	DescribeTable(".SetValueList",
+		func(props Props, record Record, expectValueList []string, failedIndex int) {
+			setValueList, err := func() ([]string, error) {
+				props.Complete()
+				if err := props.Validate(); err != nil {
+					return nil, err
+				}
+				return props.SetValueList(record)
+			}()
+			if failedIndex >= 0 {
+				if Expect(err).To(HaveOccurred()) {
+					_, expectErr := props[failedIndex].Value(record)
+					Expect(err).To(Equal(expectErr))
+				}
+				Expect(setValueList).To(Equal(expectValueList))
+			} else {
+				Expect(err).NotTo(HaveOccurred())
+				Expect(setValueList).To(Equal(expectValueList))
+			}
+		},
+		Entry("empty props",
+			Props{},
+			[]string{"1", "1.1", "str"},
+			[]string{},
+			-1,
+		),
+		Entry("success",
+			Props{
+				&Prop{Name: "a", Type: ValueTypeInt, Index: 0},
+				&Prop{Name: "b", Type: ValueTypeString, Index: 2},
+				&Prop{Name: "c", Type: ValueTypeDouble, Index: 1},
+			},
+			[]string{"1", "1.1", "str"},
+			[]string{"`a` = 1", "`b` = \"str\"", "`c` = 1.1"},
 			-1,
 		),
 		Entry("failed",
