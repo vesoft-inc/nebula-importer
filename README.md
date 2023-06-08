@@ -13,6 +13,8 @@
 * Support multiple file formats, currently only `csv` files are supported.
 * Support files containing multiple tags, multiple edges, and a mixture of both.
 * Support data transformations.
+* Support record filtering.
+* Support multiple modes, including `INSERT`, `UPDATE`, `DELETE`.
 * Support connect multiple Garph with automatically load balance.
 * Support retry after failure.
 * Humanized status printing.
@@ -298,6 +300,9 @@ csv:
 ```yaml
 tags:
 - name: Person
+  mode: INSERT
+  filter:
+    expr: (Record[1] == "Mahinda" or Record[1] == "Michael") and Record[3] == "male"
   id:
     type: "STRING"
     function: "hash"
@@ -345,6 +350,9 @@ tags:
 ```
 
 * `name`: **Required**. The tag name.
+* `mode`: **Optional**. The mode for processing data, optional values is `INSERT`, `UPDATE` or `DELETE`, default `INSERT`.
+* `filter`: **Optional**. The data filtering configuration.
+  * `expr`: **Required**. The filter expression. See the [Filter Expression](docs/filter-expression.md) for details.
 * `id`: **Required**. Describes the tag ID information.
   * `type`: **Optional**. The type for ID. The default value is `STRING`.
   * `index`: **Optional**. The column number in the records. Required if `concatItems` is not configured.
@@ -365,6 +373,9 @@ tags:
 ```yaml
 edges:
 - name: KNOWS
+  mode: INSERT
+  filter:
+    expr: (Record[1] == "Mahinda" or Record[1] == "Michael") and Record[3] == "male"
   src:
     id:
       type: "INT"
@@ -386,6 +397,8 @@ edges:
 ```
 
 * `name`: **Required**. The edge name.
+* `mode`: **Optional**. The `mode` here is similar to `mode` in the `tags` above.
+* `filter`: **Optional**. The `filter` here is similar to `filter` in the `tags` above.
 * `src`: **Required**. Describes the source definition for the edge.
 * `src.id`: **Required**. The `id` here is similar to `id` in the `tags` above.
 * `dst`: **Required**. Describes the destination definition for the edge.
