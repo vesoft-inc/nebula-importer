@@ -264,14 +264,28 @@ sftp:
 It only needs to be configured for hdfs data sources.
 
 ```yaml
-sftp:
+hdfs:
   address: 192.168.0.10:8020
   user: <user>
+  servicePrincipalName: <Kerberos Service Principal Name>
+  krb5ConfigFile: <Kerberos config file>
+  ccacheFile: <Kerberos ccache file>
+  keyTabFile: <Kerberos keytab file>
+  password: <Kerberos password>
+  dataTransferProtection: <Kerberos Data Transfer Protection>
+  disablePAFXFAST: false
   path: <path of file>
 ```
 
 * `address`: **Required**. The address of hdfs service.
 * `user`: **Optional**. The user of hdfs service.
+* `servicePrincipalName`: **Optional**. The kerberos service principal name of hdfs service when enable kerberos.
+* `krb5ConfigFile`: **Optional**. The kerberos config file of hdfs service when enable kerberos, default is `/etc/krb5.conf`.
+* `ccacheFile`: **Optional**. The ccache file of hdfs service when enable kerberos.
+* `keyTabFile`: **Optional**. The keytab file of hdfs service when enable kerberos.
+* `password`: **Optional**. The kerberos password of hdfs service when enable kerberos.
+* `dataTransferProtection`: **Optional**. The data transfer protection of hdfs service.
+* `disablePAFXFAST`: **Optional**. Whether to prohibit the client to use PA_FX_FAST.
 * `path`: **Required**. The path of file in the sftp service.
 
 #### batch
