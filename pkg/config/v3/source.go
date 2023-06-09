@@ -49,14 +49,14 @@ func (s *Source) BuildImporters(graphName string, pool client.Pool) ([]importer.
 	importers := make([]importer.Importer, 0, len(s.Nodes)+len(s.Edges))
 	for k := range s.Nodes {
 		node := s.Nodes[k]
-		builder := graph.InsertNodeBuilder(node)
+		builder := graph.NodeStatementBuilder(node)
 		i := importer.New(builder, pool)
 		importers = append(importers, i)
 	}
 
 	for k := range s.Edges {
 		edge := s.Edges[k]
-		builder := graph.InsertEdgeBuilder(edge)
+		builder := graph.EdgeStatementBuilder(edge)
 		i := importer.New(builder, pool)
 		importers = append(importers, i)
 	}

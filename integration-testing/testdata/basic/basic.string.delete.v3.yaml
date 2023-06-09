@@ -1,0 +1,61 @@
+client:
+  version: v3
+  address: "graphd1:9669,graphd2:9669"
+  user: root
+  password: nebula
+  concurrencyPerAddress: 10
+  reconnectInitialInterval: 1s
+  retry: 3
+  retryInitialInterval: 1s
+
+manager:
+  spaceName: basic_string_tests
+  batch: 128
+  readerConcurrency: 50
+  importerConcurrency: 512
+  statsInterval: 10s
+
+log:
+  level: INFO
+  console: true
+  files:
+   - logs/nebula-importer.log
+
+sources:
+  - path: ./person.csv
+    csv:
+      delimiter: "|"
+    tags:
+    - name: Person
+      mode: DELETE
+      filter:
+        expr: Record[3] == "female"
+      id:
+        type: "STRING"
+        concatItems:
+          - person_
+          - 0
+          - _id
+  - path: ./knows.csv
+    batch: 256
+    edges:
+    - name: KNOWS # person_knows_person
+      mode: DELETE
+      filter:
+        expr: Record[0] != "933"
+      src:
+        id:
+          type: "STRING"
+          concatItems:
+            - person_
+            - 0
+            - _id
+      dst:
+        id:
+          type: "STRING"
+          concatItems:
+            - person_
+            - 1
+            - _id
+      rank:
+        index: 0

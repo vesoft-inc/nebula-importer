@@ -52,6 +52,14 @@ func (p *Prop) Value(record Record) (string, error) {
 	return val.Val, nil
 }
 
+func (p *Prop) SetValue(record Record) (string, error) {
+	val, err := p.Value(record)
+	if err != nil {
+		return "", err
+	}
+	return p.convertedName + " = " + val, nil
+}
+
 func (p *Prop) initPicker() error {
 	pickerConfig := picker.Config{
 		Indices: []int{p.Index},
@@ -103,6 +111,18 @@ func (ps Props) ValueList(record Record) ([]string, error) {
 		valueList = append(valueList, value)
 	}
 	return valueList, nil
+}
+
+func (ps Props) SetValueList(record Record) ([]string, error) {
+	setValueList := make([]string, 0, len(ps))
+	for _, prop := range ps {
+		value, err := prop.SetValue(record)
+		if err != nil {
+			return nil, err
+		}
+		setValueList = append(setValueList, value)
+	}
+	return setValueList, nil
 }
 
 func (ps Props) NameList() []string {
