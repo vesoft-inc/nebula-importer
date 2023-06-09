@@ -22,8 +22,13 @@ type (
 
 		Filter *specbase.Filter `yaml:"filter,omitempty"`
 
-		fnInsertStatement func(records ...Record) (string, int, error)
-		insertPrefix      string // "INSERT EDGE name(prop_name, ..., prop_name) VALUES "
+		Mode specbase.Mode `yaml:"mode,omitempty"`
+
+		fnStatement func(records ...Record) (string, int, error)
+		// "INSERT EDGE name(prop_name, ..., prop_name) VALUES "
+		// "UPDATE EDGE ON name "
+		// "DELETE EDGE name "
+		statementPrefix string
 	}
 
 	EdgeNodeRef struct {
@@ -81,6 +86,12 @@ func WithEdgeFilter(f *specbase.Filter) EdgeOption {
 	}
 }
 
+func WithEdgeMode(m specbase.Mode) EdgeOption {
+	return func(e *Edge) {
+		e.Mode = m
+	}
+}
+
 func (e *Edge) Options(opts ...EdgeOption) *Edge {
 	for _, opt := range opts {
 		opt(e)
@@ -88,6 +99,7 @@ func (e *Edge) Options(opts ...EdgeOption) *Edge {
 	return e
 }
 
+//nolint:dupl
 func (e *Edge) Complete() {
 	if e.Src != nil {
 		e.Src.Complete()
@@ -103,26 +115,33 @@ func (e *Edge) Complete() {
 			e.Dst.ID.Name = strVID
 		}
 	}
-
-	e.fnInsertStatement = e.insertStatementWithoutRank
 	if e.Rank != nil {
 		e.Rank.Complete()
-		e.fnInsertStatement = e.insertStatementWithRank
 	}
-
 	e.Props.Complete()
+	e.Mode = e.Mode.Convert()
 
-	// default enable IGNORE_EXISTED_INDEX
-	insertPrefixFmt := "INSERT EDGE IGNORE_EXISTED_INDEX %s(%s) VALUES "
-	if e.IgnoreExistedIndex != nil && !*e.IgnoreExistedIndex {
-		insertPrefixFmt = "INSERT EDGE %s(%s) VALUES "
+	switch e.Mode {
+	case specbase.InsertMode:
+		e.fnStatement = e.insertStatement
+		// default enable IGNORE_EXISTED_INDEX
+		insertPrefixFmt := "INSERT EDGE IGNORE_EXISTED_INDEX %s(%s) VALUES "
+		if e.IgnoreExistedIndex != nil && !*e.IgnoreExistedIndex {
+			insertPrefixFmt = "INSERT EDGE %s(%s) VALUES "
+		}
+
+		e.statementPrefix = fmt.Sprintf(
+			insertPrefixFmt,
+			utils.ConvertIdentifier(e.Name),
+			strings.Join(e.Props.NameList(), ", "),
+		)
+	case specbase.UpdateMode:
+		e.fnStatement = e.updateStatement
+		e.statementPrefix = fmt.Sprintf("UPDATE EDGE ON %s ", utils.ConvertIdentifier(e.Name))
+	case specbase.DeleteMode:
+		e.fnStatement = e.deleteStatement
+		e.statementPrefix = fmt.Sprintf("DELETE EDGE %s ", utils.ConvertIdentifier(e.Name))
 	}
-
-	e.insertPrefix = fmt.Sprintf(
-		insertPrefixFmt,
-		utils.ConvertIdentifier(e.Name),
-		strings.Join(e.Props.NameList(), ", "),
-	)
 }
 
 func (e *Edge) Validate() error {
@@ -162,18 +181,26 @@ func (e *Edge) Validate() error {
 		}
 	}
 
+	if !e.Mode.IsSupport() {
+		return e.importError(errors.ErrUnsupportedMode)
+	}
+
+	if e.Mode == specbase.UpdateMode && len(e.Props) == 0 {
+		return e.importError(errors.ErrNoProps)
+	}
+
 	return nil
 }
 
-func (e *Edge) InsertStatement(records ...Record) (statement string, nRecord int, err error) {
-	return e.fnInsertStatement(records...)
+func (e *Edge) Statement(records ...Record) (statement string, nRecord int, err error) {
+	return e.fnStatement(records...)
 }
 
-func (e *Edge) insertStatementWithoutRank(records ...Record) (statement string, nRecord int, err error) {
+func (e *Edge) insertStatement(records ...Record) (statement string, nRecord int, err error) {
 	buff := bytebufferpool.Get()
 	defer bytebufferpool.Put(buff)
 
-	buff.SetString(e.insertPrefix)
+	buff.SetString(e.statementPrefix)
 
 	for _, record := range records {
 		if e.Filter != nil {
@@ -193,6 +220,15 @@ func (e *Edge) insertStatementWithoutRank(records ...Record) (statement string, 
 		if err != nil {
 			return "", 0, e.importError(err)
 		}
+		var rankValueStatement string
+		if e.Rank != nil {
+			var rankValue string
+			rankValue, err = e.Rank.Value(record)
+			if err != nil {
+				return "", 0, e.importError(err)
+			}
+			rankValueStatement = "@" + rankValue
+		}
 		propsValueList, err := e.Props.ValueList(record)
 		if err != nil {
 			return "", 0, e.importError(err)
@@ -202,10 +238,11 @@ func (e *Edge) insertStatementWithoutRank(records ...Record) (statement string, 
 			_, _ = buff.WriteString(", ")
 		}
 
-		// "%s->%s:(%s)"
+		// src -> dst@rank:(prop_value1, prop_value2, ...)
 		_, _ = buff.WriteString(srcIDValue)
 		_, _ = buff.WriteString("->")
 		_, _ = buff.WriteString(dstIDValue)
+		_, _ = buff.WriteString(rankValueStatement)
 		_, _ = buff.WriteString(":(")
 		_, _ = buff.WriteStringSlice(propsValueList, ", ")
 		_, _ = buff.WriteString(")")
@@ -220,11 +257,9 @@ func (e *Edge) insertStatementWithoutRank(records ...Record) (statement string, 
 	return buff.String(), nRecord, nil
 }
 
-func (e *Edge) insertStatementWithRank(records ...Record) (statement string, nRecord int, err error) {
+func (e *Edge) updateStatement(records ...Record) (statement string, nRecord int, err error) {
 	buff := bytebufferpool.Get()
 	defer bytebufferpool.Put(buff)
-
-	buff.SetString(e.insertPrefix)
 
 	for _, record := range records {
 		if e.Filter != nil {
@@ -244,28 +279,78 @@ func (e *Edge) insertStatementWithRank(records ...Record) (statement string, nRe
 		if err != nil {
 			return "", 0, e.importError(err)
 		}
-		rankValue, err := e.Rank.Value(record)
+		var rankValueStatement string
+		if e.Rank != nil {
+			var rankValue string
+			rankValue, err = e.Rank.Value(record)
+			if err != nil {
+				return "", 0, e.importError(err)
+			}
+			rankValueStatement = "@" + rankValue
+		}
+		propsSetValueList, err := e.Props.SetValueList(record)
 		if err != nil {
 			return "", 0, e.importError(err)
 		}
-		propsValueList, err := e.Props.ValueList(record)
+
+		// "UPDATE EDGE ON name "src"->"dst"@rank SET prop_name1 = prop_value1, prop_name1 = prop_value1, ...;"
+		_, _ = buff.WriteString(e.statementPrefix)
+		_, _ = buff.WriteString(srcIDValue)
+		_, _ = buff.WriteString("->")
+		_, _ = buff.WriteString(dstIDValue)
+		_, _ = buff.WriteString(rankValueStatement)
+		_, _ = buff.WriteString(" SET ")
+		_, _ = buff.WriteStringSlice(propsSetValueList, ", ")
+		_, _ = buff.WriteString(";")
+
+		nRecord++
+	}
+
+	return buff.String(), nRecord, nil
+}
+
+func (e *Edge) deleteStatement(records ...Record) (statement string, nRecord int, err error) {
+	buff := bytebufferpool.Get()
+	defer bytebufferpool.Put(buff)
+
+	buff.SetString(e.statementPrefix)
+
+	for _, record := range records {
+		if e.Filter != nil {
+			ok, err := e.Filter.Filter(record)
+			if err != nil {
+				return "", 0, e.importError(err)
+			}
+			if !ok { // skipping those return false by Filter
+				continue
+			}
+		}
+		srcIDValue, err := e.Src.IDValue(record)
 		if err != nil {
 			return "", 0, e.importError(err)
+		}
+		dstIDValue, err := e.Dst.IDValue(record)
+		if err != nil {
+			return "", 0, e.importError(err)
+		}
+		var rankValueStatement string
+		if e.Rank != nil {
+			rankValue, err := e.Rank.Value(record)
+			if err != nil {
+				return "", 0, e.importError(err)
+			}
+			rankValueStatement = "@" + rankValue
 		}
 
 		if nRecord > 0 {
 			_, _ = buff.WriteString(", ")
 		}
 
-		// "%s->%s@%s:(%s)"
+		// src -> dst@rank
 		_, _ = buff.WriteString(srcIDValue)
 		_, _ = buff.WriteString("->")
 		_, _ = buff.WriteString(dstIDValue)
-		_, _ = buff.WriteString("@")
-		_, _ = buff.WriteString(rankValue)
-		_, _ = buff.WriteString(":(")
-		_, _ = buff.WriteStringSlice(propsValueList, ", ")
-		_, _ = buff.WriteString(")")
+		_, _ = buff.WriteString(rankValueStatement)
 
 		nRecord++
 	}

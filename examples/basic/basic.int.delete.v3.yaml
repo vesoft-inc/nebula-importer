@@ -1,0 +1,50 @@
+client:
+  version: v3
+  address: "127.0.0.1:9669"
+  user: root
+  password: nebula
+  concurrencyPerAddress: 1
+  reconnectInitialInterval: 1s
+  retry: 3
+  retryInitialInterval: 1s
+
+manager:
+  spaceName: basic_int_examples
+  batch: 128
+  readerConcurrency: 50
+  importerConcurrency: 512
+  statsInterval: 10s
+
+log:
+  level: INFO
+  console: true
+  files:
+   - logs/nebula-importer.log
+
+sources:
+  - path: ./person.csv
+    csv:
+      delimiter: "|"
+    tags:
+    - name: Person
+      mode: DELETE
+      filter:
+        expr: Record[3] == "female"
+      id:
+        type: "INT"
+        index: 0
+        function: hash
+  - path: ./knows.csv
+    edges:
+    - name: KNOWS # person_knows_person
+      mode: DELETE
+      filter:
+        expr: Record[0] != "933"
+      src:
+        id:
+          type: "INT"
+          index: 0
+      dst:
+        id:
+          type: "INT"
+          index: 1

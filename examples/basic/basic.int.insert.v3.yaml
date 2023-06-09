@@ -1,6 +1,6 @@
 client:
   version: v3
-  address: "graphd1:9669,graphd2:9669"
+  address: "127.0.0.1:9669"
   user: root
   password: nebula
   concurrencyPerAddress: 1
@@ -9,7 +9,7 @@ client:
   retryInitialInterval: 1s
 
 manager:
-  spaceName: basic_int_tests
+  spaceName: basic_int_examples
   batch: 128
   readerConcurrency: 50
   importerConcurrency: 512
@@ -18,12 +18,12 @@ manager:
     before:
       - statements:
         - |
-          DROP SPACE IF EXISTS basic_int_tests;
-          CREATE SPACE IF NOT EXISTS basic_int_tests(partition_num=5, replica_factor=1, vid_type=int);
-          USE basic_int_tests;
+          DROP SPACE IF EXISTS basic_int_examples;
+          CREATE SPACE IF NOT EXISTS basic_int_examples(partition_num=5, replica_factor=1, vid_type=int);
+          USE basic_int_examples;
           CREATE TAG Person(firstName STRING, lastName STRING, gender STRING, birthday DATE, creationDate DATETIME, locationIP STRING, browserUsed STRING);
           CREATE EDGE KNOWS(creationDate DATETIME);
-        wait: 15s
+        wait: 10s
 
 log:
   level: INFO
@@ -71,6 +71,7 @@ sources:
           alternativeIndices:
             - 6
     - name: Person
+      mode: INSERT
       filter:
         expr: (Record[1] == "Mahinda" or Record[1] == "Michael") and Record[3] == "male"
       id:
@@ -127,8 +128,9 @@ sources:
           nullValue: _NULL_
           defaultValue: 0000-00-00T00:00:00
     - name: KNOWS # person_knows_person
+      mode: INSERT
       filter:
-        expr: Record[1] == "XXX"
+        expr: Record[0] != "0"
       src:
         id:
           type: "INT"

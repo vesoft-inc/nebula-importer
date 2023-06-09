@@ -1,6 +1,6 @@
 client:
   version: v3
-  address: "127.0.0.1:9669"
+  address: "graphd1:9669,graphd2:9669"
   user: root
   password: nebula
   concurrencyPerAddress: 10
@@ -9,7 +9,7 @@ client:
   retryInitialInterval: 1s
 
 manager:
-  spaceName: basic_string_examples
+  spaceName: basic_string_tests
   batch: 128
   readerConcurrency: 50
   importerConcurrency: 512
@@ -18,12 +18,12 @@ manager:
     before:
       - statements:
         - |
-          DROP SPACE IF EXISTS basic_string_examples;
-          CREATE SPACE IF NOT EXISTS basic_string_examples(partition_num=5, replica_factor=1, vid_type=FIXED_STRING(64));
-          USE basic_string_examples;
+          DROP SPACE IF EXISTS basic_string_tests;
+          CREATE SPACE IF NOT EXISTS basic_string_tests(partition_num=5, replica_factor=1, vid_type=FIXED_STRING(64));
+          USE basic_string_tests;
           CREATE TAG Person(firstName STRING, lastName STRING, gender STRING, birthday DATE, creationDate DATETIME, locationIP STRING, browserUsed STRING);
           CREATE EDGE KNOWS(creationDate DATETIME);
-        wait: 10s
+        wait: 15s
 
 log:
   level: INFO
@@ -39,10 +39,7 @@ sources:
     - name: Person
       id:
         type: "STRING"
-        concatItems:
-          - person_
-          - 0
-          - _id
+        index: 0
       props:
         - name: "firstName"
           type: "STRING"
@@ -68,14 +65,10 @@ sources:
           index: 6
         - name: "browserUsed"
           type: "STRING"
-          index: 7
-  - path: ./person.csv
-    filter:
-      expr: Record[1] != "933"
-    csv:
-      delimiter: "|"
-    tags:
     - name: Person
+      mode: INSERT
+      filter:
+        expr: (Record[1] == "Mahinda" || Record[1] == "Michael") && Record[3] == "male"
       id:
         type: "STRING"
         concatItems:
@@ -115,17 +108,11 @@ sources:
       src:
         id:
           type: "STRING"
-          concatItems:
-            - person_
-            - 0
-            - _id
+          index: 0
       dst:
         id:
           type: "STRING"
-          concatItems:
-            - person_
-            - 1
-            - _id
+          index: 1
       props:
         - name: "creationDate"
           type: "DATETIME"
@@ -133,12 +120,10 @@ sources:
           nullable: true
           nullValue: _NULL_
           defaultValue: 0000-00-00T00:00:00
-  - path: ./knows.csv
-    filter:
-      expr: Record[1] == "XXX"
-    batch: 256
-    edges:
     - name: KNOWS # person_knows_person
+      mode: INSERT
+      filter:
+        expr: Record[0] != "0"
       src:
         id:
           type: "STRING"
@@ -153,6 +138,8 @@ sources:
             - person_
             - 1
             - _id
+      rank:
+        index: 0
       props:
         - name: "creationDate"
           type: "DATETIME"

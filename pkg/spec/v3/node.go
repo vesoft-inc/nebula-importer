@@ -21,7 +21,13 @@ type (
 
 		Filter *specbase.Filter `yaml:"filter,omitempty"`
 
-		insertPrefix string // // "INSERT EDGE name(prop_name, ..., prop_name) VALUES "
+		Mode specbase.Mode `yaml:"mode,omitempty"`
+
+		fnStatement func(records ...Record) (string, int, error)
+		// "INSERT VERTEX name(prop_name, ..., prop_name) VALUES "
+		// "UPDATE VERTEX ON name "
+		// "DELETE TAG name FROM "
+		statementPrefix string
 	}
 
 	Nodes []*Node
@@ -62,6 +68,12 @@ func WithNodeFilter(f *specbase.Filter) NodeOption {
 	}
 }
 
+func WithNodeMode(m specbase.Mode) NodeOption {
+	return func(n *Node) {
+		n.Mode = m
+	}
+}
+
 func (n *Node) Options(opts ...NodeOption) *Node {
 	for _, opt := range opts {
 		opt(n)
@@ -69,23 +81,35 @@ func (n *Node) Options(opts ...NodeOption) *Node {
 	return n
 }
 
+//nolint:dupl
 func (n *Node) Complete() {
 	if n.ID != nil {
 		n.ID.Complete()
 		n.ID.Name = strVID
 	}
 	n.Props.Complete()
+	n.Mode = n.Mode.Convert()
 
-	// default enable IGNORE_EXISTED_INDEX
-	insertPrefixFmt := "INSERT VERTEX IGNORE_EXISTED_INDEX %s(%s) VALUES "
-	if n.IgnoreExistedIndex != nil && !*n.IgnoreExistedIndex {
-		insertPrefixFmt = "INSERT VERTEX %s(%s) VALUES "
+	switch n.Mode {
+	case specbase.InsertMode:
+		n.fnStatement = n.insertStatement
+		// default enable IGNORE_EXISTED_INDEX
+		insertPrefixFmt := "INSERT VERTEX IGNORE_EXISTED_INDEX %s(%s) VALUES "
+		if n.IgnoreExistedIndex != nil && !*n.IgnoreExistedIndex {
+			insertPrefixFmt = "INSERT VERTEX %s(%s) VALUES "
+		}
+		n.statementPrefix = fmt.Sprintf(
+			insertPrefixFmt,
+			utils.ConvertIdentifier(n.Name),
+			strings.Join(n.Props.NameList(), ", "),
+		)
+	case specbase.UpdateMode:
+		n.fnStatement = n.updateStatement
+		n.statementPrefix = fmt.Sprintf("UPDATE VERTEX ON %s ", utils.ConvertIdentifier(n.Name))
+	case specbase.DeleteMode:
+		n.fnStatement = n.deleteStatement
+		n.statementPrefix = fmt.Sprintf("DELETE TAG %s FROM ", utils.ConvertIdentifier(n.Name))
 	}
-	n.insertPrefix = fmt.Sprintf(
-		insertPrefixFmt,
-		utils.ConvertIdentifier(n.Name),
-		strings.Join(n.Props.NameList(), ", "),
-	)
 }
 
 func (n *Node) Validate() error {
@@ -111,14 +135,26 @@ func (n *Node) Validate() error {
 		}
 	}
 
+	if !n.Mode.IsSupport() {
+		return n.importError(errors.ErrUnsupportedMode)
+	}
+
+	if n.Mode == specbase.UpdateMode && len(n.Props) == 0 {
+		return n.importError(errors.ErrNoProps)
+	}
+
 	return nil
 }
 
-func (n *Node) InsertStatement(records ...Record) (statement string, nRecord int, err error) {
+func (n *Node) Statement(records ...Record) (statement string, nRecord int, err error) {
+	return n.fnStatement(records...)
+}
+
+func (n *Node) insertStatement(records ...Record) (statement string, nRecord int, err error) {
 	buff := bytebufferpool.Get()
 	defer bytebufferpool.Put(buff)
 
-	buff.SetString(n.insertPrefix)
+	buff.SetString(n.statementPrefix)
 
 	for _, record := range records {
 		if n.Filter != nil {
@@ -143,7 +179,7 @@ func (n *Node) InsertStatement(records ...Record) (statement string, nRecord int
 			_, _ = buff.WriteString(", ")
 		}
 
-		// "%s:(%s)"
+		// id:(prop_value1, prop_value2, ...)
 		_, _ = buff.WriteString(idValue)
 		_, _ = buff.WriteString(":(")
 		_, _ = buff.WriteStringSlice(propsValueList, ", ")
@@ -154,6 +190,72 @@ func (n *Node) InsertStatement(records ...Record) (statement string, nRecord int
 
 	if nRecord == 0 {
 		return "", 0, nil
+	}
+
+	return buff.String(), nRecord, nil
+}
+
+func (n *Node) updateStatement(records ...Record) (statement string, nRecord int, err error) {
+	buff := bytebufferpool.Get()
+	defer bytebufferpool.Put(buff)
+
+	for _, record := range records {
+		if n.Filter != nil {
+			ok, err := n.Filter.Filter(record)
+			if err != nil {
+				return "", 0, n.importError(err)
+			}
+			if !ok { // skipping those return false by Filter
+				continue
+			}
+		}
+		idValue, err := n.ID.Value(record)
+		if err != nil {
+			return "", 0, n.importError(err)
+		}
+		propsSetValueList, err := n.Props.SetValueList(record)
+		if err != nil {
+			return "", 0, n.importError(err)
+		}
+
+		// "UPDATE VERTEX ON name id SET prop_name1 = prop_value1, prop_name1 = prop_value1, ...;"
+		_, _ = buff.WriteString(n.statementPrefix)
+		_, _ = buff.WriteString(idValue)
+		_, _ = buff.WriteString(" SET ")
+		_, _ = buff.WriteStringSlice(propsSetValueList, ", ")
+		_, _ = buff.WriteString(";")
+
+		nRecord++
+	}
+
+	return buff.String(), nRecord, nil
+}
+
+func (n *Node) deleteStatement(records ...Record) (statement string, nRecord int, err error) {
+	buff := bytebufferpool.Get()
+	defer bytebufferpool.Put(buff)
+
+	for _, record := range records {
+		if n.Filter != nil {
+			ok, err := n.Filter.Filter(record)
+			if err != nil {
+				return "", 0, n.importError(err)
+			}
+			if !ok { // skipping those return false by Filter
+				continue
+			}
+		}
+		idValue, err := n.ID.Value(record)
+		if err != nil {
+			return "", 0, n.importError(err)
+		}
+
+		// "DELETE TAG name FROM id;"
+		_, _ = buff.WriteString(n.statementPrefix)
+		_, _ = buff.WriteString(idValue)
+		_, _ = buff.WriteString(";")
+
+		nRecord++
 	}
 
 	return buff.String(), nRecord, nil
