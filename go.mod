@@ -12,6 +12,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fclairamb/ftpserverlib v0.21.0
 	github.com/golang/mock v1.6.0
+	github.com/jcmturner/gokrb5/v8 v8.4.2
 	github.com/jlaffaye/ftp v0.1.0
 	github.com/onsi/ginkgo/v2 v2.4.0
 	github.com/onsi/gomega v1.24.0
@@ -40,7 +41,6 @@ require (
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.0.0 // indirect
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
-	github.com/jcmturner/gokrb5/v8 v8.4.2 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kr/fs v0.1.0 // indirect
