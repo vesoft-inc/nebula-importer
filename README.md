@@ -9,13 +9,13 @@
 
 ## Features
 
-* Support multiple data sources, currently supports `local`, `s3`, `oss`, `ftp`, `sftp`, `hdfs`.
+* Support multiple data sources, currently supports `local`, `s3`, `oss`, `ftp`, `sftp`, `hdfs`, and `gcs`.
 * Support multiple file formats, currently only `csv` files are supported.
 * Support files containing multiple tags, multiple edges, and a mixture of both.
 * Support data transformations.
 * Support record filtering.
 * Support multiple modes, including `INSERT`, `UPDATE`, `DELETE`.
-* Support connect multiple Garph with automatically load balance.
+* Support connect multiple Graph with automatically load balance.
 * Support retry after failure.
 * Humanized status printing.
 
@@ -160,7 +160,7 @@ log:
 The following are the relevant configuration items.
 
 * `batch` specifies the batch size for this source of the inserted data. The priority is greater than `manager.batch`.
-* `path`, `s3`, `oss`, `ftp`, `sftp`, `hdfs` are information configurations of various data sources, and only one of them can be configured.
+* `path`, `s3`, `oss`, `ftp`, `sftp`, `hdfs`, and `gcs` are information configurations of various data sources, and only one of them can be configured.
 * `csv` describes the csv file format information.
 * `tags` describes the schema definition for tags.
 * `edges` describes the schema definition for edges.
@@ -287,6 +287,25 @@ hdfs:
 * `dataTransferProtection`: **Optional**. The data transfer protection of hdfs service.
 * `disablePAFXFAST`: **Optional**. Whether to prohibit the client to use PA_FX_FAST.
 * `path`: **Required**. The path of file in the sftp service.
+
+#### gcs
+
+It only needs to be configured for gcs data sources.
+
+```yaml
+gcs:
+  endpoint: <endpoint>
+  bucket: <bucket>
+  key: <key>
+  credentialsFile: <Service account or refresh token JSON credentials file>
+  credentialsJSON: <Service account or refresh token JSON credentials>
+```
+
+* `endpoint`: **Optional**. The endpoint of GCS service.
+* `bucket`: **Required**. The bucket of file in GCS service.
+* `key`: **Required**. The object key of file in GCS service.
+* `credentialsFile`: **Optional**. Path to the service account or refresh token JSON credentials file. Not required for public data.
+* `credentialsJSON`: **Optional**. Content of the service account or refresh token JSON credentials file. Not required for public data.
 
 #### batch
 

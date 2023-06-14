@@ -1,0 +1,61 @@
+client:
+  version: v3
+  address: "127.0.0.1:9669"
+  user: root
+  password: nebula
+  concurrencyPerAddress: 10
+  reconnectInitialInterval: 1s
+  retry: 3
+  retryInitialInterval: 1s
+
+manager:
+  spaceName: gcs_examples
+  batch: 128
+  readerConcurrency: 50
+  importerConcurrency: 512
+  statsInterval: 10s
+  hooks:
+    before:
+      - statements:
+        - |
+          CREATE SPACE IF NOT EXISTS `gcs_examples`(PARTITION_NUM = 20, REPLICA_FACTOR = 1, vid_type = INT);
+          USE `gcs_examples`;
+          CREATE TAG IF NOT EXISTS `Crime`(`case_number` STRING);
+        wait: 10s
+
+log:
+  level: INFO
+  console: true
+  files:
+   - logs/nebula-importer.log
+
+sources:
+  - gcs: # Google Cloud Storage
+      bucket: chicago-crime-sample
+      key: stats/000000000000.csv
+      # credentialsFile: "/path/to/your/credentials/file"
+      # credentialsJSON: '{
+      #   "type": "service_account",
+      #   "project_id": "your-project-id",
+      #   "private_key_id": "key-id",
+      #   "private_key": "-----BEGIN PRIVATE KEY-----\nxxxxx\n-----END PRIVATE KEY-----\n",
+      #   "client_email": "your-client@your-project-id.iam.gserviceaccount.com",
+      #   "client_id": "client-id",
+      #   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      #   "token_uri": "https://oauth2.googleapis.com/token",
+      #   "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      #   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/your-client%40your-project-id.iam.gserviceaccount.com",
+      #   "universe_domain": "googleapis.com"
+      # }'
+    csv:
+      delimiter: ","
+      withHeader: true
+    tags:
+      - name: Crime
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "case_number"
+            type: "STRING"
+            index: 1
