@@ -3,6 +3,7 @@ package source
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/option"
@@ -56,7 +57,7 @@ func (s *gcsSource) Open() error {
 	}
 	defer client.Close()
 
-	obj := client.Bucket(s.c.GCS.Bucket).Object(s.c.GCS.Key)
+	obj := client.Bucket(s.c.GCS.Bucket).Object(strings.TrimLeft(s.c.GCS.Key, "/"))
 	if s.reader, err = obj.NewReader(ctx); err != nil {
 		return err
 	}
