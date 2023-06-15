@@ -3,7 +3,6 @@ package source
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/option"
@@ -37,24 +36,21 @@ func (s *gcsSource) Name() string {
 }
 
 func (s *gcsSource) Open() error {
+	var gcsOptions []option.ClientOption
 	if s.c.GCS.Endpoint != "" {
-		err := os.Setenv("STORAGE_EMULATOR_HOST", s.c.GCS.Endpoint)
-		if err != nil {
-			return err
-		}
+		gcsOptions = append(gcsOptions, option.WithEndpoint(s.c.GCS.Endpoint))
 	}
 
-	var gcsOption option.ClientOption
 	if s.c.GCS.CredentialsFile != "" {
-		gcsOption = option.WithCredentialsFile(s.c.GCS.CredentialsFile)
+		gcsOptions = append(gcsOptions, option.WithCredentialsFile(s.c.GCS.CredentialsFile))
 	} else if s.c.GCS.CredentialsJSON != "" {
-		gcsOption = option.WithCredentialsJSON([]byte(s.c.GCS.CredentialsJSON))
+		gcsOptions = append(gcsOptions, option.WithCredentialsJSON([]byte(s.c.GCS.CredentialsJSON)))
 	} else {
-		gcsOption = option.WithoutAuthentication()
+		gcsOptions = append(gcsOptions, option.WithoutAuthentication())
 	}
 
 	ctx := context.Background()
-	client, err := storage.NewClient(ctx, gcsOption)
+	client, err := storage.NewClient(ctx, gcsOptions...)
 	if err != nil {
 		return err
 	}

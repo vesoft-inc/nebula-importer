@@ -38,10 +38,9 @@ var _ = Describe("gcsSource", func() {
 
 		c := Config{
 			GCS: &GCSConfig{
-				Endpoint:        httpServer.URL,
-				CredentialsJSON: `{"foo":"bar"}`,
-				Bucket:          "bucket",
-				Key:             "key",
+				Endpoint: httpServer.URL,
+				Bucket:   "bucket",
+				Key:      "key",
 			},
 		}
 
