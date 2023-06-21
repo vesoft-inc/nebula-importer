@@ -33,6 +33,8 @@ func New(c *Config) (Source, error) {
 		return newSFTPSource(c), nil
 	case c.HDFS != nil:
 		return newHDFSSource(c), nil
+	case c.GCS != nil:
+		return newGCSSource(c), nil
 	default:
 		return newLocalSource(c), nil
 	}

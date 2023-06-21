@@ -66,6 +66,11 @@
 | sources[].hdfs.dataTransferProtection        | The data transfer protection of hdfs service.                             | -                 |
 | sources[].hdfs.disablePAFXFAST               | Whether to prohibit the client to use PA_FX_FAST.                         | -                 |
 | sources[].hdfs.path                          | The path of file in the sftp service.                                     | -                 |
+| sources[].gcs.endpoint                       | The endpoint of GCS service.                                                 | -          |
+| sources[].gcs.bucket                       | The bucket of file in GCS service.                                                 | -          |
+| sources[].gcs.key                       | The object key of file in GCS service.                                                 | -          |
+| sources[].gcs.credentialsFile                       | Path to the service account or refresh token JSON credentials file. Not required for public data.                                                 | -          |
+| sources[].gcs.credentialsJSON                       | Content of the service account or refresh token JSON credentials file. Not required for public data.                                                 | -          |
 | sources[].batch                              | Specifies the batch size for this source of the inserted data.            | -                 |
 | sources[].csv                                | Describes the csv file format information.                                | -                 |
 | sources[].csv.delimiter                      | Specifies the delimiter for the CSV files.                                | ","               |

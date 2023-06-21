@@ -8,6 +8,7 @@ type (
 		FTP   *FTPConfig   `yaml:"ftp,omitempty"`
 		SFTP  *SFTPConfig  `yaml:"sftp,omitempty"`
 		HDFS  *HDFSConfig  `yaml:"hdfs,omitempty"`
+		GCS   *GCSConfig   `yaml:"gcs,omitempty"`
 		// The following is format information
 		CSV *CSVConfig `yaml:"csv,omitempty"`
 	}
@@ -37,6 +38,9 @@ func (c *Config) Clone() *Config {
 	case cpy.HDFS != nil:
 		cpy1 := *cpy.HDFS
 		cpy.HDFS = &cpy1
+	case cpy.GCS != nil:
+		cpy1 := *cpy.GCS
+		cpy.GCS = &cpy1
 	default:
 		cpy1 := *cpy.Local
 		cpy.Local = &cpy1
