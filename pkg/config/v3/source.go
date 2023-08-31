@@ -1,8 +1,6 @@
 package configv3
 
 import (
-	"io/fs"
-	"os"
 	"path/filepath"
 
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/client"
@@ -78,24 +76,20 @@ func (ss Sources) OptimizePath(configPath string) error {
 func (ss *Sources) OptimizePathWildCard() error {
 	nss := make(Sources, 0, len(*ss))
 	for i := range *ss {
-		if (*ss)[i].SourceConfig.Local != nil {
-			paths, err := filepath.Glob((*ss)[i].SourceConfig.Local.Path)
-			if err != nil {
-				return err
-			}
-			if len(paths) == 0 {
-				return &os.PathError{Op: "open", Path: (*ss)[i].SourceConfig.Local.Path, Err: fs.ErrNotExist}
-			}
+		ssCpy := (*ss)[i]
 
-			for _, path := range paths {
-				cpy := (*ss)[i]
-				cpySourceConfig := cpy.SourceConfig.Clone()
-				cpy.SourceConfig = *cpySourceConfig
-				cpy.SourceConfig.Local.Path = path
+		baseSources, isSupportGlob, err := (*ss)[i].Glob()
+		if err != nil {
+			return err
+		}
+		if isSupportGlob {
+			for j := range baseSources {
+				cpy := ssCpy
+				cpy.Source = *baseSources[j]
 				nss = append(nss, cpy)
 			}
 		} else {
-			nss = append(nss, (*ss)[i])
+			nss = append(nss, ssCpy)
 		}
 	}
 	*ss = nss

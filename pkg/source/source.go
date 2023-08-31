@@ -1,4 +1,4 @@
-//go:generate mockgen -source=source.go -destination source_mock.go -package source Source,Sizer
+//go:generate mockgen -source=source.go -destination source_mock.go -package source Source,Sizer,Globber
 package source
 
 import (
@@ -17,6 +17,10 @@ type (
 
 	Sizer interface {
 		Size() (int64, error)
+	}
+
+	Globber interface {
+		Glob() ([]*Config, error)
 	}
 )
 

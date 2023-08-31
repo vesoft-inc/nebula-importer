@@ -156,3 +156,41 @@ func (mr *MockSizerMockRecorder) Size() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Size", reflect.TypeOf((*MockSizer)(nil).Size))
 }
+
+// MockGlobber is a mock of Globber interface.
+type MockGlobber struct {
+	ctrl     *gomock.Controller
+	recorder *MockGlobberMockRecorder
+}
+
+// MockGlobberMockRecorder is the mock recorder for MockGlobber.
+type MockGlobberMockRecorder struct {
+	mock *MockGlobber
+}
+
+// NewMockGlobber creates a new mock instance.
+func NewMockGlobber(ctrl *gomock.Controller) *MockGlobber {
+	mock := &MockGlobber{ctrl: ctrl}
+	mock.recorder = &MockGlobberMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockGlobber) EXPECT() *MockGlobberMockRecorder {
+	return m.recorder
+}
+
+// Glob mocks base method.
+func (m *MockGlobber) Glob() ([]*Config, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Glob")
+	ret0, _ := ret[0].([]*Config)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Glob indicates an expected call of Glob.
+func (mr *MockGlobberMockRecorder) Glob() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Glob", reflect.TypeOf((*MockGlobber)(nil).Glob))
+}

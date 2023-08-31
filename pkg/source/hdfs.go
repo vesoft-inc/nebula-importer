@@ -16,7 +16,10 @@ import (
 
 const defaultKrb5ConfigFile = "/etc/krb5.conf"
 
-var _ Source = (*hdfsSource)(nil)
+var (
+	_ Source  = (*hdfsSource)(nil)
+	_ Globber = (*hdfsSource)(nil)
+)
 
 type (
 	HDFSConfig struct {
@@ -49,7 +52,7 @@ func (s *hdfsSource) Name() string {
 	return s.c.HDFS.String()
 }
 
-func (s *hdfsSource) Open() error {
+func (s *hdfsSource) Connect() error {
 	conf, err := hadoopconf.LoadFromEnvironment()
 	if err != nil {
 		return err
@@ -79,15 +82,69 @@ func (s *hdfsSource) Open() error {
 		return err
 	}
 
-	r, err := cli.Open(s.c.HDFS.Path)
+	s.cli = cli
+
+	return nil
+}
+
+func (s *hdfsSource) Open() error {
+	if err := s.Connect(); err != nil {
+		return err
+	}
+
+	r, err := s.cli.Open(s.c.HDFS.Path)
 	if err != nil {
 		return err
 	}
 
-	s.cli = cli
 	s.r = r
 
 	return nil
+}
+
+func (s *hdfsSource) IsDir(dir string) (isDir bool, err error) {
+	if err = s.Connect(); err != nil {
+		return false, err
+	}
+
+	fi, err := s.cli.Stat(dir)
+	if err != nil {
+		return false, err
+	}
+
+	return fi.IsDir(), nil
+}
+
+func (s *hdfsSource) Readdirnames(dir string) (names []string, err error) {
+	if err = s.Connect(); err != nil {
+		return nil, err
+	}
+
+	fis, err := s.cli.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	names = make([]string, 0, len(fis))
+	for _, fi := range fis {
+		names = append(names, fi.Name())
+	}
+	return names, nil
+}
+
+func (s *hdfsSource) Glob() ([]*Config, error) {
+	matches, err := sourceGlob(s, s.c.HDFS.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	cs := make([]*Config, 0, len(matches))
+	for _, match := range matches {
+		cpy := s.c.Clone()
+		cpy.HDFS.Path = match
+		cs = append(cs, cpy)
+	}
+	return cs, nil
 }
 
 func (s *hdfsSource) Config() *Config {
@@ -102,16 +159,20 @@ func (s *hdfsSource) Read(p []byte) (int, error) {
 	return s.r.Read(p)
 }
 
-func (s *hdfsSource) Close() error {
-	defer func() {
+func (s *hdfsSource) Close() (err error) {
+	if s.r != nil {
+		err = s.r.Close()
+	}
+	if s.cli != nil {
 		_ = s.cli.Close()
-	}()
-	return s.r.Close()
+	}
+	return err
 }
 
 func (c *HDFSConfig) String() string {
 	return fmt.Sprintf("hdfs %s %s", c.Address, c.Path)
 }
+
 func (c *HDFSConfig) getKerberosClient() (*krb.Client, error) {
 	krb5ConfigFile := c.Krb5ConfigFile
 	if krb5ConfigFile == "" {
