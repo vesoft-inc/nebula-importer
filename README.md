@@ -376,7 +376,7 @@ tags:
 - name: Person
   id:
     type: "STRING"
-    concatItems: 0
+    concatItems:
       - "abc"
       - 1
     function: hash
