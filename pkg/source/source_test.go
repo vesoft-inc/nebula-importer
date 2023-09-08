@@ -3,9 +3,18 @@ package source
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
 )
 
 var _ = Describe("Source", func() {
+	It("ErrNoSource", func() {
+		c := Config{}
+		s, err := New(&c)
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(Equal(errors.ErrUnsetSource))
+		Expect(s).To(BeNil())
+	})
+
 	It("S3", func() {
 		c := Config{
 			S3: &S3Config{

@@ -3,6 +3,8 @@ package source
 
 import (
 	"io"
+
+	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
 )
 
 type (
@@ -39,7 +41,8 @@ func New(c *Config) (Source, error) {
 		return newHDFSSource(c), nil
 	case c.GCS != nil:
 		return newGCSSource(c), nil
-	default:
+	case c.Local != nil:
 		return newLocalSource(c), nil
 	}
+	return nil, errors.ErrUnsetSource
 }

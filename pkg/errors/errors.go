@@ -8,6 +8,7 @@ var (
 	ErrUnsupportedClientVersion  = stderrors.New("unsupported client version")
 	ErrNoAddresses               = stderrors.New("no addresses")
 	ErrInvalidAddress            = stderrors.New("invalid address")
+	ErrUnsetSource               = stderrors.New("unset source")
 	ErrInvalidIndex              = stderrors.New("invalid index")
 	ErrNoSpaceName               = stderrors.New("no space name")
 	ErrNoGraphName               = stderrors.New("no graph name")
