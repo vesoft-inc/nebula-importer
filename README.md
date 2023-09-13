@@ -146,7 +146,7 @@ log:
   level: INFO
   console: true
   files:
-   - logs/nebula-importer.log
+    - logs/nebula-importer.log
 ```
 
 * `log.level`: **Optional**. Specifies the log level, optional values is `DEBUG`, `INFO`, `WARN`, `ERROR`, `PANIC` or `FATAL`. The default value is `INFO`.
@@ -299,6 +299,7 @@ gcs:
   key: <key>
   credentialsFile: <Service account or refresh token JSON credentials file>
   credentialsJSON: <Service account or refresh token JSON credentials>
+  withoutAuthentication: <false | true>
 ```
 
 * `endpoint`: **Optional**. The endpoint of GCS service.
@@ -306,6 +307,7 @@ gcs:
 * `key`: **Required**. The object key of file in GCS service.
 * `credentialsFile`: **Optional**. Path to the service account or refresh token JSON credentials file. Not required for public data.
 * `credentialsJSON`: **Optional**. Content of the service account or refresh token JSON credentials file. Not required for public data.
+* `withoutAuthentication`: **Optional**. Specifies that no authentication should be used, defaults to `false`.
 
 #### batch
 

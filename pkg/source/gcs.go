@@ -13,11 +13,12 @@ var _ Source = (*gcsSource)(nil)
 
 type (
 	GCSConfig struct {
-		Endpoint        string `yaml:"endpoint,omitempty"`
-		CredentialsFile string `yaml:"credentialsFile,omitempty"`
-		CredentialsJSON string `yaml:"credentialsJSON,omitempty"`
-		Bucket          string `yaml:"bucket,omitempty"`
-		Key             string `yaml:"key,omitempty"`
+		Endpoint              string `yaml:"endpoint,omitempty"`
+		CredentialsFile       string `yaml:"credentialsFile,omitempty"`
+		CredentialsJSON       string `yaml:"credentialsJSON,omitempty"`
+		WithoutAuthentication bool   `yaml:"withoutAuthentication,omitempty"`
+		Bucket                string `yaml:"bucket,omitempty"`
+		Key                   string `yaml:"key,omitempty"`
 	}
 
 	gcsSource struct {
@@ -46,7 +47,7 @@ func (s *gcsSource) Open() error {
 		gcsOptions = append(gcsOptions, option.WithCredentialsFile(s.c.GCS.CredentialsFile))
 	} else if s.c.GCS.CredentialsJSON != "" {
 		gcsOptions = append(gcsOptions, option.WithCredentialsJSON([]byte(s.c.GCS.CredentialsJSON)))
-	} else {
+	} else if s.c.GCS.WithoutAuthentication {
 		gcsOptions = append(gcsOptions, option.WithoutAuthentication())
 	}
 
