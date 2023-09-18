@@ -17,7 +17,7 @@ require (
 	github.com/jlaffaye/ftp v0.1.0
 	github.com/onsi/ginkgo/v2 v2.4.0
 	github.com/onsi/gomega v1.24.0
-	github.com/panjf2000/ants v1.2.1
+	github.com/panjf2000/ants/v2 v2.8.1
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.13.5
 	github.com/spf13/afero v1.9.3

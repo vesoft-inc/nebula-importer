@@ -17,7 +17,7 @@ import (
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/spec"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/stats"
 
-	"github.com/panjf2000/ants"
+	"github.com/panjf2000/ants/v2"
 )
 
 const (
