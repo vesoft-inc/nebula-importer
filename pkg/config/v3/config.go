@@ -29,7 +29,11 @@ type (
 )
 
 func (c *Config) Optimize(configPath string) error {
-	if err := c.Log.OptimizeFiles(configPath); err != nil {
+	if err := c.Client.OptimizePath(configPath); err != nil {
+		return err
+	}
+
+	if err := c.Log.OptimizePath(configPath); err != nil {
 		return err
 	}
 

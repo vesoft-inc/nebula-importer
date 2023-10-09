@@ -14,8 +14,8 @@ type Log struct {
 	Fields  logger.Fields `yaml:"fields,omitempty"`
 }
 
-// OptimizeFiles optimizes relative files path base to the configuration file path
-func (l *Log) OptimizeFiles(configPath string) error {
+// OptimizePath optimizes relative paths base to the configuration file path
+func (l *Log) OptimizePath(configPath string) error {
 	if l == nil {
 		return nil
 	}

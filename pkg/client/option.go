@@ -1,6 +1,7 @@
 package client
 
 import (
+	"crypto/tls"
 	"strings"
 	"time"
 
@@ -30,6 +31,7 @@ type (
 		addresses            []string
 		user                 string
 		password             string
+		tlsConfig            *tls.Config
 		retry                int
 		retryInitialInterval time.Duration
 		logger               logger.Logger
@@ -44,98 +46,104 @@ type (
 )
 
 func WithV3() Option {
-	return func(c *options) {
+	return func(o *options) {
 		WithNewSessionFunc(func(hostAddress HostAddress) Session {
-			return newSessionV3(hostAddress, c.user, c.password, c.logger)
-		})(c)
+			return newSessionV3(hostAddress, o.user, o.password, o.tlsConfig.Clone(), o.logger)
+		})(o)
 	}
 }
 
 func WithAddress(addresses ...string) Option {
-	return func(c *options) {
+	return func(o *options) {
 		for _, addr := range addresses {
 			if strings.IndexByte(addr, ',') != -1 {
-				c.addresses = append(c.addresses, strings.Split(addr, ",")...)
+				o.addresses = append(o.addresses, strings.Split(addr, ",")...)
 			} else {
-				c.addresses = append(c.addresses, addr)
+				o.addresses = append(o.addresses, addr)
 			}
 		}
 	}
 }
 
 func WithUser(user string) Option {
-	return func(c *options) {
-		c.user = user
+	return func(o *options) {
+		o.user = user
 	}
 }
 
 func WithPassword(password string) Option {
-	return func(c *options) {
-		c.password = password
+	return func(o *options) {
+		o.password = password
 	}
 }
 
 func WithUserPassword(user, password string) Option {
-	return func(c *options) {
-		WithUser(user)(c)
-		WithPassword(password)(c)
+	return func(o *options) {
+		WithUser(user)(o)
+		WithPassword(password)(o)
+	}
+}
+
+func WithTLSConfig(tlsConfig *tls.Config) Option {
+	return func(o *options) {
+		o.tlsConfig = tlsConfig
 	}
 }
 
 func WithRetry(retry int) Option {
-	return func(c *options) {
+	return func(o *options) {
 		if retry > 0 {
-			c.retry = retry
+			o.retry = retry
 		}
 	}
 }
 
 func WithRetryInitialInterval(interval time.Duration) Option {
-	return func(c *options) {
+	return func(o *options) {
 		if interval > 0 {
-			c.retryInitialInterval = interval
+			o.retryInitialInterval = interval
 		}
 	}
 }
 
 func WithLogger(l logger.Logger) Option {
-	return func(m *options) {
-		m.logger = l
+	return func(o *options) {
+		o.logger = l
 	}
 }
 
 func WithNewSessionFunc(fn NewSessionFunc) Option {
-	return func(m *options) {
-		m.fnNewSession = fn
+	return func(o *options) {
+		o.fnNewSession = fn
 	}
 }
 
 func WithClientInitFunc(fn func(Client) error) Option {
-	return func(c *options) {
-		c.clientInitFunc = fn
+	return func(o *options) {
+		o.clientInitFunc = fn
 	}
 }
 
 func WithReconnectInitialInterval(interval time.Duration) Option {
-	return func(c *options) {
+	return func(o *options) {
 		if interval > 0 {
-			c.reconnectInitialInterval = interval
+			o.reconnectInitialInterval = interval
 		}
 	}
 }
 
 func WithConcurrencyPerAddress(concurrencyPerAddress int) Option {
-	return func(c *options) {
+	return func(o *options) {
 		if concurrencyPerAddress > 0 {
-			c.concurrencyPerAddress = concurrencyPerAddress
+			o.concurrencyPerAddress = concurrencyPerAddress
 		}
 	}
 }
 
 func WithQueueSize(queueSize int) Option {
-	return func(c *options) {
+	return func(o *options) {
 		if queueSize > 0 {
-			c.queueSize = queueSize
+			o.queueSize = queueSize
 		}
 	}
 }

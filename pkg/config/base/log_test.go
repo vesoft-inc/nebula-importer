@@ -60,17 +60,17 @@ var _ = Describe("Log", func() {
 		})
 	})
 
-	It(".OptimizeFiles nil", func() {
+	It(".OptimizePath nil", func() {
 		var configLog *Log
-		Expect(configLog.OptimizeFiles("")).NotTo(HaveOccurred())
+		Expect(configLog.OptimizePath("")).NotTo(HaveOccurred())
 	})
 
-	DescribeTable(".OptimizeFiles",
+	DescribeTable(".OptimizePath",
 		func(configPath string, files, expectFiles []string) {
 			l := &Log{
 				Files: files,
 			}
-			Expect(l.OptimizeFiles(configPath)).NotTo(HaveOccurred())
+			Expect(l.OptimizePath(configPath)).NotTo(HaveOccurred())
 			Expect(l.Files).To(Equal(expectFiles))
 		},
 		EntryDescription("%[1]s : %[2]v => %[3]v"),

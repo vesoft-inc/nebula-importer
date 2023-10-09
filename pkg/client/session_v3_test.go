@@ -15,14 +15,14 @@ import (
 
 var _ = Describe("SessionV3", func() {
 	It("success", func() {
-		session := newSessionV3(HostAddress{}, "user", "password", nil)
+		session := newSessionV3(HostAddress{}, "user", "password", nil, nil)
 		pool := &nebula.ConnectionPool{}
 		nSession := &nebula.Session{}
 
 		patches := gomonkey.NewPatches()
 		defer patches.Reset()
 
-		patches.ApplyFuncReturn(nebula.NewConnectionPool, pool, nil)
+		patches.ApplyFuncReturn(nebula.NewSslConnectionPool, pool, nil)
 		patches.ApplyMethodReturn(pool, "GetSession", nSession, nil)
 
 		patches.ApplyMethodReturn(nSession, "Execute", &nebula.ResultSet{}, nil)
@@ -39,21 +39,21 @@ var _ = Describe("SessionV3", func() {
 	})
 
 	It("failed", func() {
-		session := newSessionV3(HostAddress{}, "user", "password", logger.NopLogger)
+		session := newSessionV3(HostAddress{}, "user", "password", nil, logger.NopLogger)
 		pool := &nebula.ConnectionPool{}
 		nSession := &nebula.Session{}
 
 		patches := gomonkey.NewPatches()
 		defer patches.Reset()
 
-		patches.ApplyFuncReturn(nebula.NewConnectionPool, nil, stderrors.New("new connection pool failed"))
+		patches.ApplyFuncReturn(nebula.NewSslConnectionPool, nil, stderrors.New("new connection pool failed"))
 
 		err := session.Open()
 		Expect(err).To(HaveOccurred())
 
 		patches.Reset()
 
-		patches.ApplyFuncReturn(nebula.NewConnectionPool, pool, nil)
+		patches.ApplyFuncReturn(nebula.NewSslConnectionPool, pool, nil)
 		patches.ApplyMethodReturn(pool, "GetSession", nil, stderrors.New("get session failed"))
 
 		err = session.Open()
@@ -61,7 +61,7 @@ var _ = Describe("SessionV3", func() {
 
 		patches.Reset()
 
-		patches.ApplyFuncReturn(nebula.NewConnectionPool, pool, nil)
+		patches.ApplyFuncReturn(nebula.NewSslConnectionPool, pool, nil)
 		patches.ApplyMethodReturn(pool, "GetSession", nSession, nil)
 
 		patches.ApplyMethodReturn(nSession, "Execute", nil, stderrors.New("execute failed"))

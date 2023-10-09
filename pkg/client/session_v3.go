@@ -2,6 +2,7 @@
 package client
 
 import (
+	"crypto/tls"
 	"fmt"
 	"time"
 
@@ -15,11 +16,12 @@ type (
 		hostAddress nebula.HostAddress
 		user        string
 		password    string
+		tlsConfig   *tls.Config
 		logger      logger.Logger
 	}
 )
 
-func newSessionV3(hostAddress HostAddress, user, password string, l logger.Logger) Session {
+func newSessionV3(hostAddress HostAddress, user, password string, tlsConfig *tls.Config, l logger.Logger) Session {
 	if l == nil {
 		l = logger.NopLogger
 	}
@@ -28,19 +30,21 @@ func newSessionV3(hostAddress HostAddress, user, password string, l logger.Logge
 			Host: hostAddress.Host,
 			Port: hostAddress.Port,
 		},
-		user:     user,
-		password: password,
-		logger:   l,
+		user:      user,
+		password:  password,
+		tlsConfig: tlsConfig,
+		logger:    l,
 	}
 }
 
 func (s *defaultSessionV3) Open() error {
 	hostAddress := s.hostAddress
-	pool, err := nebula.NewConnectionPool(
+	pool, err := nebula.NewSslConnectionPool(
 		[]nebula.HostAddress{hostAddress},
 		nebula.PoolConfig{
 			MaxConnPoolSize: 1,
 		},
+		s.tlsConfig,
 		newNebulaLogger(s.logger.With(logger.Field{
 			Key:   "address",
 			Value: fmt.Sprintf("%s:%d", hostAddress.Host, hostAddress.Port),

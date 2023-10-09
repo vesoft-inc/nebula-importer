@@ -86,6 +86,12 @@ client:
   address: "127.0.0.1:9669"
   user: root
   password: nebula
+  ssl:
+    enable: true
+    certPath: "your/cert/file/path"
+    keyPath: "your/key/file/path"
+    caPath: "your/ca/file/path"
+    insecureSkipVerify: false
   concurrencyPerAddress: 16
   reconnectInitialInterval: 1s
   retry: 3
@@ -96,6 +102,12 @@ client:
 * `client.address`: **Required**. The address of graph in NebulaGraph.
 * `client.user`: **Optional**. The user of NebulaGraph. The default value is `root`.
 * `client.password`: **Optional**. The password of NebulaGraph. The default value is `nebula`.
+* `client.ssl`: **Optional**. SSL related configuration.
+* `client.ssl.enable`: **Optional**. Specifies whether to enable ssl authentication. The default value is `false`.
+* `client.ssl.certPath`: **Required**. Specifies the path of the certificate file.
+* `client.ssl.keyPath`: **Required**. Specifies the path of the private key file.
+* `client.ssl.caPath`: **Required**. Specifies the path of the certification authority file.
+* `client.ssl.insecureSkipVerify`: **Optional**. Specifies whether a client verifies the server's certificate chain and host name. The default value is `false`.
 * `client.concurrencyPerAddress`: **Optional**. The number of client connections to each graph in NebulaGraph. The default value is `10`.
 * `client.reconnectInitialInterval`: **Optional**. The initialization interval for reconnecting NebulaGraph. The default value is `1s`.
 * `client.retry`: **Optional**. The failed retrying times to execute nGQL queries in NebulaGraph client. The default value is `3`.
