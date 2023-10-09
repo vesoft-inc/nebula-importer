@@ -1,6 +1,8 @@
 package client
 
 import (
+	"crypto/tls"
+
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -15,6 +17,7 @@ var _ = Describe("Option", func() {
 		Expect(o.addresses).To(Equal([]string(nil)))
 		Expect(o.user).To(Equal(DefaultUser))
 		Expect(o.password).To(Equal(DefaultPassword))
+		Expect(o.tlsConfig).To(BeNil())
 		Expect(o.retry).To(Equal(DefaultRetry))
 		Expect(o.retryInitialInterval).To(Equal(DefaultRetryInitialInterval))
 		Expect(o.logger).NotTo(BeNil())
@@ -29,6 +32,7 @@ var _ = Describe("Option", func() {
 		Expect(o1.addresses).To(Equal([]string(nil)))
 		Expect(o1.user).To(Equal(DefaultUser))
 		Expect(o1.password).To(Equal(DefaultPassword))
+		Expect(o1.tlsConfig).To(BeNil())
 		Expect(o1.retry).To(Equal(DefaultRetry))
 		Expect(o1.retryInitialInterval).To(Equal(DefaultRetryInitialInterval))
 		Expect(o1.logger).NotTo(BeNil())
@@ -53,6 +57,8 @@ var _ = Describe("Option", func() {
 			WithUser("u0"),
 			WithPassword("p0"),
 			WithUserPassword("newUser", "newPassword"),
+			WithTLSConfig(&tls.Config{}),                         //nolint:gosec
+			WithTLSConfig(&tls.Config{InsecureSkipVerify: true}), //nolint:gosec
 			WithRetry(DefaultRetry-1),
 			WithRetry(DefaultRetry+1),
 			WithRetryInitialInterval(DefaultRetryInitialInterval-1),
@@ -78,6 +84,8 @@ var _ = Describe("Option", func() {
 		}))
 		Expect(o.user).To(Equal("newUser"))
 		Expect(o.password).To(Equal("newPassword"))
+		Expect(o.tlsConfig).NotTo(BeNil())
+		Expect(o.tlsConfig.InsecureSkipVerify).To(BeTrue())
 		Expect(o.retry).To(Equal(DefaultRetry + 1))
 		Expect(o.retryInitialInterval).To(Equal(DefaultRetryInitialInterval + 1))
 		Expect(o.logger).NotTo(BeNil())
@@ -100,6 +108,8 @@ var _ = Describe("Option", func() {
 		}))
 		Expect(o1.user).To(Equal("newUser"))
 		Expect(o1.password).To(Equal("newPassword"))
+		Expect(o1.tlsConfig).NotTo(BeNil())
+		Expect(o1.tlsConfig.InsecureSkipVerify).To(BeTrue())
 		Expect(o1.retry).To(Equal(DefaultRetry + 1))
 		Expect(o1.retryInitialInterval).To(Equal(DefaultRetryInitialInterval + 1))
 		Expect(o1.logger).NotTo(BeNil())

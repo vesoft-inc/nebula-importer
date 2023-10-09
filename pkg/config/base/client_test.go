@@ -64,29 +64,64 @@ var _ = Describe("Client", func() {
 		)
 	})
 
-	DescribeTable("OptimizeFiles",
-		func(configPath string, files, expectFiles []string) {
-			l := &Log{
-				Files: files,
+	It(".OptimizePath nil", func() {
+		var c *Client
+		Expect(c.OptimizePath("")).NotTo(HaveOccurred())
+	})
+
+	DescribeTable("OptimizePath ssl",
+		func(configPath string, ssl, expectSSL *SSL) {
+			c := Client{
+				SSL: ssl,
 			}
-			Expect(l.OptimizeFiles(configPath)).NotTo(HaveOccurred())
-			Expect(l.Files).To(Equal(expectFiles))
+			Expect(c.OptimizePath(configPath)).NotTo(HaveOccurred())
+			Expect(c.SSL).To(Equal(expectSSL))
 		},
 		EntryDescription("%[1]s : %[2]v => %[3]v"),
 
 		Entry(nil, "f.yaml", nil, nil),
-		Entry(nil, "./f.yaml", []string{"1.log"}, []string{"1.log"}),
-		Entry(nil, "f.yaml", []string{"1.log", "2.log"}, []string{"1.log", "2.log"}),
-		Entry(nil, "./f.yaml", []string{"d10/1.log", "./d20/2.log"}, []string{"d10/1.log", "d20/2.log"}),
-
-		Entry(nil, "./d1/f.yaml", nil, nil),
-		Entry(nil, "d1/f.yaml", []string{"1.log"}, []string{"d1/1.log"}),
-		Entry(nil, "./d1/f.yaml", []string{"1.log", "2.log"}, []string{"d1/1.log", "d1/2.log"}),
-		Entry(nil, "d1/f.yaml", []string{"d10/1.log", "./d20/2.log"}, []string{"d1/d10/1.log", "d1/d20/2.log"}),
-
-		Entry(nil, "./d1/f.yaml", nil, nil),
-		Entry(nil, "d1/f.yaml", []string{"/1.log"}, []string{"/1.log"}),
-		Entry(nil, "./d1/f.yaml", []string{"/1.log", "/2.log"}, []string{"/1.log", "/2.log"}),
-		Entry(nil, "d1/f.yaml", []string{"/d10/1.log", "/d20/2.log"}, []string{"/d10/1.log", "/d20/2.log"}),
+		Entry(nil, "f.yaml", &SSL{}, &SSL{}),
+		Entry(nil, "./f.yaml",
+			&SSL{
+				Enable:   true,
+				CertPath: "cert.crt",
+				KeyPath:  "d10/cert.key",
+				CAPath:   "d20/ca.crt",
+			},
+			&SSL{
+				Enable:   true,
+				CertPath: "cert.crt",
+				KeyPath:  "d10/cert.key",
+				CAPath:   "d20/ca.crt",
+			},
+		),
+		Entry(nil, "./d1/f.yaml",
+			&SSL{
+				Enable:   true,
+				CertPath: "cert.crt",
+				KeyPath:  "d10/cert.key",
+				CAPath:   "d20/ca.crt",
+			},
+			&SSL{
+				Enable:   true,
+				CertPath: "d1/cert.crt",
+				KeyPath:  "d1/d10/cert.key",
+				CAPath:   "d1/d20/ca.crt",
+			},
+		),
+		Entry(nil, "./d1/f.yaml",
+			&SSL{
+				Enable:   true,
+				CertPath: "/cert.crt",
+				KeyPath:  "/d10/cert.key",
+				CAPath:   "/d20/ca.crt",
+			},
+			&SSL{
+				Enable:   true,
+				CertPath: "/cert.crt",
+				KeyPath:  "/d10/cert.key",
+				CAPath:   "/d20/ca.crt",
+			},
+		),
 	)
 })
