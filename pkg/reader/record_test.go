@@ -30,4 +30,11 @@ var _ = Describe("RecordReader", func() {
 		r := NewRecordReader(s)
 		Expect(r).NotTo(BeNil())
 	})
+	It("should panic", func() {
+		s.Config().Format = "unknown"
+
+		Expect(func() {
+			NewRecordReader(s)
+		}).Should(PanicWith("unsupported source format"))
+	})
 })

@@ -2,13 +2,14 @@ package source
 
 type (
 	Config struct {
-		Local *LocalConfig `yaml:",inline"`
-		S3    *S3Config    `yaml:"s3,omitempty"`
-		OSS   *OSSConfig   `yaml:"oss,omitempty"`
-		FTP   *FTPConfig   `yaml:"ftp,omitempty"`
-		SFTP  *SFTPConfig  `yaml:"sftp,omitempty"`
-		HDFS  *HDFSConfig  `yaml:"hdfs,omitempty"`
-		GCS   *GCSConfig   `yaml:"gcs,omitempty"`
+		Format string       `yaml:"format,omitempty"`
+		Local  *LocalConfig `yaml:",inline"`
+		S3     *S3Config    `yaml:"s3,omitempty"`
+		OSS    *OSSConfig   `yaml:"oss,omitempty"`
+		FTP    *FTPConfig   `yaml:"ftp,omitempty"`
+		SFTP   *SFTPConfig  `yaml:"sftp,omitempty"`
+		HDFS   *HDFSConfig  `yaml:"hdfs,omitempty"`
+		GCS    *GCSConfig   `yaml:"gcs,omitempty"`
 		// The following is format information
 		CSV *CSVConfig `yaml:"csv,omitempty"`
 	}
