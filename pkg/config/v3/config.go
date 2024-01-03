@@ -78,6 +78,7 @@ func (c *Config) Build() error {
 	if err != nil {
 		return err
 	}
+
 	mgr, err = c.Manager.BuildManager(l, pool, c.Sources,
 		manager.WithGetClientOptions(client.WithClientInitFunc(nil)), // clean the USE SPACE in 3.x
 	)

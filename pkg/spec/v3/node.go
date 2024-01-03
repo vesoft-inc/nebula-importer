@@ -2,10 +2,13 @@ package specv3
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
+	nebula "github.com/vesoft-inc/nebula-go/v3"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/bytebufferpool"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
+	"github.com/vesoft-inc/nebula-importer/v4/pkg/manager"
 	specbase "github.com/vesoft-inc/nebula-importer/v4/pkg/spec/base"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/utils"
 )
@@ -21,13 +24,16 @@ type (
 
 		Filter *specbase.Filter `yaml:"filter,omitempty"`
 
-		Mode specbase.Mode `yaml:"mode,omitempty"`
+		Mode         specbase.Mode          `yaml:"mode,omitempty"`
+		DynamicParam *specbase.DynamicParam `yaml:"dynamicParam,omitempty"`
 
-		fnStatement func(records ...Record) (string, int, error)
+		fnStatement        func(records ...Record) (string, int, error)
+		dynamicFnStatement func(pool *nebula.SessionPool, records ...Record) (string, int, error)
 		// "INSERT VERTEX name(prop_name, ..., prop_name) VALUES "
 		// "UPDATE VERTEX ON name "
 		// "DELETE TAG name FROM "
 		statementPrefix string
+		// session for batch update
 	}
 
 	Nodes []*Node
@@ -109,6 +115,11 @@ func (n *Node) Complete() {
 	case specbase.DeleteMode:
 		n.fnStatement = n.deleteStatement
 		n.statementPrefix = fmt.Sprintf("DELETE TAG %s FROM ", utils.ConvertIdentifier(n.Name))
+	case specbase.BatchUpdateMode:
+		//batch update, would fetch the node first.
+		//and then update the node with the props
+		//statementPrefix should be modified after fetch the node
+		n.fnStatement = n.updateBatchStatement
 	}
 }
 
@@ -278,4 +289,167 @@ func (ns Nodes) Validate() error {
 		}
 	}
 	return nil
+}
+
+func (n *Node) updateBatchStatement(records ...Record) (statement string, nRecord int, err error) {
+	if n.DynamicParam == nil {
+		return "", 0, errors.ErrNoDynamicParam
+	}
+	buff := bytebufferpool.Get()
+	defer bytebufferpool.Put(buff)
+	var (
+		idValues          []string
+		cols              []string
+		needUpdateRecords []Record
+	)
+
+	for _, record := range records {
+		idValue, err := n.ID.Value(record)
+		if err != nil {
+			return "", 0, n.importError(err)
+		}
+		idValues = append(idValues, idValue)
+		propsSetValueList, err := n.Props.ValueList(record)
+		if err != nil {
+			return "", 0, err
+		}
+		needUpdateRecords = append(needUpdateRecords, propsSetValueList)
+	}
+	for _, prop := range n.Props {
+		cols = append(cols, prop.Name)
+	}
+
+	updatedCols, updatedRecords, err := n.genDynamicUpdateRecord(manager.DefaultSessionPool, idValues, cols, needUpdateRecords)
+	if err != nil {
+		return "", 0, err
+	}
+
+	// batch insert
+	// INSERT VERTEX %s(%s) VALUES
+	prefix := fmt.Sprintf("INSERT VERTEX %s(%s) VALUES ", utils.ConvertIdentifier(n.Name), strings.Join(updatedCols, ", "))
+	buff.SetString(prefix)
+
+	for index, record := range updatedRecords {
+		idValue := idValues[index]
+
+		if nRecord > 0 {
+			_, _ = buff.WriteString(", ")
+		}
+
+		// id:(prop_value1, prop_value2, ...)
+		_, _ = buff.WriteString(idValue)
+		_, _ = buff.WriteString(":(")
+		_, _ = buff.WriteStringSlice(record, ", ")
+		_, _ = buff.WriteString(")")
+
+		nRecord++
+	}
+	return buff.String(), nRecord, nil
+}
+
+// genDynamicUpdateRecord generate the update record for batch update
+// return column values and records
+func (n *Node) genDynamicUpdateRecord(pool *nebula.SessionPool, idValues []string, cols []string, records []Record) ([]string, []Record, error) {
+	stat := fmt.Sprintf("FETCH PROP ON %s %s YIELD VERTEX as v;", utils.ConvertIdentifier(n.Name), strings.Join(idValues, ","))
+	var (
+		rs             *nebula.ResultSet
+		err            error
+		updatedCols    []string
+		updatedRecords []Record
+	)
+	for i := 0; i < 3; i++ {
+		rs, err = pool.Execute(stat)
+		if err != nil {
+			continue
+		}
+		if !rs.IsSucceed() {
+			continue
+		}
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+	if !rs.IsSucceed() {
+		return nil, nil, fmt.Errorf(rs.GetErrorMsg())
+	}
+	fetchData, err := n.getNebulaFetchData(rs)
+	for _, property := range fetchData {
+		updatedCols = n.getDynamicUpdateCols(cols, property)
+		break
+	}
+	for index, id := range idValues {
+		originalData, ok := fetchData[id]
+		if !ok {
+			return nil, nil, fmt.Errorf("cannot find id, id: %s", id)
+		}
+		r := n.getUpdateRocord(originalData, updatedCols, records[index])
+		updatedRecords = append(updatedRecords, r)
+	}
+	return updatedCols, updatedRecords, nil
+}
+
+// append the need update column to the end of the cols
+func (n *Node) getDynamicUpdateCols(updateCols []string, properties map[string]*nebula.ValueWrapper) []string {
+	needUpdate := make(map[string]struct{})
+	for _, c := range updateCols {
+		needUpdate[c] = struct{}{}
+	}
+	var cols []string
+	for k, _ := range properties {
+		if _, ok := needUpdate[k]; !ok {
+			cols = append(cols, k)
+		}
+	}
+	sort.Slice(cols, func(i, j int) bool {
+		return cols[i] < cols[j]
+	})
+	cols = append(cols, updateCols...)
+	return cols
+}
+
+func (n *Node) getNebulaFetchData(rs *nebula.ResultSet) (map[string]map[string]*nebula.ValueWrapper, error) {
+	m := make(map[string]map[string]*nebula.ValueWrapper)
+	for i := 0; i < rs.GetRowSize(); i++ {
+		row, err := rs.GetRowValuesByIndex(i)
+		if err != nil {
+			return nil, err
+		}
+		cell, err := row.GetValueByIndex(0)
+		if err != nil {
+			return nil, err
+		}
+		node, err := cell.AsNode()
+		
+		if err != nil {
+			return nil, err
+		}
+		property, err := node.Properties(n.Name)
+		if err != nil {
+			return nil, err
+		}
+		m[node.GetID().String()] = property
+	}
+	return m, nil
+}
+
+func (n *Node) getUpdateRocord(original map[string]*nebula.ValueWrapper, Columns []string, update Record) Record {
+	r := make(Record, 0, len(Columns))
+	var vStr string
+	for _, c := range Columns {
+		value := original[c]
+
+		switch value.GetType() {
+		// TODO should handle other type
+		case "datetime":
+			vStr = fmt.Sprintf("datetime(\"%s\")", value.String())
+		default:
+			vStr = value.String()
+		}
+		r = append(r, vStr)
+	}
+	// update
+	for i := 0; i < len(update); i++ {
+		r[len(Columns)-len(update)+i] = update[i]
+	}
+	return r
 }
