@@ -31,6 +31,7 @@ type (
 		addresses            []string
 		user                 string
 		password             string
+		handshakeKey         string
 		tlsConfig            *tls.Config
 		retry                int
 		retryInitialInterval time.Duration
@@ -48,7 +49,7 @@ type (
 func WithV3() Option {
 	return func(o *options) {
 		WithNewSessionFunc(func(hostAddress HostAddress) Session {
-			return newSessionV3(hostAddress, o.user, o.password, o.tlsConfig.Clone(), o.logger)
+			return newSessionV3(hostAddress, o.user, o.password, o.handshakeKey, o.tlsConfig.Clone(), o.logger)
 		})(o)
 	}
 }
@@ -81,6 +82,12 @@ func WithUserPassword(user, password string) Option {
 	return func(o *options) {
 		WithUser(user)(o)
 		WithPassword(password)(o)
+	}
+}
+
+func WithHandshakeKey(handshakeKey string) Option {
+	return func(o *options) {
+		o.handshakeKey = handshakeKey
 	}
 }
 

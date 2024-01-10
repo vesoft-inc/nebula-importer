@@ -15,7 +15,7 @@ import (
 
 var _ = Describe("SessionV3", func() {
 	It("success", func() {
-		session := newSessionV3(HostAddress{}, "user", "password", nil, nil)
+		session := newSessionV3(HostAddress{}, "user", "password", "", nil, nil)
 		pool := &nebula.ConnectionPool{}
 		nSession := &nebula.Session{}
 
@@ -39,7 +39,7 @@ var _ = Describe("SessionV3", func() {
 	})
 
 	It("failed", func() {
-		session := newSessionV3(HostAddress{}, "user", "password", nil, logger.NopLogger)
+		session := newSessionV3(HostAddress{}, "user", "password", "", nil, logger.NopLogger)
 		pool := &nebula.ConnectionPool{}
 		nSession := &nebula.Session{}
 
