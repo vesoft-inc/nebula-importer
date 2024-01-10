@@ -15,6 +15,7 @@ type (
 
 	CSVConfig struct {
 		Delimiter  string `yaml:"delimiter,omitempty"`
+		Comment    string `yaml:"comment,omitempty"`
 		WithHeader bool   `yaml:"withHeader,omitempty"`
 		LazyQuotes bool   `yaml:"lazyQuotes,omitempty"`
 	}

@@ -40,6 +40,9 @@ func NewCSVReader(s source.Source) RecordReader {
 		if chars := []rune(c.CSV.Delimiter); len(chars) > 0 {
 			cr.Comma = chars[0]
 		}
+		if chars := []rune(c.CSV.Comment); len(chars) > 0 {
+			cr.Comment = chars[0]
+		}
 		cr.LazyQuotes = c.CSV.LazyQuotes
 
 		h.withHeader = c.CSV.WithHeader

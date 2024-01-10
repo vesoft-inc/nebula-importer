@@ -25,6 +25,7 @@ sources:
   - path: ./person.csv
     csv:
       delimiter: "|"
+      comment: "#"
     tags:
     - name: Person
       mode: DELETE

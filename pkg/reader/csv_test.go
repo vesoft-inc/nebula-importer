@@ -81,6 +81,7 @@ var _ = Describe("csvReader", func() {
 				},
 				CSV: &source.CSVConfig{
 					Delimiter: "|",
+					Comment:   "#",
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -103,32 +104,32 @@ var _ = Describe("csvReader", func() {
 			r := NewCSVReader(s)
 			nBytes, err = r.Size()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(nBytes).To(Equal(int64(33)))
+			Expect(nBytes).To(Equal(int64(117)))
 
 			n, record, err = r.Read()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(n).To(Equal(6))
+			Expect(n).To(Equal(20))
 			Expect(record).To(Equal(spec.Record{"1", "2", "3"}))
 
 			n, record, err = r.Read()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(n).To(Equal(7))
+			Expect(n).To(Equal(35))
 			Expect(record).To(Equal(spec.Record{"4", " 5", "6"}))
 
 			n, record, err = r.Read()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(n).To(Equal(8))
+			Expect(n).To(Equal(22))
 			Expect(record).To(Equal(spec.Record{" 7", "8", " 9"}))
 
 			n, record, err = r.Read()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(n).To(Equal(12))
+			Expect(n).To(Equal(26))
 			Expect(record).To(Equal(spec.Record{"10", " 11 ", " 12"}))
 
 			n, record, err = r.Read()
 			Expect(err).To(HaveOccurred())
 			Expect(stderrors.Is(err, io.EOF)).To(BeTrue())
-			Expect(n).To(Equal(0))
+			Expect(n).To(Equal(14))
 			Expect(record).To(BeEmpty())
 		})
 	})
