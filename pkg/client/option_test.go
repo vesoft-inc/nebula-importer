@@ -17,6 +17,7 @@ var _ = Describe("Option", func() {
 		Expect(o.addresses).To(Equal([]string(nil)))
 		Expect(o.user).To(Equal(DefaultUser))
 		Expect(o.password).To(Equal(DefaultPassword))
+		Expect(o.handshakeKey).To(BeEmpty())
 		Expect(o.tlsConfig).To(BeNil())
 		Expect(o.retry).To(Equal(DefaultRetry))
 		Expect(o.retryInitialInterval).To(Equal(DefaultRetryInitialInterval))
@@ -32,6 +33,7 @@ var _ = Describe("Option", func() {
 		Expect(o1.addresses).To(Equal([]string(nil)))
 		Expect(o1.user).To(Equal(DefaultUser))
 		Expect(o1.password).To(Equal(DefaultPassword))
+		Expect(o.handshakeKey).To(BeEmpty())
 		Expect(o1.tlsConfig).To(BeNil())
 		Expect(o1.retry).To(Equal(DefaultRetry))
 		Expect(o1.retryInitialInterval).To(Equal(DefaultRetryInitialInterval))
@@ -57,6 +59,8 @@ var _ = Describe("Option", func() {
 			WithUser("u0"),
 			WithPassword("p0"),
 			WithUserPassword("newUser", "newPassword"),
+			WithHandshakeKey("handshakeKey"),
+			WithHandshakeKey("newHandshakeKey"),
 			WithTLSConfig(&tls.Config{}),                         //nolint:gosec
 			WithTLSConfig(&tls.Config{InsecureSkipVerify: true}), //nolint:gosec
 			WithRetry(DefaultRetry-1),
@@ -84,6 +88,7 @@ var _ = Describe("Option", func() {
 		}))
 		Expect(o.user).To(Equal("newUser"))
 		Expect(o.password).To(Equal("newPassword"))
+		Expect(o.handshakeKey).To(Equal("newHandshakeKey"))
 		Expect(o.tlsConfig).NotTo(BeNil())
 		Expect(o.tlsConfig.InsecureSkipVerify).To(BeTrue())
 		Expect(o.retry).To(Equal(DefaultRetry + 1))
@@ -108,6 +113,7 @@ var _ = Describe("Option", func() {
 		}))
 		Expect(o1.user).To(Equal("newUser"))
 		Expect(o1.password).To(Equal("newPassword"))
+		Expect(o.handshakeKey).To(Equal("newHandshakeKey"))
 		Expect(o1.tlsConfig).NotTo(BeNil())
 		Expect(o1.tlsConfig.InsecureSkipVerify).To(BeTrue())
 		Expect(o1.retry).To(Equal(DefaultRetry + 1))

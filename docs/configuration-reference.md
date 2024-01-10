@@ -7,6 +7,7 @@
 | client.address                              | The address of graph in NebulaGraph.                                                                 | -                |
 | client.user                                 | The user of NebulaGraph.                                                                             | root             |
 | client.password                             | The password of NebulaGraph.                                                                         | nebula           |
+| client.handshakeKey                         | The handshakeKey of NebulaGraph.                                                                     | -                |
 | client.ssl                                  | SSL related configuration.                                                                           | nebula           |
 | client.ssl.enable                           | Specifies whether to enable ssl authentication.                                                      | false            |
 | client.ssl.certPath                         | Specifies the path of the certificate file.                                                          | -                |
@@ -82,6 +83,7 @@
 | sources[].csv.delimiter                     | Specifies the delimiter for the CSV files.                                                           | ","              |
 | sources[].csv.withHeader                    | Specifies whether to ignore the first record in csv file.                                            | false            |
 | sources[].csv.lazyQuotes                    | Specifies lazy quotes of csv file.                                                                   | false            |
+| sources[].csv.comment                       | Specifies the comment character.                                                                     | -                |
 | sources[].tags                              | Describes the schema definition for tags.                                                            | -                |
 | sources[].tags[].name                       | The tag name.                                                                                        | -                |
 | sources[].tags[].mode                       | The mode for processing data, one of `INSERT`, `UPDATE` or `DELETE`.                                 | -                |
