@@ -102,7 +102,6 @@ client:
 * `client.address`: **Required**. The address of graph in NebulaGraph.
 * `client.user`: **Optional**. The user of NebulaGraph. The default value is `root`.
 * `client.password`: **Optional**. The password of NebulaGraph. The default value is `nebula`.
-* `client.handshakeKey`: **Optional**. The handshakeKey of NebulaGraph.
 * `client.ssl`: **Optional**. SSL related configuration.
 * `client.ssl.enable`: **Optional**. Specifies whether to enable ssl authentication. The default value is `false`.
 * `client.ssl.certPath`: **Required**. Specifies the path of the certificate file.
@@ -337,13 +336,11 @@ csv:
   delimiter: ","
   withHeader: false
   lazyQuotes: false
-  comment: ""
 ```
 
 * `delimiter`: **Optional**. Specifies the delimiter for the CSV files. The default value is `","`. And only a 1-character string delimiter is supported.
 * `withHeader`: **Optional**. Specifies whether to ignore the first record in csv file. The default value is `false`.
 * `lazyQuotes`: **Optional**. If lazyQuotes is true, a quote may appear in an unquoted field and a non-doubled quote may appear in a quoted field.
-* `comment`: **Optional**. Specifies the comment character. Lines beginning with the Comment character without preceding whitespace are ignored.
 
 #### tags
 

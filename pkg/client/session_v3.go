@@ -12,18 +12,16 @@ import (
 
 type (
 	defaultSessionV3 struct {
-		session      *nebula.Session
-		hostAddress  nebula.HostAddress
-		user         string
-		password     string
-		handshakeKey string
-		tlsConfig    *tls.Config
-		logger       logger.Logger
+		session     *nebula.Session
+		hostAddress nebula.HostAddress
+		user        string
+		password    string
+		tlsConfig   *tls.Config
+		logger      logger.Logger
 	}
 )
 
-//revive:disable-next-line:argument-limit
-func newSessionV3(hostAddress HostAddress, user, password, handshakeKey string, tlsConfig *tls.Config, l logger.Logger) Session {
+func newSessionV3(hostAddress HostAddress, user, password string, tlsConfig *tls.Config, l logger.Logger) Session {
 	if l == nil {
 		l = logger.NopLogger
 	}
@@ -32,11 +30,10 @@ func newSessionV3(hostAddress HostAddress, user, password, handshakeKey string, 
 			Host: hostAddress.Host,
 			Port: hostAddress.Port,
 		},
-		user:         user,
-		password:     password,
-		handshakeKey: handshakeKey,
-		tlsConfig:    tlsConfig,
-		logger:       l,
+		user:      user,
+		password:  password,
+		tlsConfig: tlsConfig,
+		logger:    l,
 	}
 }
 
@@ -46,7 +43,6 @@ func (s *defaultSessionV3) Open() error {
 		[]nebula.HostAddress{hostAddress},
 		nebula.PoolConfig{
 			MaxConnPoolSize: 1,
-			HandshakeKey:    s.handshakeKey,
 		},
 		s.tlsConfig,
 		newNebulaLogger(s.logger.With(logger.Field{
