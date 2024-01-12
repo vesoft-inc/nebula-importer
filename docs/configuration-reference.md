@@ -7,7 +7,6 @@
 | client.address                              | The address of graph in NebulaGraph.                                                                 | -                |
 | client.user                                 | The user of NebulaGraph.                                                                             | root             |
 | client.password                             | The password of NebulaGraph.                                                                         | nebula           |
-| client.handshakeKey                         | The handshakeKey of NebulaGraph.                                                                     | -                |
 | client.ssl                                  | SSL related configuration.                                                                           | nebula           |
 | client.ssl.enable                           | Specifies whether to enable ssl authentication.                                                      | false            |
 | client.ssl.certPath                         | Specifies the path of the certificate file.                                                          | -                |

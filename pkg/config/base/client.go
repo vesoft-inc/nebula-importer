@@ -25,7 +25,6 @@ type (
 		Address                  string        `yaml:"address"`
 		User                     string        `yaml:"user,omitempty"`
 		Password                 string        `yaml:"password,omitempty"`
-		HandshakeKey             string        `yaml:"handshakeKey,omitempty"`
 		ConcurrencyPerAddress    int           `yaml:"concurrencyPerAddress,omitempty"`
 		ReconnectInitialInterval time.Duration `yaml:"reconnectInitialInterval,omitempty"`
 		Retry                    int           `yaml:"retry,omitempty"`
@@ -67,12 +66,11 @@ func (c *Client) BuildClientPool(opts ...client.Option) (client.Pool, error) {
 		return nil, err
 	}
 
-	options := make([]client.Option, 0, 9+len(opts))
+	options := make([]client.Option, 0, 8+len(opts))
 	options = append(
 		options,
 		client.WithAddress(c.Address),
 		client.WithUserPassword(c.User, c.Password),
-		client.WithHandshakeKey(c.HandshakeKey),
 		client.WithTLSConfig(tlsConfig),
 		client.WithReconnectInitialInterval(c.ReconnectInitialInterval),
 		client.WithRetry(c.Retry),
