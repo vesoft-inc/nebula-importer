@@ -21,6 +21,8 @@ jobs:
       image: reg.vesoft-inc.com/ci/ubuntu:20.04-docker
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
+    env:
+      GOPROXY: ${{ vars.GOPROXY }}
     steps:
       - uses: webiny/action-post-run@2.0.1
         with:
