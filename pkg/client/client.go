@@ -8,6 +8,7 @@ import (
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
 
 	"github.com/cenkalti/backoff/v4"
+	nebula "github.com/vesoft-inc/nebula-go/v3"
 )
 
 type (
@@ -135,4 +136,38 @@ func (c *defaultClient) Close() error {
 		c.session = nil
 	}
 	return nil
+}
+
+func NewSessionPool(opts ...Option) (*nebula.SessionPool, error) {
+	ops := newOptions(opts...)
+	var (
+		hostAddresses []nebula.HostAddress
+		pool          *nebula.SessionPool
+	)
+
+	for _, h := range ops.addresses {
+		hostPort := strings.Split(h, ":")
+		if len(hostPort) != 2 {
+			return nil, errors.ErrInvalidAddress
+		}
+		if hostPort[0] == "" {
+			return nil, errors.ErrInvalidAddress
+		}
+		port, err := strconv.Atoi(hostPort[1])
+		if err != nil {
+			err = errors.ErrInvalidAddress
+		}
+		hostAddresses = append(hostAddresses, nebula.HostAddress{Host: hostPort[0], Port: port})
+	}
+	conf, err := nebula.NewSessionPoolConf(ops.user, ops.password, hostAddresses,
+		"sf300_2", nebula.WithMaxSize(3000))
+	if err != nil {
+		return nil, err
+	}
+	pool, err = nebula.NewSessionPool(*conf, nebula.DefaultLogger{})
+	if err != nil {
+		return nil, err
+	}
+	return pool, nil
+
 }

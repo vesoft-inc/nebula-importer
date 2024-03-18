@@ -9,6 +9,7 @@ import (
 
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/client"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
+	"github.com/vesoft-inc/nebula-importer/v4/pkg/manager"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/utils"
 )
 
@@ -85,6 +86,11 @@ func (c *Client) BuildClientPool(opts ...client.Option) (client.Pool, error) {
 	}
 	options = append(options, opts...)
 	pool := newClientPool(options...)
+	sessionPool, err := client.NewSessionPool(options...)
+	if err != nil {
+		return nil, err
+	}
+	manager.DefaultSessionPool = sessionPool
 	return pool, nil
 }
 
