@@ -60,19 +60,19 @@ tools: $(GOBIN)/goimports \
 	$(GOBIN)/mockgen
 
 $(GOBIN)/goimports:
-	go install golang.org/x/tools/cmd/goimports@v0.1.12
+	go install golang.org/x/tools/cmd/goimports@v0.35.0
 
 $(GOBIN)/impi:
 	go install github.com/pavius/impi/cmd/impi@v0.0.3
 
 $(GOBIN)/gofumpt:
-	go install mvdan.cc/gofumpt@v0.3.1
+	go install mvdan.cc/gofumpt@v0.8.0
 
 $(GOBIN)/golangci-lint:
 	@[ -f $(GOBIN)/golangci-lint ] || { \
 	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOBIN) v1.51.2 ;\
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(GOBIN) v2.3.0 ;\
 	}
 
 $(GOBIN)/mockgen:
-	go install github.com/golang/mock/mockgen@v1.6.0
+	go install github.com/uber-go/mock/mockgen@v0.5.2
