@@ -167,9 +167,7 @@ var _ = Describe("Sources", func() {
 	)
 
 	Describe(".OptimizePathWildCard", func() {
-		var (
-			wd string
-		)
+		var wd string
 		BeforeEach(func() {
 			var err error
 			wd, err = os.Getwd()
@@ -183,7 +181,7 @@ var _ = Describe("Sources", func() {
 
 		It("rel:WildCard:yes", func() {
 			sources := make(Sources, 1)
-			sources[0].Source.SourceConfig.Local = &source.LocalConfig{
+			sources[0].SourceConfig.Local = &source.LocalConfig{
 				Path: filepath.Join("testdata", "file*"),
 			}
 			Expect(sources.OptimizePathWildCard()).NotTo(HaveOccurred())
@@ -196,13 +194,13 @@ var _ = Describe("Sources", func() {
 
 		It("rel:WildCard:no", func() {
 			sources := make(Sources, 3)
-			sources[0].Source.SourceConfig.Local = &source.LocalConfig{
+			sources[0].SourceConfig.Local = &source.LocalConfig{
 				Path: filepath.Join("testdata", "file10"),
 			}
-			sources[1].Source.SourceConfig.Local = &source.LocalConfig{
+			sources[1].SourceConfig.Local = &source.LocalConfig{
 				Path: filepath.Join("testdata", "file11"),
 			}
-			sources[2].Source.SourceConfig.Local = &source.LocalConfig{
+			sources[2].SourceConfig.Local = &source.LocalConfig{
 				Path: filepath.Join("testdata", "file20"),
 			}
 
@@ -229,13 +227,13 @@ var _ = Describe("Sources", func() {
 
 		It("abs:WildCard:no", func() {
 			sources := make(Sources, 3)
-			sources[0].Source.SourceConfig.Local = &source.LocalConfig{
+			sources[0].SourceConfig.Local = &source.LocalConfig{
 				Path: filepath.Join(wd, "testdata", "file10"),
 			}
-			sources[1].Source.SourceConfig.Local = &source.LocalConfig{
+			sources[1].SourceConfig.Local = &source.LocalConfig{
 				Path: filepath.Join(wd, "testdata", "file11"),
 			}
-			sources[2].Source.SourceConfig.Local = &source.LocalConfig{
+			sources[2].SourceConfig.Local = &source.LocalConfig{
 				Path: filepath.Join(wd, "testdata", "file20"),
 			}
 
@@ -249,10 +247,10 @@ var _ = Describe("Sources", func() {
 
 		It("rel:WildCard:yes:s3", func() {
 			sources := make(Sources, 2)
-			sources[0].Source.SourceConfig.Local = &source.LocalConfig{
+			sources[0].SourceConfig.Local = &source.LocalConfig{
 				Path: filepath.Join("testdata", "file*"),
 			}
-			sources[1].Source.SourceConfig.S3 = &source.S3Config{
+			sources[1].SourceConfig.S3 = &source.S3Config{
 				Bucket: "bucket",
 			}
 			Expect(sources.OptimizePathWildCard()).NotTo(HaveOccurred())
@@ -266,7 +264,7 @@ var _ = Describe("Sources", func() {
 
 		It("failed", func() {
 			sources := make(Sources, 2)
-			sources[0].Source.SourceConfig.Local = &source.LocalConfig{
+			sources[0].SourceConfig.Local = &source.LocalConfig{
 				Path: filepath.Join("testdata", "file*"),
 			}
 			sources[1].SourceConfig.Local = &source.LocalConfig{
@@ -275,7 +273,7 @@ var _ = Describe("Sources", func() {
 			Expect(sources.OptimizePathWildCard()).To(HaveOccurred())
 
 			sources = make(Sources, 2)
-			sources[0].Source.SourceConfig.Local = &source.LocalConfig{
+			sources[0].SourceConfig.Local = &source.LocalConfig{
 				Path: filepath.Join("testdata", "file*"),
 			}
 			sources[1].SourceConfig.Local = &source.LocalConfig{

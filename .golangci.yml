@@ -98,7 +98,7 @@ linters:
               - URL
               - RAM
               - RPC
-            - []
+            - ["avoid-meaningless-package-names"]
         - name: range
         - name: receiver-naming
         - name: indent-error-flow

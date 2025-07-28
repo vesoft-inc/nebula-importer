@@ -2,8 +2,7 @@ DOCKER_REGISTRY ?= localhost:5000
 DOCKER_REPO ?= ${DOCKER_REGISTRY}/vesoft
 IMAGE_TAG ?= latest
 
-export GO111MODULE := on
-GOENV  := GO15VENDOREXPERIMENT="1" CGO_ENABLED=0
+GOENV  := CGO_ENABLED=0
 GO     := $(GOENV) go
 GO_BUILD := $(GO) build -trimpath
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -71,7 +70,7 @@ $(GOBIN)/gofumpt:
 $(GOBIN)/golangci-lint:
 	@[ -f $(GOBIN)/golangci-lint ] || { \
 	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(GOBIN) v2.3.0 ;\
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/main/install.sh | sh -s -- -b $(GOBIN) v2.4.0 ;\
 	}
 
 $(GOBIN)/mockgen:

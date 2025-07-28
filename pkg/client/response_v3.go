@@ -29,16 +29,16 @@ func (resp defaultResponseV3) GetRespTime() time.Duration {
 }
 
 func (resp defaultResponseV3) GetError() error {
-	if resp.ResultSet.IsSucceed() {
+	if resp.IsSucceed() {
 		return nil
 	}
-	errorCode := resp.ResultSet.GetErrorCode()
-	errorMsg := resp.ResultSet.GetErrorMsg()
+	errorCode := resp.GetErrorCode()
+	errorMsg := resp.GetErrorMsg()
 	return fmt.Errorf("%d:%s", errorCode, errorMsg)
 }
 
 func (resp defaultResponseV3) IsPermanentError() bool {
-	switch resp.ResultSet.GetErrorCode() { //nolint:exhaustive
+	switch resp.GetErrorCode() { //nolint:exhaustive
 	default:
 		return false
 	case nebula.ErrorCode_E_SYNTAX_ERROR:
@@ -48,7 +48,7 @@ func (resp defaultResponseV3) IsPermanentError() bool {
 }
 
 func (resp defaultResponseV3) IsRetryMoreError() bool {
-	errorMsg := resp.ResultSet.GetErrorMsg()
+	errorMsg := resp.GetErrorMsg()
 	// TODO: compare with E_RAFT_BUFFER_OVERFLOW
 	// Can not get the E_RAFT_BUFFER_OVERFLOW inside storage now.
 	return strings.Contains(errorMsg, "raft buffer is full")

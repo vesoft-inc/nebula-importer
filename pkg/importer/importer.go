@@ -55,7 +55,7 @@ func NewWithOpts(opts ...Option) Importer {
 		opt(i)
 	}
 	if i.fnAdd == nil {
-		i.fnAdd = func(delta int) {}
+		i.fnAdd = func(_ int) {}
 	}
 	if i.fnDone == nil {
 		i.fnDone = func() {}

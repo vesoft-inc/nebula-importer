@@ -70,7 +70,7 @@ func (s *Stats) String() string {
 		"Requests{Finished: %d, Failed: %d, Latency: %s/%s, Rate: %.2f/s}, "+
 		"Processed{Finished: %d, Failed: %d, Rate: %.2f/s}",
 		duration.Truncate(time.Second), remainingTime,
-		percentage, humanize.IBytes(uint64(s.ProcessedBytes)), humanize.IBytes(uint64(s.TotalBytes)),
+		percentage, humanize.IBytes(uint64(s.ProcessedBytes)), humanize.IBytes(uint64(s.TotalBytes)), //nolint:all
 		s.TotalRecords, s.FailedRecords, recordsPreSecond,
 		s.TotalRequest, s.FailedRequest, avgLatency, avgRespTime, requestPreSecond,
 		s.TotalProcessed, s.FailedProcessed, processedPreSecond,

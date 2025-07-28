@@ -133,7 +133,6 @@ func (p *defaultPool) IsClosed() bool {
 
 func (p *defaultPool) startWorkers() {
 	for _, address := range p.addresses {
-		address := address
 		for i := 0; i < p.concurrencyPerAddress; i++ {
 			p.wgSession.Add(1)
 			go func() {
@@ -176,7 +175,7 @@ func (p *defaultPool) worker(address string) {
 }
 
 func (p *defaultPool) openClient(address string, opts ...Option) (Client, error) {
-	cloneOptions := p.options.clone()
+	cloneOptions := p.clone()
 	cloneOptions.addresses = []string{address}
 	cloneOptions.withOptions(opts...)
 
