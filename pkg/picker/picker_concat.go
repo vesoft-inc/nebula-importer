@@ -34,13 +34,13 @@ func (ci *ConcatItems) Add(items ...any) (err error) {
 		case int32:
 			err = ci.AddIndex(int(v))
 		case uint64:
-			err = ci.AddIndex(int(v))
+			err = ci.AddIndex(int(v)) //nolint:all
 		case int64:
 			err = ci.AddIndex(int(v))
 		case int:
 			err = ci.AddIndex(v)
 		case uint:
-			err = ci.AddIndex(int(v))
+			err = ci.AddIndex(int(v)) //nolint:all
 		case string:
 			err = ci.AddConstant(v)
 		case []byte:

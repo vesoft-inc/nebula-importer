@@ -42,7 +42,7 @@ func (c *Config) Optimize(configPath string) error {
 	}
 
 	//revive:disable-next-line:if-return
-	if err := c.Sources.OptimizePathWildCard(); err != nil {
+	if err := c.OptimizePathWildCard(); err != nil {
 		return err
 	}
 
@@ -78,7 +78,7 @@ func (c *Config) Build() error {
 	if err != nil {
 		return err
 	}
-	mgr, err = c.Manager.BuildManager(l, pool, c.Sources,
+	mgr, err = c.BuildManager(l, pool, c.Sources,
 		manager.WithGetClientOptions(client.WithClientInitFunc(nil)), // clean the USE SPACE in 3.x
 	)
 	if err != nil {
@@ -105,7 +105,7 @@ func (c *Config) GetManager() manager.Manager {
 }
 
 func (c *Config) clientInitFunc(cli client.Client) error {
-	resp, err := cli.Execute(fmt.Sprintf("USE %s", utils.ConvertIdentifier(c.Manager.GraphName)))
+	resp, err := cli.Execute(fmt.Sprintf("USE %s", utils.ConvertIdentifier(c.GraphName)))
 	if err != nil {
 		return err
 	}

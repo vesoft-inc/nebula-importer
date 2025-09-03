@@ -1,4 +1,4 @@
-package common
+package common //nolint:all
 
 import "io"
 

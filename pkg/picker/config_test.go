@@ -843,7 +843,6 @@ var _ = Describe("Config", func() {
 		}
 
 		for _, tc := range testcases {
-			tc := tc
 			It(tc.name, func() {
 				p, err := tc.c.Build()
 				if tc.buildErr != nil {

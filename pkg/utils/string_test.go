@@ -10,7 +10,7 @@ var _ = Describe("string", func() {
 		func(s string, isUnsignedInteger bool) {
 			Expect(IsUnsignedInteger(s)).To(Equal(isUnsignedInteger))
 			Expect(IsInteger(s)).To(Equal(isUnsignedInteger))
-			if len(s) > 0 && (s[0] != '-' && s[0] != '+') {
+			if s != "" && (s[0] != '-' && s[0] != '+') {
 				Expect(IsInteger("-" + s)).To(Equal(isUnsignedInteger))
 				Expect(IsInteger("+" + s)).To(Equal(isUnsignedInteger))
 			}

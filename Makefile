@@ -2,8 +2,7 @@ DOCKER_REGISTRY ?= localhost:5000
 DOCKER_REPO ?= ${DOCKER_REGISTRY}/vesoft
 IMAGE_TAG ?= latest
 
-export GO111MODULE := on
-GOENV  := GO15VENDOREXPERIMENT="1" CGO_ENABLED=0
+GOENV  := CGO_ENABLED=0
 GO     := $(GOENV) go
 GO_BUILD := $(GO) build -trimpath
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -60,19 +59,19 @@ tools: $(GOBIN)/goimports \
 	$(GOBIN)/mockgen
 
 $(GOBIN)/goimports:
-	go install golang.org/x/tools/cmd/goimports@v0.1.12
+	go install golang.org/x/tools/cmd/goimports@v0.35.0
 
 $(GOBIN)/impi:
 	go install github.com/pavius/impi/cmd/impi@v0.0.3
 
 $(GOBIN)/gofumpt:
-	go install mvdan.cc/gofumpt@v0.3.1
+	go install mvdan.cc/gofumpt@v0.8.0
 
 $(GOBIN)/golangci-lint:
 	@[ -f $(GOBIN)/golangci-lint ] || { \
 	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOBIN) v1.51.2 ;\
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/main/install.sh | sh -s -- -b $(GOBIN) v2.4.0 ;\
 	}
 
 $(GOBIN)/mockgen:
-	go install github.com/golang/mock/mockgen@v1.6.0
+	go install github.com/uber-go/mock/mockgen@v0.5.2

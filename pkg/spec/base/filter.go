@@ -1,8 +1,8 @@
 package specbase
 
 import (
-	"github.com/antonmedv/expr"
-	"github.com/antonmedv/expr/vm"
+	"github.com/expr-lang/expr"
+	"github.com/expr-lang/expr/vm"
 )
 
 type Filter struct {
@@ -11,7 +11,7 @@ type Filter struct {
 }
 
 func (f *Filter) Build() error {
-	var env = map[string]any{
+	env := map[string]any{
 		"Record": Record{},
 	}
 	program, err := expr.Compile(f.Expr, expr.Env(env), expr.AsBool())
@@ -23,7 +23,7 @@ func (f *Filter) Build() error {
 }
 
 func (f *Filter) Filter(record Record) (bool, error) {
-	var env = map[string]any{
+	env := map[string]any{
 		"Record": record,
 	}
 	out, err := expr.Run(f.program, env)
