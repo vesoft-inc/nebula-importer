@@ -156,12 +156,12 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - deadcode
-    - depguard
+    # - deadcode
+    # - depguard
     - dogsled
     - dupl
     - errcheck
-    - exportloopref
+    # - exportloopref
     - exhaustive
     # - funlen
     - gochecknoinits
@@ -182,14 +182,14 @@ linters:
     - nolintlint
     - rowserrcheck
     - staticcheck
-    - structcheck
+    # - structcheck
     - stylecheck
     - revive
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
+    # - varcheck
     - whitespace
 
   # don't enable:
