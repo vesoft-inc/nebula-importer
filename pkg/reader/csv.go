@@ -63,7 +63,7 @@ func (r *csvReader) Size() (int64, error) {
 	return r.s.Size()
 }
 
-func (r *csvReader) Read() (int, spec.Record, error) { //nolint:gocritic
+func (r *csvReader) Read() (int, spec.Record, error) {
 	// determine whether the reader has read the csv header
 	if r.h.withHeader && !r.h.hasRead {
 		r.h.hasRead = true
