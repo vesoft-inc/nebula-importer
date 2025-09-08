@@ -49,7 +49,7 @@ func (r *defaultBatchReader) Size() (int64, error) {
 	return r.rr.Size()
 }
 
-func (r *defaultBatchReader) ReadBatch() (int, spec.Records, error) {
+func (r *defaultBatchReader) ReadBatch() (int, spec.Records, error) { //nolint:gocritic
 	var (
 		totalBytes int
 		records    = make(spec.Records, 0, r.batch)
