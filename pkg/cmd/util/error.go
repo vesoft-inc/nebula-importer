@@ -21,7 +21,7 @@ func CheckErr(err error) {
 }
 
 func fatal(msg string, code int) {
-	if len(msg) > 0 {
+	if msg != "" {
 		if !strings.HasSuffix(msg, "\n") {
 			msg += "\n"
 		}
