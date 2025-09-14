@@ -1,6 +1,6 @@
 module github.com/vesoft-inc/nebula-importer/v4
 
-go 1.19
+go 1.20
 
 require (
 	cloud.google.com/go/storage v1.30.1

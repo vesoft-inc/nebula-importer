@@ -11,8 +11,6 @@ import (
 
 var _ = Describe("ConcurrencyStats", func() {
 	It("concurrency", func() {
-		rand.Seed(time.Now().UnixNano())
-
 		concurrencyStats := NewConcurrencyStats()
 		concurrencyStats.Init()
 		initStats := concurrencyStats.Stats()
