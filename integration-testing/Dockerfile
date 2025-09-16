@@ -1,4 +1,4 @@
-FROM reg.vesoft-inc.com/proxy/library/golang:1.19-alpine
+FROM reg.vesoft-inc.com/proxy/library/golang:1.22-alpine
 
 LABEL stage=gobuilder
 
