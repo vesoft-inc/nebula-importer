@@ -27,4 +27,6 @@ var (
 	ErrUnsupportedFunction       = stderrors.New("unsupported function")
 	ErrFilterSyntax              = stderrors.New("filter syntax")
 	ErrUnsupportedMode           = stderrors.New("unsupported mode")
+	ErrNoDynamicParam            = stderrors.New("no dynamic param")
+	ErrFetchFailed               = stderrors.New("fetch failed")
 )
