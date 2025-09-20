@@ -273,7 +273,7 @@ var _ = Describe("BatchRecordReader", func() {
 
 var _ = Describe("continueError", func() {
 	It("", func() {
-		var baseErr = stderrors.New("test error")
+		baseErr := stderrors.New("test error")
 		err := NewContinueError(baseErr)
 		Expect(err.Error()).To(Equal(baseErr.Error()))
 		Expect(stderrors.Unwrap(err)).To(Equal(baseErr))
