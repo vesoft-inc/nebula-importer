@@ -4,9 +4,7 @@ import (
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
 )
 
-var (
-	_ Picker = IndexPicker(0)
-)
+var _ Picker = IndexPicker(0)
 
 type IndexPicker int
 

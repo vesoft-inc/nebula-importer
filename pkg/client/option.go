@@ -149,7 +149,7 @@ func WithQueueSize(queueSize int) Option {
 }
 
 func newOptions(opts ...Option) *options {
-	var defaultOptions = &options{
+	defaultOptions := &options{
 		user:                     DefaultUser,
 		password:                 DefaultPassword,
 		reconnectInitialInterval: DefaultReconnectInitialInterval,

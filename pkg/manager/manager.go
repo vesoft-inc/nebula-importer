@@ -115,6 +115,7 @@ func WithBatch(batch int) Option {
 		}
 	}
 }
+
 func WithReaderConcurrency(concurrency int) Option {
 	return func(m *defaultManager) {
 		if concurrency > 0 {

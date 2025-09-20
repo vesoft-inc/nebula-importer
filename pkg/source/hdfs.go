@@ -191,7 +191,7 @@ func (c *HDFSConfig) getKerberosClient() (*krb.Client, error) {
 	}
 
 	var krb5client *krb.Client
-	var needLogin = true
+	needLogin := true
 	if c.Password != "" {
 		krb5client = krb.NewWithPassword(c.User, krb5conf.LibDefaults.DefaultRealm, c.Password, krb5conf, settings...)
 	} else if c.KeyTabFile != "" {

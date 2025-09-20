@@ -52,7 +52,7 @@ var _ = Describe("sftpSource", func() {
 		keyFile = filepath.Join(tmpdir, "id_rsa")
 		signer, err := getSSHSigner(keyData, "")
 		Expect(err).NotTo(HaveOccurred())
-		err = os.WriteFile(keyFile, []byte(keyData), 0600)
+		err = os.WriteFile(keyFile, []byte(keyData), 0o600)
 		Expect(err).NotTo(HaveOccurred())
 
 		encryptedPEM, err := x509.EncryptPEMBlock(rand.Reader, privateKeyPEM.Type, privateKeyPEM.Bytes, []byte(passphrase), x509.PEMCipherAES256) //nolint:staticcheck
@@ -61,7 +61,7 @@ var _ = Describe("sftpSource", func() {
 		keyFilePassphrase = filepath.Join(tmpdir, "id_rsa_passphrase")
 		signerPassphrase, err := getSSHSigner(keyDataPassphrase, passphrase)
 		Expect(err).NotTo(HaveOccurred())
-		err = os.WriteFile(keyFilePassphrase, []byte(keyDataPassphrase), 0600)
+		err = os.WriteFile(keyFilePassphrase, []byte(keyDataPassphrase), 0o600)
 		Expect(err).NotTo(HaveOccurred())
 
 		sftpServer = &TestSFTPServer{
@@ -88,7 +88,7 @@ var _ = Describe("sftpSource", func() {
 	It("successfully password", func() {
 		content := []byte("Hello")
 		file := filepath.Join(tmpdir, "file")
-		err := os.WriteFile(file, content, 0600)
+		err := os.WriteFile(file, content, 0o600)
 		Expect(err).NotTo(HaveOccurred())
 
 		for _, c := range []Config{
@@ -157,7 +157,7 @@ var _ = Describe("sftpSource", func() {
 	It("get size failed", func() {
 		content := []byte("Hello")
 		file := filepath.Join(tmpdir, "file")
-		err := os.WriteFile(file, content, 0600)
+		err := os.WriteFile(file, content, 0o600)
 		Expect(err).NotTo(HaveOccurred())
 
 		c := Config{

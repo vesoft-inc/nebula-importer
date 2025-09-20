@@ -12,9 +12,7 @@ import (
 
 var _ = Describe("Log", func() {
 	Describe(".BuildLogger", func() {
-		var (
-			tmpdir string
-		)
+		var tmpdir string
 
 		BeforeEach(func() {
 			var err error

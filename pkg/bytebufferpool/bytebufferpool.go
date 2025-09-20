@@ -23,6 +23,7 @@ func (b *ByteBuffer) Len() int {
 func (b *ByteBuffer) Bytes() []byte {
 	return (*bbp.ByteBuffer)(b).Bytes()
 }
+
 func (b *ByteBuffer) Write(p []byte) (int, error) {
 	return (*bbp.ByteBuffer)(b).Write(p)
 }

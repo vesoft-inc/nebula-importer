@@ -13,9 +13,7 @@ import (
 
 var _ = Describe("Client", func() {
 	Describe(".BuildClientPool", func() {
-		var (
-			tmpdir string
-		)
+		var tmpdir string
 		BeforeEach(func() {
 			var err error
 			tmpdir, err = os.MkdirTemp("", "test")
@@ -40,7 +38,7 @@ var _ = Describe("Client", func() {
 				}
 
 				pool, err := c.BuildClientPool()
-				var isSupportVersion = true
+				isSupportVersion := true
 				switch v {
 				case "":
 					v = ClientVersionDefault

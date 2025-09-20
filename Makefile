@@ -24,16 +24,13 @@ tidy:
 	go mod tidy
 
 fmt: $(GOBIN)/gofumpt
-	# go fmt ./...
 	$(GOBIN)/gofumpt -w -l ./
 
 vet:
 	go vet ./...
 
-imports: $(GOBIN)/goimports $(GOBIN)/impi
-	$(GOBIN)/impi --local github.com/vesoft-inc --scheme stdLocalThirdParty \
-	    -ignore-generated ./... \
-	    || exit 1
+imports: $(GOBIN)/goimports
+	$(GOBIN)/goimports -w -l ./
 
 lint: $(GOBIN)/golangci-lint
 	$(GOBIN)/golangci-lint run
@@ -54,19 +51,15 @@ docker-push: docker-build
 	docker push "${DOCKER_REPO}/nebula-importer:${IMAGE_TAG}"
 
 tools: $(GOBIN)/goimports \
-	$(GOBIN)/impi \
 	$(GOBIN)/gofumpt \
 	$(GOBIN)/golangci-lint \
 	$(GOBIN)/mockgen
 
 $(GOBIN)/goimports:
-	go install golang.org/x/tools/cmd/goimports@v0.1.12
-
-$(GOBIN)/impi:
-	go install github.com/pavius/impi/cmd/impi@v0.0.3
+	go install golang.org/x/tools/cmd/goimports@v0.37.0
 
 $(GOBIN)/gofumpt:
-	go install mvdan.cc/gofumpt@v0.3.1
+	go install mvdan.cc/gofumpt@v0.9.1
 
 $(GOBIN)/golangci-lint:
 	@[ -f $(GOBIN)/golangci-lint ] || { \
@@ -75,4 +68,4 @@ $(GOBIN)/golangci-lint:
 	}
 
 $(GOBIN)/mockgen:
-	go install github.com/golang/mock/mockgen@v1.6.0
+	go install github.com/uber-go/mock/mockgen@v0.6.0

@@ -1,8 +1,6 @@
 package picker
 
-var (
-	_ Picker = ConstantPicker("")
-)
+var _ Picker = ConstantPicker("")
 
 type ConstantPicker string
 
