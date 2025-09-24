@@ -1,13 +1,14 @@
 package source
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 var _ Source = (*s3Source)(nil)
@@ -40,24 +41,36 @@ func (s *s3Source) Name() string {
 }
 
 func (s *s3Source) Open() error {
-	awsConfig := &aws.Config{
-		Region:           aws.String(s.c.S3.Region),
-		Endpoint:         aws.String(s.c.S3.Endpoint),
-		S3ForcePathStyle: aws.Bool(true),
+	ctx := context.Background()
+	var cfg aws.Config
+	var err error
+
+	optFns := []func(*config.LoadOptions) error{
+		config.WithRegion(s.c.S3.Region),
 	}
 
 	if s.c.S3.AccessKeyID != "" || s.c.S3.AccessKeySecret != "" || s.c.S3.Token != "" {
-		awsConfig.Credentials = credentials.NewStaticCredentials(s.c.S3.AccessKeyID, s.c.S3.AccessKeySecret, s.c.S3.Token)
+		optFns = append(optFns, config.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(s.c.S3.AccessKeyID, s.c.S3.AccessKeySecret, s.c.S3.Token),
+		))
 	}
 
-	sess, err := session.NewSession(awsConfig)
+	cfg, err = config.LoadDefaultConfig(ctx, optFns...)
 	if err != nil {
 		return err
 	}
 
-	svc := s3.New(sess)
+	clientOptions := func(o *s3.Options) {
+		o.UsePathStyle = true
 
-	obj, err := svc.GetObject(&s3.GetObjectInput{
+		if s.c.S3.Endpoint != "" {
+			o.BaseEndpoint = aws.String(s.c.S3.Endpoint)
+		}
+	}
+
+	client := s3.NewFromConfig(cfg, clientOptions)
+
+	obj, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(s.c.S3.Bucket),
 		Key:    aws.String(strings.TrimLeft(s.c.S3.Key, "/")),
 	})
