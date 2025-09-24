@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/panjf2000/ants/v2"
+	nebula "github.com/vesoft-inc/nebula-go/v3"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/client"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/importer"
@@ -16,8 +18,6 @@ import (
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/source"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/spec"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/stats"
-
-	"github.com/panjf2000/ants/v2"
 )
 
 const (
@@ -159,6 +159,7 @@ func WithLogger(l logger.Logger) Option {
 }
 
 func (m *defaultManager) Import(s source.Source, brr reader.BatchRecordReader, importers ...importer.Importer) error {
+
 	if len(importers) == 0 {
 		return nil
 	}
@@ -269,6 +270,9 @@ func (m *defaultManager) Stop() (err error) {
 	m.importerWaitGroup.Wait()
 
 	m.logStats()
+	if DefaultSessionPool != nil {
+		DefaultSessionPool.Close()
+	}
 	return m.After()
 }
 
@@ -438,3 +442,6 @@ func (m *defaultManager) logError(err error, msg string, fields ...logger.Field)
 	fields = append(fields, logger.MapToFields(e.Fields())...)
 	m.logger.SkipCaller(1).WithError(e.Cause()).Error(msg, fields...)
 }
+
+// tmp var for test
+var DefaultSessionPool *nebula.SessionPool

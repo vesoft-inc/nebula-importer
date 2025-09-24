@@ -3,10 +3,11 @@ package specbase
 import "strings"
 
 const (
-	DefaultMode      = InsertMode
-	InsertMode  Mode = "INSERT"
-	UpdateMode  Mode = "UPDATE"
-	DeleteMode  Mode = "DELETE"
+	DefaultMode          = InsertMode
+	InsertMode      Mode = "INSERT"
+	UpdateMode      Mode = "UPDATE"
+	DeleteMode      Mode = "DELETE"
+	BatchUpdateMode Mode = "BATCH_UPDATE"
 )
 
 type Mode string
@@ -19,5 +20,5 @@ func (m Mode) Convert() Mode {
 }
 
 func (m Mode) IsSupport() bool {
-	return m == InsertMode || m == UpdateMode || m == DeleteMode
+	return m == InsertMode || m == UpdateMode || m == DeleteMode || m == BatchUpdateMode
 }
