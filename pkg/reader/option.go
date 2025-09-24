@@ -30,7 +30,7 @@ func WithLogger(l logger.Logger) Option {
 }
 
 func newOptions(opts ...Option) *options {
-	var defaultOptions = &options{
+	defaultOptions := &options{
 		batch: DefaultBatchSize,
 	}
 
