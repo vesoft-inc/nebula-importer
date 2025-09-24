@@ -1,9 +1,10 @@
 package configv3
 
 import (
+	"log/slog"
+
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/client"
 	configbase "github.com/vesoft-inc/nebula-importer/v4/pkg/config/base"
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/manager"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/reader"
 )
@@ -16,7 +17,7 @@ type (
 )
 
 func (m *Manager) BuildManager(
-	l logger.Logger,
+	l *slog.Logger,
 	pool client.Pool,
 	sources Sources,
 	opts ...manager.Option,

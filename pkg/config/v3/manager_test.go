@@ -1,6 +1,7 @@
 package configv3
 
 import (
+	"log/slog"
 	"path/filepath"
 
 	configbase "github.com/vesoft-inc/nebula-importer/v4/pkg/config/base"
@@ -45,16 +46,16 @@ var _ = Describe("Manager", func() {
 
 		It("BuildImporters failed", func() {
 			c.Manager.GraphName = ""
-			Expect(c.Build()).To(HaveOccurred())
+			Expect(c.Build(slog.Default())).To(HaveOccurred())
 		})
 
 		It("Importer failed", func() {
 			c.Sources[0].SourceConfig.Local.Path = filepath.Join("testdata", "not-exists.csv")
-			Expect(c.Build()).To(HaveOccurred())
+			Expect(c.Build(slog.Default())).To(HaveOccurred())
 		})
 
 		It("successfully", func() {
-			Expect(c.Build()).NotTo(HaveOccurred())
+			Expect(c.Build(slog.Default())).NotTo(HaveOccurred())
 		})
 	})
 })

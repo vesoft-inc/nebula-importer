@@ -163,7 +163,7 @@ func (p *defaultPool) worker(address string) {
 			_ = backoff.Retry(func() error {
 				c, err = p.openClient(address)
 				if err != nil {
-					p.logger.WithError(err).Error("open client failed")
+					p.logger.With("error", err).Error("open client failed")
 				}
 				return err
 			}, exp)

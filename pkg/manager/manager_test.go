@@ -3,13 +3,13 @@ package manager
 import (
 	stderrors "errors"
 	"io"
+	"log/slog"
 	"os"
 	"sync/atomic"
 	"time"
 
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/client"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/importer"
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/reader"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/source"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/spec"
@@ -55,7 +55,7 @@ var _ = Describe("Manager", func() {
 				Statements: []string{"after statements"},
 				Wait:       time.Second,
 			}),
-			WithLogger(logger.NopLogger),
+			WithLogger(slog.Default()),
 		)
 		m1, ok := m.(*defaultManager)
 		Expect(ok).To(BeTrue())
@@ -99,8 +99,13 @@ var _ = Describe("Manager", func() {
 			mockResponse = client.NewMockResponse(ctrl)
 			mockImporter = importer.NewMockImporter(ctrl)
 
-			l, err := logger.New(logger.WithLevel(logger.WarnLevel))
-			Expect(err).NotTo(HaveOccurred())
+			var programLevel = new(slog.LevelVar)
+			programLevel.Set(slog.LevelWarn)
+			h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+				Level: programLevel,
+			})
+			l := slog.New(h).With("component", "manager test")
+
 			m = New(
 				mockClientPool,
 				WithBatch(batch),

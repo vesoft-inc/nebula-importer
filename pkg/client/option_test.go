@@ -2,8 +2,7 @@ package client
 
 import (
 	"crypto/tls"
-
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
+	"log/slog"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -63,7 +62,7 @@ var _ = Describe("Option", func() {
 			WithRetry(DefaultRetry+1),
 			WithRetryInitialInterval(DefaultRetryInitialInterval-1),
 			WithRetryInitialInterval(DefaultRetryInitialInterval+1),
-			WithLogger(logger.NopLogger),
+			WithLogger(slog.Default()),
 			WithNewSessionFunc(func(HostAddress) Session { return nil }),
 			WithClientInitFunc(func(Client) error { return nil }),
 			WithReconnectInitialInterval(DefaultReconnectInitialInterval-1),

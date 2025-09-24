@@ -14,7 +14,6 @@ import (
 
 type (
 	Client       = configbase.Client
-	Log          = configbase.Log
 	Configurator = configbase.Configurator
 )
 

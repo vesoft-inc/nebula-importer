@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/client"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/cmd/common"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/manager"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/version"
 
@@ -21,7 +21,7 @@ type (
 		Arguments    []string
 		ConfigFile   string
 		cfg          config.Configurator
-		logger       logger.Logger
+		logger       *slog.Logger
 		useNopLogger bool // for test
 		pool         client.Pool
 		mgr          manager.Manager
@@ -53,19 +53,20 @@ func NewImporterCommand(o *ImporterOptions) *cobra.Command {
 					l := o.logger
 
 					if l == nil || o.useNopLogger {
-						l = logger.NopLogger
+						l = slog.Default()
 					}
 
 					e := errors.NewImportError(err)
-					fields := logger.MapToFields(e.Fields())
-					l.SkipCaller(1).WithError(e.Cause()).Error("failed to execute", fields...)
+					// Convert fields to key-value pairs for slog
+					fields := e.Fields()
+					args := make([]any, 0, len(fields)*2)
+					for k, v := range fields {
+						args = append(args, k, v)
+					}
+					l.With("error", e.Cause()).Error("failed to execute", args...)
 				}
 				if o.pool != nil {
 					_ = o.pool.Close()
-				}
-				if o.logger != nil {
-					_ = o.logger.Sync()
-					_ = o.logger.Close()
 				}
 			}()
 			err = o.Complete(cmd, args)
@@ -103,7 +104,7 @@ func (o *ImporterOptions) Validate() error {
 		return err
 	}
 
-	if err = cfg.Build(); err != nil {
+	if err = cfg.Build(o.logger); err != nil {
 		return err
 	}
 

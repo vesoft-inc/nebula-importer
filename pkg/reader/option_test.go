@@ -1,7 +1,7 @@
 package reader
 
 import (
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
+	"log/slog"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -18,7 +18,7 @@ var _ = Describe("Option", func() {
 	It("withXXX", func() {
 		o := newOptions(
 			WithBatch(100),
-			WithLogger(logger.NopLogger),
+			WithLogger(slog.Default()),
 		)
 		Expect(o).NotTo(BeNil())
 		Expect(o.batch).To(Equal(100))

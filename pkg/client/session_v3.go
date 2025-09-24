@@ -4,10 +4,10 @@ package client
 import (
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	"time"
 
 	nebula "github.com/vesoft-inc/nebula-go/v3"
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
 )
 
 type (
@@ -17,13 +17,13 @@ type (
 		user        string
 		password    string
 		tlsConfig   *tls.Config
-		logger      logger.Logger
+		logger      *slog.Logger
 	}
 )
 
-func newSessionV3(hostAddress HostAddress, user, password string, tlsConfig *tls.Config, l logger.Logger) Session {
+func newSessionV3(hostAddress HostAddress, user, password string, tlsConfig *tls.Config, l *slog.Logger) Session {
 	if l == nil {
-		l = logger.NopLogger
+		l = slog.Default()
 	}
 	return &defaultSessionV3{
 		hostAddress: nebula.HostAddress{
@@ -45,10 +45,10 @@ func (s *defaultSessionV3) Open() error {
 			MaxConnPoolSize: 1,
 		},
 		s.tlsConfig,
-		newNebulaLogger(s.logger.With(logger.Field{
-			Key:   "address",
-			Value: fmt.Sprintf("%s:%d", hostAddress.Host, hostAddress.Port),
-		})),
+		newNebulaLogger(s.logger.With(
+			"address",
+			fmt.Sprintf("%s:%d", hostAddress.Host, hostAddress.Port),
+		)),
 	)
 	if err != nil {
 		return err

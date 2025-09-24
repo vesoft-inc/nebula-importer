@@ -2,10 +2,9 @@ package client
 
 import (
 	"crypto/tls"
+	"log/slog"
 	"strings"
 	"time"
-
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
 )
 
 const (
@@ -34,7 +33,7 @@ type (
 		tlsConfig            *tls.Config
 		retry                int
 		retryInitialInterval time.Duration
-		logger               logger.Logger
+		logger               *slog.Logger
 		fnNewSession         NewSessionFunc
 		clientInitFunc       func(Client) error
 		// for pool
@@ -106,7 +105,7 @@ func WithRetryInitialInterval(interval time.Duration) Option {
 	}
 }
 
-func WithLogger(l logger.Logger) Option {
+func WithLogger(l *slog.Logger) Option {
 	return func(o *options) {
 		o.logger = l
 	}
@@ -170,7 +169,7 @@ func (o *options) withOptions(opts ...Option) {
 	}
 
 	if o.logger == nil {
-		o.logger = logger.NopLogger
+		o.logger = slog.Default()
 	}
 
 	if o.fnNewSession == nil {

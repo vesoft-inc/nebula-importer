@@ -4,7 +4,6 @@ package reader
 import (
 	stderrors "errors"
 
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/source"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/spec"
 )
@@ -31,7 +30,7 @@ func NewBatchRecordReader(rr RecordReader, opts ...Option) BatchRecordReader {
 		options: newOptions(opts...),
 		rr:      rr,
 	}
-	brr.logger = brr.logger.With(logger.Field{Key: "source", Value: rr.Source().Name()})
+	brr.logger = brr.logger.With("source", rr.Source().Name())
 	return brr
 }
 
@@ -61,7 +60,7 @@ func (r *defaultBatchReader) ReadBatch() (int, spec.Records, error) { //nolint:g
 		if err != nil {
 			// case1: Read continue error.
 			if ce := new(continueError); stderrors.As(err, &ce) {
-				r.logger.WithError(ce.Err).Error("read source failed")
+				r.logger.With("error", ce.Err).Error("read source failed")
 				continue
 			}
 
