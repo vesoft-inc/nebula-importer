@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/client"
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/cmd/common"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/config"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
@@ -15,9 +15,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type IOStreams struct {
+	In     io.Reader
+	Out    io.Writer
+	ErrOut io.Writer
+}
+
 type (
 	ImporterOptions struct {
-		common.IOStreams
+		IOStreams
 		Arguments    []string
 		ConfigFile   string
 		cfg          config.Configurator
@@ -28,14 +34,14 @@ type (
 	}
 )
 
-func NewImporterOptions(streams common.IOStreams) *ImporterOptions {
+func NewImporterOptions(streams IOStreams) *ImporterOptions {
 	return &ImporterOptions{
 		IOStreams: streams,
 	}
 }
 
 func NewDefaultImporterCommand() *cobra.Command {
-	o := NewImporterOptions(common.IOStreams{
+	o := NewImporterOptions(IOStreams{
 		In:     os.Stdin,
 		Out:    os.Stdout,
 		ErrOut: os.Stderr,

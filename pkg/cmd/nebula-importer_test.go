@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/client"
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/cmd/common"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/manager"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -87,7 +86,7 @@ var _ = Describe("ImporterCommand", func() {
 	})
 
 	It("complete failed", func() {
-		o := NewImporterOptions(common.IOStreams{
+		o := NewImporterOptions(IOStreams{
 			In:     os.Stdin,
 			Out:    os.Stdout,
 			ErrOut: os.Stderr,
@@ -109,7 +108,7 @@ var _ = Describe("ImporterCommand", func() {
 		mockManager.EXPECT().Import(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 		mockManager.EXPECT().Start().Return(stderrors.New("test error"))
 
-		o := NewImporterOptions(common.IOStreams{
+		o := NewImporterOptions(IOStreams{
 			In:     os.Stdin,
 			Out:    os.Stdout,
 			ErrOut: os.Stderr,
@@ -130,7 +129,7 @@ var _ = Describe("ImporterCommand", func() {
 		mockManager.EXPECT().Start().Return(nil)
 		mockManager.EXPECT().Wait().Return(stderrors.New("test error"))
 
-		o := NewImporterOptions(common.IOStreams{
+		o := NewImporterOptions(IOStreams{
 			In:     os.Stdin,
 			Out:    os.Stdout,
 			ErrOut: os.Stderr,
