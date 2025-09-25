@@ -90,12 +90,12 @@ var _ = Describe("Config", func() {
 		})
 
 		It("BuildClientPool failed", func() {
-			c.Client.Version = "v"
+			c.Version = "v"
 			Expect(c.Build()).To(HaveOccurred())
 		})
 
 		It("BuildManager failed", func() {
-			c.Manager.GraphName = ""
+			c.GraphName = ""
 			Expect(c.Build()).To(HaveOccurred())
 		})
 
@@ -117,7 +117,7 @@ var _ = Describe("clientInitFunc", func() {
 	)
 
 	BeforeEach(func() {
-		c.Manager.GraphName = "graphName"
+		c.GraphName = "graphName"
 		ctrl = gomock.NewController(GinkgoT())
 		mockClient = client.NewMockClient(ctrl)
 		mockResponse = client.NewMockResponse(ctrl)

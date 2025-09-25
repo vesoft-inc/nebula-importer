@@ -64,7 +64,7 @@ $(GOBIN)/gofumpt:
 $(GOBIN)/golangci-lint:
 	@[ -f $(GOBIN)/golangci-lint ] || { \
 	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOBIN) v1.64.8 ;\
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(GOBIN) v2.5.0 ;\
 	}
 
 $(GOBIN)/mockgen:

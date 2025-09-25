@@ -44,7 +44,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("BuildImporters failed", func() {
-			c.Manager.GraphName = ""
+			c.GraphName = ""
 			Expect(c.Build()).To(HaveOccurred())
 		})
 

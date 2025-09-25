@@ -2,6 +2,7 @@ package source
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -121,7 +122,6 @@ var _ = Describe("sftpSource", func() {
 				},
 			},
 		} {
-			c := c
 			s, err := New(&c)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(s).To(BeAssignableToTypeOf(&sftpSource{}))
@@ -356,7 +356,9 @@ func (s *TestSFTPServer) Stop() {
 }
 
 func (s *TestSFTPServer) listen() error {
-	listener, err := net.Listen("tcp", s.ListenAddress)
+	ctx := context.Background()
+	listenConfig := &net.ListenConfig{}
+	listener, err := listenConfig.Listen(ctx, "tcp", s.ListenAddress)
 	if err != nil {
 		return err
 	}
