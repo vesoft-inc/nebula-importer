@@ -36,7 +36,7 @@ func (m *MockStatementBuilder) EXPECT() *MockStatementBuilderMockRecorder {
 // Build mocks base method.
 func (m *MockStatementBuilder) Build(records ...Record) (string, int, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []any{}
 	for _, a := range records {
 		varargs = append(varargs, a)
 	}
@@ -48,7 +48,7 @@ func (m *MockStatementBuilder) Build(records ...Record) (string, int, error) {
 }
 
 // Build indicates an expected call of Build.
-func (mr *MockStatementBuilderMockRecorder) Build(records ...interface{}) *gomock.Call {
+func (mr *MockStatementBuilderMockRecorder) Build(records ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockStatementBuilder)(nil).Build), records...)
 }

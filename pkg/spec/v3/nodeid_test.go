@@ -107,7 +107,7 @@ var _ = Describe("NodeID", func() {
 			&NodeID{
 				Name:        "id",
 				Type:        ValueTypeString,
-				ConcatItems: []interface{}{"c1", 3, "c2", 1, 2, "c3", 0},
+				ConcatItems: []any{"c1", 3, "c2", 1, 2, "c3", 0},
 			},
 			Record([]string{"s0", "s1", "s2", "s3"}),
 			"\"c1s3c2s1s2c3s0\"",
@@ -117,7 +117,7 @@ var _ = Describe("NodeID", func() {
 			&NodeID{
 				Name:        "id",
 				Type:        ValueTypeString,
-				ConcatItems: []interface{}{true},
+				ConcatItems: []any{true},
 			},
 			Record([]string{"1"}),
 			"",
@@ -127,7 +127,7 @@ var _ = Describe("NodeID", func() {
 			&NodeID{
 				Name:        "id",
 				Type:        ValueTypeString,
-				ConcatItems: []interface{}{"c1", 3, "c2", 1, 2, "c3", 0, 10},
+				ConcatItems: []any{"c1", 3, "c2", 1, 2, "c3", 0, 10},
 			},
 			Record([]string{"s0", "s1", "s2", "s3"}),
 			"",
@@ -137,7 +137,7 @@ var _ = Describe("NodeID", func() {
 			&NodeID{
 				Name:        "id",
 				Type:        ValueTypeInt,
-				ConcatItems: []interface{}{"c1", 3, "c2", 1, 2, "c3", 0},
+				ConcatItems: []any{"c1", 3, "c2", 1, 2, "c3", 0},
 				Function:    func() *string { s := "hash"; return &s }(),
 			},
 			Record([]string{"s0", "s1", "s2", "s3"}),

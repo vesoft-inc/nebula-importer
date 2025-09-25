@@ -99,7 +99,7 @@ func (m *MockSource) Read(p []byte) (int, error) {
 }
 
 // Read indicates an expected call of Read.
-func (mr *MockSourceMockRecorder) Read(p interface{}) *gomock.Call {
+func (mr *MockSourceMockRecorder) Read(p any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockSource)(nil).Read), p)
 }

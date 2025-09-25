@@ -40,7 +40,7 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 // Import mocks base method.
 func (m *MockManager) Import(s source.Source, brr reader.BatchRecordReader, importers ...importer.Importer) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{s, brr}
+	varargs := []any{s, brr}
 	for _, a := range importers {
 		varargs = append(varargs, a)
 	}
@@ -50,9 +50,9 @@ func (m *MockManager) Import(s source.Source, brr reader.BatchRecordReader, impo
 }
 
 // Import indicates an expected call of Import.
-func (mr *MockManagerMockRecorder) Import(s, brr interface{}, importers ...interface{}) *gomock.Call {
+func (mr *MockManagerMockRecorder) Import(s, brr any, importers ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{s, brr}, importers...)
+	varargs := append([]any{s, brr}, importers...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Import", reflect.TypeOf((*MockManager)(nil).Import), varargs...)
 }
 
