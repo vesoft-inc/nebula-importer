@@ -1,7 +1,7 @@
 package reader
 
 import (
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
+	"log/slog"
 )
 
 const (
@@ -13,7 +13,7 @@ type (
 
 	options struct {
 		batch  int
-		logger logger.Logger
+		logger *slog.Logger
 	}
 )
 
@@ -23,7 +23,7 @@ func WithBatch(batch int) Option {
 	}
 }
 
-func WithLogger(l logger.Logger) Option {
+func WithLogger(l *slog.Logger) Option {
 	return func(m *options) {
 		m.logger = l
 	}
@@ -49,6 +49,6 @@ func (o *options) withOptions(opts ...Option) {
 	}
 
 	if o.logger == nil {
-		o.logger = logger.NopLogger
+		o.logger = slog.Default()
 	}
 }

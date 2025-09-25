@@ -2,6 +2,7 @@ package configv3
 
 import (
 	stderrors "errors"
+	"log/slog"
 	"path/filepath"
 
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/client"
@@ -82,25 +83,18 @@ var _ = Describe("Config", func() {
 			}
 		})
 
-		It("BuildLogger failed", func() {
-			c.Log = &Log{
-				Files: []string{filepath.Join("testdata", "not-exists", "1.log")},
-			}
-			Expect(c.Build()).To(HaveOccurred())
-		})
-
 		It("BuildClientPool failed", func() {
 			c.Client.Version = "v"
-			Expect(c.Build()).To(HaveOccurred())
+			Expect(c.Build(slog.Default())).To(HaveOccurred())
 		})
 
 		It("BuildManager failed", func() {
 			c.Manager.GraphName = ""
-			Expect(c.Build()).To(HaveOccurred())
+			Expect(c.Build(slog.Default())).To(HaveOccurred())
 		})
 
 		It("successfully", func() {
-			Expect(c.Build()).NotTo(HaveOccurred())
+			Expect(c.Build(slog.Default())).NotTo(HaveOccurred())
 			Expect(c.GetLogger()).NotTo(BeNil())
 			Expect(c.GetClientPool()).NotTo(BeNil())
 			Expect(c.GetManager()).NotTo(BeNil())

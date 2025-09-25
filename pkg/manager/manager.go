@@ -4,6 +4,7 @@ package manager
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/client"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/errors"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/importer"
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/reader"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/source"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/spec"
@@ -52,7 +52,7 @@ type (
 		chStart             chan struct{}
 		done                chan struct{}
 		isStopped           atomic.Bool
-		logger              logger.Logger
+		logger              *slog.Logger
 	}
 
 	Option func(*defaultManager)
@@ -84,7 +84,7 @@ func NewWithOpts(opts ...Option) Manager {
 	m.importerPool, _ = ants.NewPool(m.importerConcurrency)
 
 	if m.logger == nil {
-		m.logger = logger.NopLogger
+		m.logger = slog.Default()
 	}
 
 	return m
@@ -152,7 +152,7 @@ func WithAfterHooks(hooks ...*Hook) Option {
 	}
 }
 
-func WithLogger(l logger.Logger) Option {
+func WithLogger(l *slog.Logger) Option {
 	return func(m *defaultManager) {
 		m.logger = l
 	}
@@ -163,11 +163,12 @@ func (m *defaultManager) Import(s source.Source, brr reader.BatchRecordReader, i
 		return nil
 	}
 
-	logSourceField := logger.Field{Key: "source", Value: s.Name()}
+	logSourceField := "source"
+	logSourceValue := s.Name()
 
 	if err := s.Open(); err != nil {
 		err = errors.NewImportError(err, "manager: open import source failed").SetGraphName(m.graphName)
-		m.logError(err, "", logSourceField)
+		m.logError(err, "", logSourceField, logSourceValue)
 		return err
 	}
 
@@ -175,7 +176,7 @@ func (m *defaultManager) Import(s source.Source, brr reader.BatchRecordReader, i
 	if err != nil {
 		_ = s.Close()
 		err = errors.NewImportError(err, "manager: get size of import source failed").SetGraphName(m.graphName)
-		m.logError(err, "", logSourceField)
+		m.logError(err, "", logSourceField, logSourceValue)
 		return err
 	}
 	m.stats.AddTotalBytes(nBytes)
@@ -205,11 +206,11 @@ func (m *defaultManager) Import(s source.Source, brr reader.BatchRecordReader, i
 		})
 		if err != nil {
 			cleanup()
-			m.logError(err, "manager: submit reader failed", logSourceField)
+			m.logError(err, "manager: submit reader failed", logSourceField, logSourceValue)
 		}
 	}()
 
-	m.logger.Info("manager: add import source successfully", logSourceField)
+	m.logger.Info("manager: add import source successfully", logSourceField, logSourceValue)
 	return nil
 }
 
@@ -223,7 +224,7 @@ func (m *defaultManager) Start() error {
 	m.stats.Init()
 
 	if err := m.pool.Open(); err != nil {
-		m.logger.WithError(err).Error("manager: start client pool failed")
+		m.logger.With("error", err).Error("manager: start client pool failed")
 		return err
 	}
 
@@ -336,7 +337,10 @@ func (m *defaultManager) execHooks(name HookName) error {
 }
 
 func (m *defaultManager) loopImport(s source.Source, r reader.BatchRecordReader, importers ...importer.Importer) error {
-	logSourceField := logger.Field{Key: "source", Value: s.Name()}
+	logSourceField := "source"
+	logSourceValue := s.Name()
+
+	// Use the source field in the loop
 	for {
 		select {
 		case <-m.done:
@@ -346,7 +350,7 @@ func (m *defaultManager) loopImport(s source.Source, r reader.BatchRecordReader,
 			if err != nil {
 				if err != io.EOF {
 					err = errors.NewImportError(err, "manager: read batch failed").SetGraphName(m.graphName)
-					m.logError(err, "", logSourceField)
+					m.logError(err, "", logSourceField, logSourceValue)
 					return err
 				}
 				return nil
@@ -433,8 +437,17 @@ func (m *defaultManager) onRequestSucceeded(result *importer.ImportResp) {
 	m.stats.RequestSucceeded(int64(result.RecordNum), result.Latency, result.RespTime)
 }
 
-func (m *defaultManager) logError(err error, msg string, fields ...logger.Field) {
+func (m *defaultManager) logError(err error, msg string, keyValues ...any) {
 	e := errors.AsOrNewImportError(err)
-	fields = append(fields, logger.MapToFields(e.Fields())...)
-	m.logger.SkipCaller(1).WithError(e.Cause()).Error(msg, fields...)
+
+	// Convert fields to key-value pairs for slog
+	fields := e.Fields()
+	args := make([]any, 0, len(fields)*2+len(keyValues))
+	args = append(args, keyValues...)
+
+	for k, v := range fields {
+		args = append(args, k, v)
+	}
+
+	m.logger.With("error", e.Cause()).Error(msg, args...)
 }

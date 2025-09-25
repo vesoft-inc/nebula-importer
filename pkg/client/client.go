@@ -122,7 +122,7 @@ func (c *defaultClient) Execute(statement string) (Response, error) {
 		return retryErr
 	}, exp)
 	if err != nil {
-		c.logger.WithError(err).Error("execute statement failed")
+		c.logger.With("error", err).Error("execute statement failed")
 	}
 	return resp, err
 }

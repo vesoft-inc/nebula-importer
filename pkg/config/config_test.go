@@ -23,7 +23,6 @@ var _ = Describe("FromFile", func() {
 		Expect(cv3).NotTo(BeNil())
 
 		Expect(cv3.Client.Version).To(Equal(configbase.ClientVersion3))
-		Expect(cv3.Log.Files).To(HaveLen(1))
 		Expect(cv3.Manager.GraphName).To(Equal("graphName"))
 		Expect(cv3.Manager.GraphName).To(Equal("graphName"))
 		Expect(cv3.Sources).To(HaveLen(3))
@@ -69,7 +68,7 @@ var _ = Describe("FromBytes", func() {
 		c, err := FromBytes([]byte(`
 client:
   version: : v
-  
+
 `))
 		Expect(err).To(HaveOccurred())
 		Expect(c).To(BeNil())

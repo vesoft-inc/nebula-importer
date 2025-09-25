@@ -1,17 +1,16 @@
 package client
 
 import (
-	"github.com/vesoft-inc/nebula-importer/v4/pkg/logger"
+	"log/slog"
 
 	. "github.com/onsi/ginkgo/v2"
 )
 
 var _ = Describe("nebulaLogger", func() {
 	It("newNebulaLogger", func() {
-		l := newNebulaLogger(logger.NopLogger)
+		l := newNebulaLogger(slog.Default())
 		l.Info("")
 		l.Warn("")
 		l.Error("")
-		l.Fatal("")
 	})
 })
