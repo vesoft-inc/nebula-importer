@@ -41,7 +41,7 @@ func (m *MockImporter) Add(delta int) {
 }
 
 // Add indicates an expected call of Add.
-func (mr *MockImporterMockRecorder) Add(delta interface{}) *gomock.Call {
+func (mr *MockImporterMockRecorder) Add(delta any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockImporter)(nil).Add), delta)
 }
@@ -61,7 +61,7 @@ func (mr *MockImporterMockRecorder) Done() *gomock.Call {
 // Import mocks base method.
 func (m *MockImporter) Import(records ...spec.Record) (*ImportResp, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []any{}
 	for _, a := range records {
 		varargs = append(varargs, a)
 	}
@@ -72,7 +72,7 @@ func (m *MockImporter) Import(records ...spec.Record) (*ImportResp, error) {
 }
 
 // Import indicates an expected call of Import.
-func (mr *MockImporterMockRecorder) Import(records ...interface{}) *gomock.Call {
+func (mr *MockImporterMockRecorder) Import(records ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Import", reflect.TypeOf((*MockImporter)(nil).Import), records...)
 }

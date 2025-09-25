@@ -64,7 +64,7 @@ func FromFile(name string) (Configurator, error) {
 }
 
 func jsonToYaml(content []byte) ([]byte, error) {
-	var jsonObj interface{}
+	var jsonObj any
 	err := json.Unmarshal(content, &jsonObj)
 	if err != nil {
 		return nil, err

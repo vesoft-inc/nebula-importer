@@ -57,7 +57,7 @@ func (m *MockSession) Execute(statement string) (Response, error) {
 }
 
 // Execute indicates an expected call of Execute.
-func (mr *MockSessionMockRecorder) Execute(statement interface{}) *gomock.Call {
+func (mr *MockSessionMockRecorder) Execute(statement any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSession)(nil).Execute), statement)
 }

@@ -57,7 +57,7 @@ func (m *MockPool) Execute(statement string) (Response, error) {
 }
 
 // Execute indicates an expected call of Execute.
-func (mr *MockPoolMockRecorder) Execute(statement interface{}) *gomock.Call {
+func (mr *MockPoolMockRecorder) Execute(statement any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockPool)(nil).Execute), statement)
 }
@@ -72,7 +72,7 @@ func (m *MockPool) ExecuteChan(statement string) (<-chan ExecuteResult, bool) {
 }
 
 // ExecuteChan indicates an expected call of ExecuteChan.
-func (mr *MockPoolMockRecorder) ExecuteChan(statement interface{}) *gomock.Call {
+func (mr *MockPoolMockRecorder) ExecuteChan(statement any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExecuteChan", reflect.TypeOf((*MockPool)(nil).ExecuteChan), statement)
 }
@@ -80,7 +80,7 @@ func (mr *MockPoolMockRecorder) ExecuteChan(statement interface{}) *gomock.Call 
 // GetClient mocks base method.
 func (m *MockPool) GetClient(opts ...Option) (Client, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []any{}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -91,7 +91,7 @@ func (m *MockPool) GetClient(opts ...Option) (Client, error) {
 }
 
 // GetClient indicates an expected call of GetClient.
-func (mr *MockPoolMockRecorder) GetClient(opts ...interface{}) *gomock.Call {
+func (mr *MockPoolMockRecorder) GetClient(opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClient", reflect.TypeOf((*MockPool)(nil).GetClient), opts...)
 }
