@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	configbase "github.com/vesoft-inc/nebula-importer/v4/pkg/config/base"
 	"github.com/vesoft-inc/nebula-importer/v4/pkg/source"
 	specv3 "github.com/vesoft-inc/nebula-importer/v4/pkg/spec/v3"
 
@@ -165,6 +166,33 @@ var _ = Describe("Sources", func() {
 		Entry(nil, "./d1/f.yaml", []string{"/1.csv", "/2.csv"}, []string{"/1.csv", "/2.csv"}),
 		Entry(nil, "d1/f.yaml", []string{"/d10/1.csv", "/d20/2.csv"}, []string{"/d10/1.csv", "/d20/2.csv"}),
 	)
+
+	It("OptimizePath:hdfs auxiliary paths", func() {
+		sources := Sources{
+			{
+				Source: configbase.Source{
+					SourceConfig: source.Config{
+						HDFS: &source.HDFSConfig{
+							HadoopConfigDir: "hadoop/conf",
+							CoreSiteFile:    "./core-site.xml",
+							HDFSSiteFile:    "hdfs-site.xml",
+							Krb5ConfigFile:  "krb5.conf",
+							CCacheFile:      "./krb5cc",
+							KeyTabFile:      "user.keytab",
+						},
+					},
+				},
+			},
+		}
+
+		Expect(sources.OptimizePath("configs/importer.yaml")).NotTo(HaveOccurred())
+		Expect(sources[0].SourceConfig.HDFS.HadoopConfigDir).To(Equal(filepath.Join("configs", "hadoop", "conf")))
+		Expect(sources[0].SourceConfig.HDFS.CoreSiteFile).To(Equal(filepath.Join("configs", "core-site.xml")))
+		Expect(sources[0].SourceConfig.HDFS.HDFSSiteFile).To(Equal(filepath.Join("configs", "hdfs-site.xml")))
+		Expect(sources[0].SourceConfig.HDFS.Krb5ConfigFile).To(Equal(filepath.Join("configs", "krb5.conf")))
+		Expect(sources[0].SourceConfig.HDFS.CCacheFile).To(Equal(filepath.Join("configs", "krb5cc")))
+		Expect(sources[0].SourceConfig.HDFS.KeyTabFile).To(Equal(filepath.Join("configs", "user.keytab")))
+	})
 
 	Describe(".OptimizePathWildCard", func() {
 		var wd string

@@ -63,8 +63,14 @@
 | sources[].sftp.passphrase                   | The ssh key passphrase of sftp service.                                                              | -                |
 | sources[].sftp.path                         | The path of file in the ftp service.                                                                 | -                |
 | sources[].hdfs.address                      | The address of hdfs service.                                                                         | -                |
+| sources[].hdfs.backend                      | HDFS backend. Use `libhdfs` to route reads through Hadoop's native client.                           | "go"             |
 | sources[].hdfs.user                         | The user of hdfs service.                                                                            | -                |
 | sources[].hdfs.servicePrincipalName         | The kerberos service principal name of hdfs service when enable kerberos.                            | -                |
+| sources[].hdfs.hadoopConfigDir              | Directory containing Hadoop client XML files for the `libhdfs` backend.                              | -                |
+| sources[].hdfs.hadoopHome                   | Hadoop installation root for the `libhdfs` backend.                                                  | -                |
+| sources[].hdfs.javaHome                     | Java installation root for the `libhdfs` backend.                                                    | -                |
+| sources[].hdfs.coreSiteFile                 | Path to `core-site.xml` for the `libhdfs` backend.                                                   | -                |
+| sources[].hdfs.hdfsSiteFile                 | Path to `hdfs-site.xml` for the `libhdfs` backend.                                                   | -                |
 | sources[].hdfs.krb5ConfigFile               | The kerberos config file of hdfs service when enable kerberos.                                       | "/etc/krb5.conf" |
 | sources[].hdfs.ccacheFile                   | The ccache file of hdfs service when enable kerberos.                                                | -                |
 | sources[].hdfs.keyTabFile                   | The keytab file of hdfs service when enable kerberos.                                                | -                |
