@@ -41,7 +41,7 @@ func (s *libhdfsSource) Read(_ []byte) (int, error) {
 	return 0, s.unavailable()
 }
 
-func (s *libhdfsSource) Close() error {
+func (*libhdfsSource) Close() error {
 	return nil
 }
 

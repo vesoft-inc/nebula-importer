@@ -11,6 +11,8 @@ package source
 #include <string.h>
 #include <time.h>
 
+static int libhdfs_errno(void) { return errno; }
+
 typedef int32_t tSize;
 typedef time_t tTime;
 typedef int64_t tOffset;
@@ -197,7 +199,7 @@ func (s *libhdfsSource) Readdirnames(dir string) ([]string, error) {
 	var numEntries C.int
 	entries := C.hdfsListDirectory(s.fs, cDir, &numEntries)
 	if entries == nil {
-		if numEntries == 0 && C.errno == 0 {
+		if numEntries == 0 && C.libhdfs_errno() == 0 {
 			return []string{}, nil
 		}
 		return nil, s.lastError("hdfsListDirectory")
@@ -293,7 +295,7 @@ func (s *libhdfsSource) openFile(target string) (C.hdfsFile, error) {
 }
 
 func (s *libhdfsSource) lastError(op string) error {
-	if errno := C.errno; errno != 0 {
+	if errno := C.libhdfs_errno(); errno != 0 {
 		return &os.PathError{Op: op, Path: s.c.HDFS.Path, Err: fmt.Errorf("%s", C.strerror(errno))}
 	}
 	return &os.PathError{Op: op, Path: s.c.HDFS.Path, Err: os.ErrNotExist}

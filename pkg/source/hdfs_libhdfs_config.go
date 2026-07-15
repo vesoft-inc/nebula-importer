@@ -1,3 +1,5 @@
+//go:build cgo && libhdfs
+
 package source
 
 import (
@@ -93,5 +95,5 @@ func installLibHDFSConfigFile(src, dir, name string) error {
 	}
 
 	targetPath := filepath.Join(dir, name)
-	return os.WriteFile(targetPath, content, 0o644)
+	return os.WriteFile(targetPath, content, 0o600)
 }
