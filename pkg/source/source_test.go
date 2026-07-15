@@ -70,6 +70,18 @@ var _ = Describe("Source", func() {
 		Expect(s).To(BeAssignableToTypeOf(&hdfsSource{}))
 	})
 
+	It("HDFS:libhdfs", func() {
+		c := Config{
+			HDFS: &HDFSConfig{
+				Backend: "libhdfs",
+				Path:    "path",
+			},
+		}
+		s, err := New(&c)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(s).To(BeAssignableToTypeOf(&libhdfsSource{}))
+	})
+
 	It("Local", func() {
 		c := Config{
 			Local: &LocalConfig{

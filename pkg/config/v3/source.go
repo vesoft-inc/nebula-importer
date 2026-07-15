@@ -68,6 +68,26 @@ func (ss Sources) OptimizePath(configPath string) error {
 		if ss[i].SourceConfig.Local != nil {
 			ss[i].SourceConfig.Local.Path = utils.RelativePathBaseOn(configPathDir, ss[i].SourceConfig.Local.Path)
 		}
+		if ss[i].SourceConfig.HDFS != nil {
+			if ss[i].SourceConfig.HDFS.HadoopConfigDir != "" {
+				ss[i].SourceConfig.HDFS.HadoopConfigDir = utils.RelativePathBaseOn(configPathDir, ss[i].SourceConfig.HDFS.HadoopConfigDir)
+			}
+			if ss[i].SourceConfig.HDFS.CoreSiteFile != "" {
+				ss[i].SourceConfig.HDFS.CoreSiteFile = utils.RelativePathBaseOn(configPathDir, ss[i].SourceConfig.HDFS.CoreSiteFile)
+			}
+			if ss[i].SourceConfig.HDFS.HDFSSiteFile != "" {
+				ss[i].SourceConfig.HDFS.HDFSSiteFile = utils.RelativePathBaseOn(configPathDir, ss[i].SourceConfig.HDFS.HDFSSiteFile)
+			}
+			if ss[i].SourceConfig.HDFS.Krb5ConfigFile != "" {
+				ss[i].SourceConfig.HDFS.Krb5ConfigFile = utils.RelativePathBaseOn(configPathDir, ss[i].SourceConfig.HDFS.Krb5ConfigFile)
+			}
+			if ss[i].SourceConfig.HDFS.CCacheFile != "" {
+				ss[i].SourceConfig.HDFS.CCacheFile = utils.RelativePathBaseOn(configPathDir, ss[i].SourceConfig.HDFS.CCacheFile)
+			}
+			if ss[i].SourceConfig.HDFS.KeyTabFile != "" {
+				ss[i].SourceConfig.HDFS.KeyTabFile = utils.RelativePathBaseOn(configPathDir, ss[i].SourceConfig.HDFS.KeyTabFile)
+			}
+		}
 	}
 	return nil
 }

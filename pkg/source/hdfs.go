@@ -23,9 +23,15 @@ var (
 
 type (
 	HDFSConfig struct {
+		Backend                string `yaml:"backend,omitempty"`
 		Address                string `yaml:"address,omitempty"`
 		User                   string `yaml:"user,omitempty"`
 		ServicePrincipalName   string `yaml:"servicePrincipalName,omitempty"`
+		HadoopConfigDir        string `yaml:"hadoopConfigDir,omitempty"`
+		HadoopHome             string `yaml:"hadoopHome,omitempty"`
+		JavaHome               string `yaml:"javaHome,omitempty"`
+		CoreSiteFile           string `yaml:"coreSiteFile,omitempty"`
+		HDFSSiteFile           string `yaml:"hdfsSiteFile,omitempty"`
 		Krb5ConfigFile         string `yaml:"krb5ConfigFile,omitempty"`
 		CCacheFile             string `yaml:"ccacheFile,omitempty"`
 		KeyTabFile             string `yaml:"keyTabFile,omitempty"`
@@ -43,6 +49,10 @@ type (
 )
 
 func newHDFSSource(c *Config) Source {
+	if c.HDFS.useLibHDFS() {
+		return newLibHDFSSource(c)
+	}
+
 	return &hdfsSource{
 		c: c,
 	}
@@ -170,7 +180,15 @@ func (s *hdfsSource) Close() (err error) {
 }
 
 func (c *HDFSConfig) String() string {
+	if c.useLibHDFS() {
+		return fmt.Sprintf("hdfs[%s] %s %s", c.Backend, c.Address, c.Path)
+	}
+
 	return fmt.Sprintf("hdfs %s %s", c.Address, c.Path)
+}
+
+func (c *HDFSConfig) useLibHDFS() bool {
+	return strings.EqualFold(c.Backend, "libhdfs")
 }
 
 func (c *HDFSConfig) getKerberosClient() (*krb.Client, error) {

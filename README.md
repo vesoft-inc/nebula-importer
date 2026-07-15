@@ -277,9 +277,15 @@ It only needs to be configured for hdfs data sources.
 
 ```yaml
 hdfs:
+  backend: <go or libhdfs>
   address: 192.168.0.10:8020
   user: <user>
   servicePrincipalName: <Kerberos Service Principal Name>
+  hadoopConfigDir: <directory containing core-site.xml and hdfs-site.xml>
+  hadoopHome: <hadoop home for libhdfs>
+  javaHome: <java home for libhdfs>
+  coreSiteFile: <core-site.xml path>
+  hdfsSiteFile: <hdfs-site.xml path>
   krb5ConfigFile: <Kerberos config file>
   ccacheFile: <Kerberos ccache file>
   keyTabFile: <Kerberos keytab file>
@@ -290,8 +296,14 @@ hdfs:
 ```
 
 * `address`: **Required**. The address of hdfs service.
+* `backend`: **Optional**. HDFS backend, either `go` (default) or `libhdfs`. Use `libhdfs` for clusters that require the native Hadoop client, such as KMS-backed encryption zones.
 * `user`: **Optional**. The user of hdfs service.
 * `servicePrincipalName`: **Optional**. The kerberos service principal name of hdfs service when enable kerberos.
+* `hadoopConfigDir`: **Optional**. Directory containing Hadoop client XML files for the `libhdfs` backend.
+* `hadoopHome`: **Optional**. Hadoop installation root for the `libhdfs` backend.
+* `javaHome`: **Optional**. Java installation root for the `libhdfs` backend.
+* `coreSiteFile`: **Optional**. Path to `core-site.xml` for the `libhdfs` backend when you do not want to point `hadoopConfigDir` at a directory.
+* `hdfsSiteFile`: **Optional**. Path to `hdfs-site.xml` for the `libhdfs` backend when you do not want to point `hadoopConfigDir` at a directory.
 * `krb5ConfigFile`: **Optional**. The kerberos config file of hdfs service when enable kerberos, default is `/etc/krb5.conf`.
 * `ccacheFile`: **Optional**. The ccache file of hdfs service when enable kerberos.
 * `keyTabFile`: **Optional**. The keytab file of hdfs service when enable kerberos.
@@ -299,6 +311,8 @@ hdfs:
 * `dataTransferProtection`: **Optional**. The data transfer protection of hdfs service.
 * `disablePAFXFAST`: **Optional**. Whether to prohibit the client to use PA_FX_FAST.
 * `path`: **Required**. The path of file in the sftp service.
+
+When `backend: libhdfs` is enabled, build nebula-importer with `make build-libhdfs` (or `CGO_ENABLED=1 go build -tags libhdfs ...`) on a host that already has `libhdfs` available. The native backend uses Hadoop's client configuration and Kerberos ticket cache support, which is the recommended path for reading KMS-protected HDFS encryption zones.
 
 #### gcs
 

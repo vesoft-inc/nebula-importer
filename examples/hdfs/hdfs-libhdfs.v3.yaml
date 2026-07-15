@@ -1,0 +1,41 @@
+client:
+  version: v3
+  address: "127.0.0.1:9669"
+  user: root
+  password: nebula
+  concurrencyPerAddress: 10
+  reconnectInitialInterval: 1s
+  retry: 3
+  retryInitialInterval: 1s
+
+manager:
+  spaceName: hdfs_examples
+  batch: 128
+  readerConcurrency: 50
+  importerConcurrency: 512
+  statsInterval: 10s
+
+log:
+  level: INFO
+  console: true
+
+sources:
+  - hdfs:
+      backend: libhdfs
+      address: "hdfs://nameservice1"
+      user: "hdfs"
+      hadoopConfigDir: "/etc/hadoop/conf"
+      krb5ConfigFile: "/etc/krb5.conf"
+      ccacheFile: "/tmp/krb5cc_1000"
+      path: "/secure/events/20190918.export.csv"
+    csv:
+      delimiter: "\t"
+    tags:
+      - name: Tag
+        id:
+          type: "INT"
+          index: 0
+        props:
+          - name: "date"
+            type: "STRING"
+            index: 1

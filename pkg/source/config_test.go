@@ -58,13 +58,18 @@ var _ = Describe("Config", func() {
 		It("HDFS", func() {
 			c := Config{
 				HDFS: &HDFSConfig{
-					Path: "path",
+					Backend:      "libhdfs",
+					HDFSSiteFile: "hdfs-site.xml",
+					Path:         "path",
 				},
 			}
 			c1 := c.Clone()
 			Expect(c1.HDFS.Path).To(Equal("path"))
+			Expect(c1.HDFS.HDFSSiteFile).To(Equal("hdfs-site.xml"))
 			c.HDFS.Path = "x"
+			c.HDFS.HDFSSiteFile = "other.xml"
 			Expect(c1.HDFS.Path).To(Equal("path"))
+			Expect(c1.HDFS.HDFSSiteFile).To(Equal("hdfs-site.xml"))
 		})
 
 		It("Local", func() {

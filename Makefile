@@ -38,6 +38,9 @@ lint: $(GOBIN)/golangci-lint
 build:
 	$(GO_BUILD) -ldflags '$(LDFLAGS)' -o bin/nebula-importer ./cmd/nebula-importer/
 
+build-libhdfs:
+	CGO_ENABLED=1 go build -trimpath -tags libhdfs -ldflags '$(LDFLAGS)' -o bin/nebula-importer ./cmd/nebula-importer/
+
 test:
 	go test -gcflags=all="-l" -race -coverprofile=coverage.txt -covermode=atomic ./pkg/...
 
